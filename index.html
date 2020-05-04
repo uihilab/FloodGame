@@ -5,17 +5,107 @@
 <head>
     <title>FloodGame Playground</title>
     <meta charset="UTF-8" />
-    <script type="module" src="./js/main.js"></script>
+    <script type="module" src="./js/main_v1.js"></script>
     
     <link rel="stylesheet" href="css/default.css" />
+    <!--link rel="stylesheet" href="css/bulma.min.css" /-->
 </head>
 
 <body>
 
     <!-- Div which will hold the Output -->
-    <div id="webgl-output"></div>
 
+    <div id="webgl-output"></div>
+    <div id="location_panel">
+    	<div class="np_title2 np_blue">Location</div>
+    	<div class="resources">
+    		<table cellspacing="0" cellpadding="0">
+    			<tbody>
+    				<tr>
+    					<td width="115">
+    						<b>City</b>
+    					</td>
+    					<td>Iowa City</td>
+    				</tr>
+    				<tr>
+    					<td>
+    						<b>Population</b>
+    					</td>
+    					<td>70000</td>
+    				</tr>
+    				<tr>
+    					<td>
+    						<b>Land Area</b>
+    					</td>
+    					<td>25,28 sq mi</td>
+    				</tr>
+    			</tbody>
+    		</table>
+    	</div>
+    </div>
+    <div id="gui_deneme"></div>
+    <div id="budget_panel">
+    	<div class="np_title2 np_blue">Budget</div>
+    	<div class="resources">
+    		<table cellspacing="0" cellpadding="0">
+    			<tbody>
+    				<tr>
+    					<td width="115">
+    						<b>Total Budget</b>
+    					</td>
+    					<td>$10.000.000</td>
+    				</tr>
+    				<tr>
+    					<td>
+    						<b>Spent Budget</b>
+    					</td>
+    					<td>$9.000.000</td>
+    				</tr>
+    				<tr>
+    					<td>
+    						<b>Remaining</b>
+    					</td>
+    					<td>$1.000.000</td>
+    				</tr>
+    			</tbody>
+    		</table>
+    	</div>
+    </div>
+ 
+    <div id="empty_tile"></div>
+
+    <div id="building_panel">
+    	<div class="resources">
+    		<table cellspacing="0" cellpadding="0">
+    			<tbody>
+    				<tr>
+    					<td width="115">
+    						<b>City</b>
+    					</td>
+    					<td>Iowa City</td>
+    				</tr>
+    				<tr>
+    					<td>
+    						<b>Population</b>
+    					</td>
+    					<td>70000</td>
+    				</tr>
+    				<tr>
+    					<td>
+    						<b>Land Area</b>
+    					</td>
+    					<td>25,28 sq mi</td>
+    				</tr>
+    			</tbody>
+    		</table>
+    	</div>
+    	<button type="button" onclick="alert('Hello world!')"> Delete</button>
+    	<button type="button"> Add Protection</button>
+    	<button type="button"> Move</button>
+    	<button type="button"> Change Building Spec</button>
+    </div>
     <!-- Javascript code that runs our Three.js examples -->
+
 </body>
 
 </html>
