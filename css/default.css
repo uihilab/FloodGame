@@ -3,30 +3,6 @@ margin: 0;
     overflow: hidden;
 }
 
-#location_panel{
-	position: fixed;
-	width: %10;
-	height: %10;
-	background: yellow;
-	right: 20px;
-	bottom: 20px;
-}
-
-#budget_panel{
-	position: fixed;
-	width: %10;
-	height: %10;
-	background: red;
-	left: 20px;
-	bottom: 500px;
-}
-
-#building_panel{
-	position: absolute;
-	width: %10;
-	height: %10;
-	background: blue;
-	left: 20px;
-	top: 110px;
-	display: none;
+canvas {
+    display: block; /* fix necessary to remove space at bottom of canvas */
 }
