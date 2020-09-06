@@ -13,7 +13,7 @@ function main(){
 	var cameraControls;
 	const clock = new THREE.Clock();
 
-	var groundTiles, surfaceTiles, pos_of_objects;
+	var groundTiles, surfaceTiles, pos_of_objects, floodTiles;
 
 	var meshDict, meshDictIndex, floodMesh;
 
@@ -50,6 +50,11 @@ function main(){
 	var zoom = 2;
 
 
+	var isFlood = false;
+	var doFlood = false;
+	var ratioOfFlood = 0.0;
+	var maxFloodActionStep = 100;
+
 	var elevationhelper = {
 		"row": 0,
 		"column": 0,
@@ -83,7 +88,7 @@ function main(){
 
 
 
-	[groundTiles, surfaceTiles, pos_of_objects] = createTiles();
+	[groundTiles, surfaceTiles, floodTiles, pos_of_objects ] = createTiles();
 	console.log("groundTiles and surfaceTiles objects are created!!!");
 	[meshDict, meshDictIndex] = createMeshes();
 	console.log("meshDict is created!!!");
@@ -219,6 +224,34 @@ function main(){
 			//meshDict[obj.type].renderOrder = 0;
 		};
 
+
+		for (var row = 0; row < numberOfTiles_X; row++){
+			for (var column = 0; column < numberOfTiles_X; column++){
+
+				obj = floodTiles[row][column];
+
+				transform.rotation.x = 0;
+				transform.rotation.y = 0;
+				transform.rotation.z = 0;
+				transform.rotateY(-45 * THREE.Math.DEG2RAD);
+				
+				transform.scale.set(0, 0, 0);
+
+				[x, z] = calculatePosition(row, column);
+
+				transform.position.set(
+					-10,
+					-10,
+					-10);
+				transform.updateMatrix();
+
+				meshDict[obj.type].setMatrixAt(meshDictIndex[obj.type][0]++, transform.matrix);
+				floodTiles[row][column].instanceId = meshDictIndex[obj.type][0] - 1;
+			};
+		};
+
+
+
 		for (name of Object.keys(meshDict)){
 			scene.add(meshDict[name]);
 		};
@@ -311,7 +344,6 @@ function main(){
 
 				};
 
-				//cameraControls.zoom( camera.zoom / 2, true );
 			};
 
 			this.zoomOut = function(){
@@ -362,10 +394,20 @@ function main(){
 
 			};
 
+			this.flood = function(){
+
+				doFlood = !doFlood;
+				isFlood = true;
+
+			};
+
 			this.reset = function(){
 
 				zoom = 2;
 				cameraControls.reset();
+				isFlood = false;
+				clearFlood();
+				moveWireFrame_2(2, 0, 0);
 
 			};
 
@@ -375,6 +417,7 @@ function main(){
 		gui.add(gameControl, "zoomIn");
 		gui.add(gameControl, "zoomOut");
 		gui.add(gameControl, "reset");
+		gui.add(gameControl, "flood");
 
 	};
 
@@ -495,12 +538,86 @@ function main(){
 	};
 
 
+	function floodAction(){
+
+		var currentHeight, x, z;
+
+		transform.rotation.x = 0;
+		transform.rotation.y = 0;
+		transform.rotation.z = 0;
+		transform.rotateY(-45 * THREE.Math.DEG2RAD);
+
+		for (var row = 0; row < numberOfTiles_X; row++){
+			for (var column = 0; column < numberOfTiles_X; column++){
+
+				obj = floodTiles[row][column];
+				currentHeight = obj.height * ratioOfFlood / maxFloodActionStep;
+
+				transform.scale.set(
+					100, currentHeight, 100);
+
+				[x, z] = calculatePosition(row, column);
+
+				transform.position.set(
+					x,
+					groundTiles[row][column].elevation + currentHeight / 2,
+					z);
+				transform.updateMatrix();
+
+				meshDict[obj.type].setMatrixAt(obj.instanceId, transform.matrix);
+	
+			};
+		};
+
+		meshDict[obj.type].instanceMatrix.needsUpdate = true;
+		ratioOfFlood++;
+
+		if (ratioOfFlood == maxFloodActionStep + 1){
+
+			doFlood = false;
+			ratioOfFlood = 0;
+		};
+	};
+
+
+	function clearFlood(){
+
+		for (var row = 0; row < numberOfTiles_X; row++){
+			for (var column = 0; column < numberOfTiles_X; column++){
+
+				obj = floodTiles[row][column];
+
+				transform.scale.set(
+					0, 0, 0);
+
+				transform.position.set(
+					-10,
+					-10,
+					-10);
+				transform.updateMatrix();
+
+				meshDict[obj.type].setMatrixAt(obj.instanceId, transform.matrix);
+	
+			};
+		};
+
+		meshDict[obj.type].instanceMatrix.needsUpdate = true;
+	};
+
+
 	function animate() {
 
 		const delta = clock.getDelta();
 		const elapsed = clock.getElapsedTime();
 		const updated = cameraControls.update( delta );
+
 		requestAnimationFrame( animate );
+
+		if (doFlood){
+
+			floodAction();
+		}; 
+
 		render();
 		stats.update();
 
@@ -684,6 +801,10 @@ function main(){
 
 	function findElevation(row, column){
 
+		if (isFlood){
+			return groundTiles[row][column].elevation + floodTiles[row][column].height;
+		};
+
 		return groundTiles[row][column].elevation;
 
 	};
@@ -783,9 +904,15 @@ function main(){
 	function moveWireFrame_2 (type, row, column){
 
 		var [pos_x, pos_z] = [selectedTile.pos_x, selectedTile.pos_z];
+		var floodHeight = 0;
+
+		if (isFlood){
+			floodHeight = floodTiles[row][column].height;
+		};
+
 		wireframe_2.position.set(
 			selectedTile.pos_x,
-			groundTiles[row][column].elevation + 4,
+			groundTiles[row][column].elevation + floodHeight+ 4,
 			selectedTile.pos_z);
 		if (type == 1){ wireframe_2.visible = true;}
 		else{ wireframe_2.visible = false;};

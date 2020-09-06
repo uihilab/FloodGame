@@ -13,6 +13,7 @@ export function createMeshes(){
 	
 	var texFilesDict_ground = {};
 	var texFilesDict_building = {};
+	var texFilesDict_flood = {};
 
 	texFilesDict_building["b1"] = 0x330000;
 	texFilesDict_building["b2"] = 0x333300;
@@ -23,6 +24,8 @@ export function createMeshes(){
 	texFilesDict_ground["w1"] = ["#0d79ee", "#0d79ee", "#063b75", "#063b75", "#0d79ee", "#0d79ee", "#063b75", "#063b75", "#0d79ee", "#0d79ee", "#063b75", "#063b75", "#0d79ee", "#0d79ee", "#063b75", "#063b75", "#52a0f6", "#52a0f6", "#52a0f6", "#52a0f6"];
 	texFilesDict_ground["c1"] = ["#4b422b", "#4b422b", "#2a2518", "#2a2518", "#4b422b", "#4b422b", "#2a2518", "#2a2518", "#4b422b", "#4b422b", "#2a2518", "#2a2518", "#4b422b", "#4b422b", "#2a2518", "#2a2518", "#666666", "#666666", "#666666", "#666666"];
 	texFilesDict_ground["g1"] = ["#1d2a18", "#1d2a18", "#121a0f", "#121a0f", "#1d2a18", "#1d2a18", "#121a0f", "#121a0f", "#1d2a18", "#1d2a18", "#121a0f", "#121a0f", "#1d2a18", "#1d2a18", "#121a0f", "#121a0f", "#3f5b34", "#3f5b34", "#3f5b34", "#3f5b34"];
+
+	texFilesDict_flood["f1"] = ["#0d79ee", "#0d79ee", "#063b75", "#063b75", "#0d79ee", "#0d79ee", "#063b75", "#063b75", "#0d79ee", "#0d79ee", "#063b75", "#063b75", "#0d79ee", "#0d79ee", "#063b75", "#063b75", "#52a0f6", "#52a0f6", "#52a0f6", "#52a0f6"];;
 
 
 	meshDict = {};
@@ -38,6 +41,13 @@ export function createMeshes(){
 	for (name of Object.keys(texFilesDict_ground)){
 		meshDict[name] = returnInstancedMesh(
 			1, texFilesDict_ground[name]);
+		meshDict[name].name = name;
+		meshDictIndex[name] = [0, []];
+	};
+
+	for (name of Object.keys(texFilesDict_flood)){
+
+		meshDict[name] = returnInstancedMesh(2, texFilesDict_flood[name], 10000);
 		meshDict[name].name = name;
 		meshDictIndex[name] = [0, []];
 	};
@@ -130,7 +140,30 @@ function returnInstancedMesh(type, col, count=6000){
 		});
 
 	}
+
+	else if (type == 2){
+
+		var color = [];
+		for (var i=0; i < 20; i++){
+
+			var _color = new THREE.Color(col[i]);
+			color.push( _color.r , _color.g, _color.b );
+
+		};
+
+		geometry.setAttribute(
+			"color",
+			new THREE.BufferAttribute(new Float32Array(color), 3));
+
+		material = new THREE.MeshLambertMaterial({
+			vertexColors: THREE.VertexColors,
+			transparent: true,
+			opacity:0.5
+		});
+	}
+
 	else {
+
 		material = new THREE.MeshLambertMaterial({
 			color: col,
 		});

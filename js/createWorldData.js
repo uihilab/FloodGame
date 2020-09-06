@@ -1,7 +1,7 @@
 export function createTiles(){
 
 
-	var groundTiles, surfaceTiles;
+	var groundTiles, surfaceTiles, floodTiles;
 
 	var tileSize = 100;
 	var numberOfTiles = 10000;
@@ -13,15 +13,18 @@ export function createTiles(){
 
 	groundTiles = [];
 	surfaceTiles = [];
+	floodTiles = [];
 
 	for (var row = 0; row < numberOfTiles_X; row++){
 		groundTiles.push([]);
 		surfaceTiles.push([]);
+		floodTiles.push([]);
 		for (var column = 0; column < numberOfTiles_X; column++){
 			groundTiles[row].push(0);
 			surfaceTiles[row].push(0);
-		}
-	}
+			floodTiles[row].push(0);
+		};
+	};
 
 	//Water groundTiles
 	for (var row = 0; row < numberOfTiles_X; row++){
@@ -210,7 +213,20 @@ export function createTiles(){
 	}
 
 
-	return [groundTiles, surfaceTiles, pos_of_objects];
+	for (var row = 0; row < numberOfTiles_X; row++){
+		for (var column = 0; column < numberOfTiles_X; column++){
+			floodTiles[row][column] = new floodTile(
+				"f1",
+				row,
+				column,
+				getRandomArbitrary(10, 15),
+				groundTiles[row][column].elevation,
+				10,
+				row + column);
+		};
+	};
+
+	return [groundTiles, surfaceTiles, floodTiles, pos_of_objects];
 
 };
 
@@ -233,6 +249,17 @@ function surfaceTile(row, column, size, height, elevation, type, instanceId){
 	this.column = column;
 	this.elevation = elevation;
 	this.type = type;
+	this.instanceId = instanceId;
+	this.height = height;
+	this.size = size;
+};
+
+
+function floodTile(type, row, column, height, elevation, size, instanceId){
+	this.type = type;
+	this.row  = row;
+	this.column = column;
+	this.elevation = elevation;
 	this.instanceId = instanceId;
 	this.height = height;
 	this.size = size;
