@@ -1,5 +1,5 @@
 import {createTiles} from "./createWorldData.js";
-import {createMeshes} from "./loadModels_5side.js";
+import {createMeshes} from "./loadModels.js";
 import * as THREE from "./../libs/three.js-dev/build/three.module.js"
 import { GUI } from './../libs/three.js-dev/examples/jsm/libs/dat.gui.module.js';
 import Stats from './../libs/three.js-dev/examples/jsm/libs/stats.module.js';
@@ -13,7 +13,7 @@ function main(){
 	var cameraControls;
 	const clock = new THREE.Clock();
 
-	var groundTiles, surfaceTiles, pos_of_objects, floodTiles;
+	var groundTiles, surfaceTiles, pos_of_objects, floodTiles, countMap;
 
 	var meshDict, meshDictIndex, floodMesh;
 
@@ -88,10 +88,11 @@ function main(){
 
 
 
-	[groundTiles, surfaceTiles, floodTiles, pos_of_objects ] = createTiles();
+	[groundTiles, surfaceTiles, floodTiles, pos_of_objects, countMap ] = createTiles();
 	console.log("groundTiles and surfaceTiles objects are created!!!");
-	[meshDict, meshDictIndex] = createMeshes();
+	[meshDict, meshDictIndex] = createMeshes(countMap);
 	console.log("meshDict is created!!!");
+	console.log(countMap)
 
 	init();
 	onWindowResize();
@@ -128,7 +129,7 @@ function main(){
 		spotLight.receiveShadow = true;
 		spotLight.distance = 10000
 		spotLight.angle = Math.PI / 4
-		scene.add(spotLight);
+		//scene.add(spotLight);
 
 		// renderer
 		renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -173,11 +174,6 @@ function main(){
 			for (var column = 0; column < numberOfTiles_X; column++){
 
 				obj = groundTiles[row][column];
-
-				transform.rotation.x = 0;
-				transform.rotation.y = 0;
-				transform.rotation.z = 0;
-				transform.rotateY(-45 * THREE.Math.DEG2RAD);
 				
 				transform.scale.set(tileSize, obj.elevation, tileSize);
 
@@ -196,26 +192,22 @@ function main(){
 		};
 
 		
+		transform.scale.set(1, 1, 1);
+
 		for (let i of pos_of_objects){
 
 			[row, column] = [i[0], i[1]];
 			obj = surfaceTiles[row][column];
+						
 			
-			transform.rotation.x = 0;
-			transform.rotation.y = 0;
-			transform.rotation.z = 0;
-			transform.rotateY(-45 * THREE.Math.DEG2RAD);			
+			
 
-			transform.scale.set(
-				tileSize * obj.size / 10,
-				obj.height,
-				tileSize * obj.size / 10);
 			
 			[x, z] = calculatePosition(obj.row, obj.column);
 			
 			transform.position.set(
 				x,
-				obj.elevation + obj.height / 2,
+				obj.elevation,
 				z);
 			transform.updateMatrix();
 
@@ -224,42 +216,45 @@ function main(){
 			//meshDict[obj.type].renderOrder = 0;
 		};
 
+		transform.scale.set(0, 0, 0);
 
 		for (var row = 0; row < numberOfTiles_X; row++){
 			for (var column = 0; column < numberOfTiles_X; column++){
 
 				obj = floodTiles[row][column];
 
-				transform.rotation.x = 0;
-				transform.rotation.y = 0;
-				transform.rotation.z = 0;
-				transform.rotateY(-45 * THREE.Math.DEG2RAD);
-				
-				transform.scale.set(0, 0, 0);
+				if (obj != 0){
 
-				[x, z] = calculatePosition(row, column);
+					[x, z] = calculatePosition(row, column);
 
-				transform.position.set(
-					-10,
-					-10,
-					-10);
-				transform.updateMatrix();
+					transform.position.set(
+						-10,
+						-10,
+						-10);
+					transform.updateMatrix();
 
-				meshDict[obj.type].setMatrixAt(meshDictIndex[obj.type][0]++, transform.matrix);
-				floodTiles[row][column].instanceId = meshDictIndex[obj.type][0] - 1;
+					meshDict[obj.type].setMatrixAt(meshDictIndex[obj.type][0]++, transform.matrix);
+					floodTiles[row][column].instanceId = meshDictIndex[obj.type][0] - 1;
+				}
 			};
 		};
 
 
 
 		for (name of Object.keys(meshDict)){
-			scene.add(meshDict[name]);
+			if (name != "f1"){
+				scene.add(meshDict[name]);
+			};
 		};
 
 
 
 	};
 
+
+	function addFloodScene(){
+		scene.add(meshDict["f1"]);
+	};
 
 	function createWireframes(){
 
@@ -398,6 +393,7 @@ function main(){
 
 				doFlood = !doFlood;
 				isFlood = true;
+				addFloodScene();
 
 			};
 
@@ -542,34 +538,31 @@ function main(){
 
 		var currentHeight, x, z;
 
-		transform.rotation.x = 0;
-		transform.rotation.y = 0;
-		transform.rotation.z = 0;
-		transform.rotateY(-45 * THREE.Math.DEG2RAD);
-
 		for (var row = 0; row < numberOfTiles_X; row++){
 			for (var column = 0; column < numberOfTiles_X; column++){
 
 				obj = floodTiles[row][column];
-				currentHeight = obj.height * ratioOfFlood / maxFloodActionStep;
+				if (obj != 0){
+					currentHeight = obj.height * ratioOfFlood / maxFloodActionStep;
 
-				transform.scale.set(
-					100, currentHeight, 100);
+					transform.scale.set(
+						tileSize, currentHeight, tileSize);
 
-				[x, z] = calculatePosition(row, column);
+					[x, z] = calculatePosition(row, column);
 
-				transform.position.set(
-					x,
-					groundTiles[row][column].elevation + currentHeight / 2,
-					z);
-				transform.updateMatrix();
+					transform.position.set(
+						x,
+						groundTiles[row][column].elevation + currentHeight / 2,
+						z);
+					transform.updateMatrix();
 
-				meshDict[obj.type].setMatrixAt(obj.instanceId, transform.matrix);
+					meshDict[obj.type].setMatrixAt(obj.instanceId, transform.matrix);
+				};
 	
 			};
 		};
 
-		meshDict[obj.type].instanceMatrix.needsUpdate = true;
+		meshDict["f1"].instanceMatrix.needsUpdate = true;
 		ratioOfFlood++;
 
 		if (ratioOfFlood == maxFloodActionStep + 1){
@@ -582,26 +575,30 @@ function main(){
 
 	function clearFlood(){
 
+
+		transform.scale.set(0, 0, 0);
+
 		for (var row = 0; row < numberOfTiles_X; row++){
 			for (var column = 0; column < numberOfTiles_X; column++){
 
 				obj = floodTiles[row][column];
 
-				transform.scale.set(
-					0, 0, 0);
+				if (obj != 0){
+					
+					transform.position.set(
+						-10,
+						-10,
+						-10);
+					transform.updateMatrix();
 
-				transform.position.set(
-					-10,
-					-10,
-					-10);
-				transform.updateMatrix();
-
-				meshDict[obj.type].setMatrixAt(obj.instanceId, transform.matrix);
+					meshDict[obj.type].setMatrixAt(obj.instanceId, transform.matrix);
+				}
 	
 			};
 		};
 
-		meshDict[obj.type].instanceMatrix.needsUpdate = true;
+		meshDict["f1"].instanceMatrix.needsUpdate = true;
+		scene.remove(meshDict["f1"]);
 	};
 
 
@@ -932,22 +929,19 @@ function main(){
 
 		obj = surfaceTiles[selectedBuilding.row][selectedBuilding.column];
 
-		transform.rotation.x = 0;
-		transform.rotation.y = 0;
-		transform.rotation.z = 0;
-		transform.rotateY(-45 * THREE.Math.DEG2RAD);
+
 
 		transform.scale.set(
-			tileSize * obj.size / 10,
-			obj.height,
-			tileSize * obj.size / 10
+			1,
+			1,
+			1,
 		);
 
 		var [x, z] = calculatePosition(row, column);
 
 		transform.position.set(
 			x,
-			groundTiles[row][column].elevation + obj.height / 2,
+			groundTiles[row][column].elevation,
 			z);
 		transform.updateMatrix();
 
@@ -969,19 +963,16 @@ function main(){
 
 		var [x, z] = calculatePosition(row, column);
 
-		transform.rotation.x = 0;
-		transform.rotation.y = 0;
-		transform.rotation.z = 0;
-		transform.rotateY(-45 * THREE.Math.DEG2RAD);
+
 
 		transform.scale.set(
-			tileSize * size / 10,
-			height,
-			tileSize * size / 10);
+			1,
+			1,
+			1);
 
 		transform.position.set(
 			x,
-			groundTiles[row][column].elevation + height / 2,
+			groundTiles[row][column].elevation,
 			z);
 		transform.updateMatrix();
 
@@ -1017,10 +1008,7 @@ function main(){
 
 		var [x, z] = calculatePosition(row, column);
 
-		transform.rotation.x = 0;
-		transform.rotation.y = 0;
-		transform.rotation.z = 0;
-		transform.rotateY(-45 * THREE.Math.DEG2RAD);
+
 
 		transform.scale.set(
 			tileSize,
@@ -1042,19 +1030,16 @@ function main(){
 
 			surfaceTiles[row][column].elevation = elevation;
 
-			transform.rotation.x = 0;
-			transform.rotation.y = 0;
-			transform.rotation.z = 0;
-			transform.rotateY(-45 * THREE.Math.DEG2RAD);
+
 
 			transform.scale.set(
-				tileSize * surfaceTiles[row][column].size / 10,
-				surfaceTiles[row][column].height,
-				tileSize * surfaceTiles[row][column].size / 10);
+				1,
+				1,
+				1);
 
 			transform.position.set(
 				x,
-				elevation + surfaceTiles[row][column].height / 2,
+				elevation,
 				z);
 			transform.updateMatrix();
 
@@ -1080,10 +1065,7 @@ function main(){
 		
 		var [x, z] = calculatePosition(row, column);
 
-		transform.rotation.x = 0;
-		transform.rotation.y = 0;
-		transform.rotation.z = 0;
-		transform.rotateY(-45 * THREE.Math.DEG2RAD);
+
 
 		transform.scale.set(
 			tileSize,

@@ -1,0 +1,173 @@
+{
+    "asset": {
+        "generator": "FBX2glTF v0.9.7",
+        "version": "2.0"
+    },
+    "scene": 0,
+    "buffers": [
+        {
+            "byteLength": 45816,
+            "uri": "buffer.bin"
+        }
+    ],
+    "bufferViews": [
+        {
+            "buffer": 0,
+            "byteLength": 4728,
+            "byteOffset": 0,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 15408,
+            "byteOffset": 4728,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 15408,
+            "byteOffset": 20136,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 10272,
+            "byteOffset": 35544,
+            "target": 34962
+        }
+    ],
+    "scenes": [
+        {
+            "name": "Root Scene",
+            "nodes": [
+                0
+            ]
+        }
+    ],
+    "accessors": [
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 2364,
+            "bufferView": 0,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 1284,
+            "bufferView": 1,
+            "byteOffset": 0,
+            "min": [
+                -0.120000004768372,
+                -4.16478405895759e-06,
+                -0.0666034519672394
+            ],
+            "max": [
+                0.120000004768372,
+                0.0999999940395355,
+                0.0600000210106373
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 1284,
+            "bufferView": 2,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 1284,
+            "bufferView": 3,
+            "byteOffset": 0
+        }
+    ],
+    "samplers": [
+        {}
+    ],
+    "materials": [
+        {
+            "name": "SPW_Urban_Bldg_15",
+            "alphaMode": "OPAQUE",
+            "extras": {
+                "fromFBX": {
+                    "shadingModel": "Phong",
+                    "isTruePBR": false
+                }
+            },
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    0.800000011920929,
+                    0.800000011920929,
+                    0.800000011920929,
+                    1.0
+                ],
+                "metallicFactor": 0.400000005960464,
+                "roughnessFactor": 1.0
+            }
+        }
+    ],
+    "meshes": [
+        {
+            "name": "SPW_Urban_Bldg_15",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 2,
+                        "POSITION": 1,
+                        "TEXCOORD_0": 3
+                    },
+                    "indices": 0
+                }
+            ]
+        }
+    ],
+    "nodes": [
+        {
+            "name": "RootNode",
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                1
+            ]
+        },
+        {
+            "name": "SPW_Urban_Bldg_15",
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                -3.77489506320217e-08,
+                -0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                100.0,
+                100.0,
+                100.0
+            ],
+            "mesh": 0
+        }
+    ]
+}

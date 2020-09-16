@@ -1,0 +1,173 @@
+{
+    "asset": {
+        "generator": "FBX2glTF v0.9.7",
+        "version": "2.0"
+    },
+    "scene": 0,
+    "buffers": [
+        {
+            "byteLength": 17948,
+            "uri": "buffer.bin"
+        }
+    ],
+    "bufferViews": [
+        {
+            "buffer": 0,
+            "byteLength": 2076,
+            "byteOffset": 0,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 5952,
+            "byteOffset": 2076,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 5952,
+            "byteOffset": 8028,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 3968,
+            "byteOffset": 13980,
+            "target": 34962
+        }
+    ],
+    "scenes": [
+        {
+            "name": "Root Scene",
+            "nodes": [
+                0
+            ]
+        }
+    ],
+    "accessors": [
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 1038,
+            "bufferView": 0,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 496,
+            "bufferView": 1,
+            "byteOffset": 0,
+            "min": [
+                -0.199999988079071,
+                -8.74227890079737e-09,
+                -0.200000032782555
+            ],
+            "max": [
+                0.200000032782555,
+                0.00200000870972872,
+                0.200000017881393
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 496,
+            "bufferView": 2,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 496,
+            "bufferView": 3,
+            "byteOffset": 0
+        }
+    ],
+    "samplers": [
+        {}
+    ],
+    "materials": [
+        {
+            "name": "SPW_Urban_Road",
+            "alphaMode": "OPAQUE",
+            "extras": {
+                "fromFBX": {
+                    "shadingModel": "Phong",
+                    "isTruePBR": false
+                }
+            },
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    0.800000011920929,
+                    0.800000011920929,
+                    0.800000011920929,
+                    1.0
+                ],
+                "metallicFactor": 0.400000005960464,
+                "roughnessFactor": 1.0
+            }
+        }
+    ],
+    "meshes": [
+        {
+            "name": "SPW_Urban_Road 4way_2way Intersection_02",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 2,
+                        "POSITION": 1,
+                        "TEXCOORD_0": 3
+                    },
+                    "indices": 0
+                }
+            ]
+        }
+    ],
+    "nodes": [
+        {
+            "name": "RootNode",
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                1
+            ]
+        },
+        {
+            "name": "SPW_Urban_Road 4way_2way Intersection_02",
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                2.1855694143369e-08,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                100.0,
+                100.0,
+                100.0
+            ],
+            "mesh": 0
+        }
+    ]
+}

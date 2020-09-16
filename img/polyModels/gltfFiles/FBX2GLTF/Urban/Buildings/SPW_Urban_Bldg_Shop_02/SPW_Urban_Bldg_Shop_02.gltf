@@ -1,0 +1,173 @@
+{
+    "asset": {
+        "generator": "FBX2glTF v0.9.7",
+        "version": "2.0"
+    },
+    "scene": 0,
+    "buffers": [
+        {
+            "byteLength": 24360,
+            "uri": "buffer.bin"
+        }
+    ],
+    "bufferViews": [
+        {
+            "buffer": 0,
+            "byteLength": 2088,
+            "byteOffset": 0,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 8352,
+            "byteOffset": 2088,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 8352,
+            "byteOffset": 10440,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 5568,
+            "byteOffset": 18792,
+            "target": 34962
+        }
+    ],
+    "scenes": [
+        {
+            "name": "Root Scene",
+            "nodes": [
+                0
+            ]
+        }
+    ],
+    "accessors": [
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 1044,
+            "bufferView": 0,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 696,
+            "bufferView": 1,
+            "byteOffset": 0,
+            "min": [
+                -0.0520000047981739,
+                -5.67436231335705e-09,
+                -0.057169284671545
+            ],
+            "max": [
+                0.0520000047981739,
+                0.0992153063416481,
+                0.0480000115931034
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 696,
+            "bufferView": 2,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 696,
+            "bufferView": 3,
+            "byteOffset": 0
+        }
+    ],
+    "samplers": [
+        {}
+    ],
+    "materials": [
+        {
+            "name": "SPW_Urban_Bldg_Shop",
+            "alphaMode": "OPAQUE",
+            "extras": {
+                "fromFBX": {
+                    "shadingModel": "Phong",
+                    "isTruePBR": false
+                }
+            },
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    0.800000011920929,
+                    0.800000011920929,
+                    0.800000011920929,
+                    1.0
+                ],
+                "metallicFactor": 0.400000005960464,
+                "roughnessFactor": 1.0
+            }
+        }
+    ],
+    "meshes": [
+        {
+            "name": "SPW_Urban_Bldg_Shop_02",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 2,
+                        "POSITION": 1,
+                        "TEXCOORD_0": 3
+                    },
+                    "indices": 0
+                }
+            ]
+        }
+    ],
+    "nodes": [
+        {
+            "name": "RootNode",
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                1
+            ]
+        },
+        {
+            "name": "SPW_Urban_Bldg_Shop_02",
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                -3.77489506320217e-08,
+                -0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                100.0,
+                100.0,
+                100.0
+            ],
+            "mesh": 0
+        }
+    ]
+}

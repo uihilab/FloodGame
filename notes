@@ -1,0 +1,29 @@
+https://maps.googleapis.com/maps/api/staticmap?center=41.657387,-91.541414&zoom=15&style=feature:all|element:labels|visibility:simplified&size=1200x1200&scale=2&maptype=roadmap&key=
+
+
+
+
+Bar 1 = acik gri = > bina
+  RGB values: (238, 238, 240)
+  HSV values: (120, 2, 240)
+Bar 2 = white => yol - 
+  RGB values: (253, 253, 253)
+  HSV values: (0, 0, 253)
+Bar 3 = krem => bina
+  RGB values: (253, 242, 225)
+  HSV values: (18, 28, 253)
+Bar 4 = gri => bina
+  RGB values: (220, 221, 225)
+  HSV values: (114, 6, 225)
+Bar 5 = mavi => su
+  RGB values: (170, 218, 255)
+  HSV values: (103, 85, 255)
+Bar 6 = acik yesil => park
+  RGB values: (197, 233, 198)
+  HSV values: (61, 39, 233)
+Bar 7 = sari => bina
+  RGB values: (252, 233, 157)
+  HSV values: (24, 96, 252)
+Bar 8 = koyu yesil => park
+  RGB values: (105, 174, 124)
+  HSV values: (68, 101, 174)
