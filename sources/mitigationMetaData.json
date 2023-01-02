@@ -1,0 +1,197 @@
+{
+        "Wetfloodproofing": {
+            "ground_tile": false,
+            "structure_tile": true,
+            "id": "wetfloodproofing_mit"
+        },
+        "Dryfloodproofing": {
+            "ground_tile": false,
+            "structure_tile": true,
+            "id": "dryfloodproofing_mit"
+        },
+        "add_structure": {
+            "opts": true,
+            "cost": 250,
+            "ground_tile": true,
+            "structure_tile": false,
+            "id": "add_structure_mit",
+            "opts_values": {
+                "Res1": {
+                    "value": "Res1",
+                    "text": "Building 1",
+                    "cost": 465000
+                },
+                "Res2": {
+                    "value": "Res2",
+                    "text": "Building 2",
+                    "cost": 315000
+                },
+                "Res3": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 900000
+                },
+                "Com": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 1600000
+                },
+                "Ind": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 3960000
+                },
+                "Hos": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 50000000
+                },
+                "Fire": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 1220000
+                },
+                "Pol": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 2400000
+                },
+                "Wat": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 1600000
+                },
+                "School": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 390000
+                },
+                "Shel1": {
+                    "value": "Shel1",
+                    "text": "Building 1",
+                    "cost": 465000
+                },
+                "Shel2": {
+                    "value": "Shel2",
+                    "text": "Building 2",
+                    "cost": 315000
+                },
+                "Shel3": {
+                    "value": "Shel3",
+                    "text": "Building 3",
+                    "cost": 900000
+                }
+
+            }
+        },
+        "change_tile": {
+            "opts": true,
+            "cost": 250,
+            "ground_tile": true,
+            "structure_tile": false,
+            "id": "change_tile_mit",
+            "opts_values": {
+                "w1": {
+                    "value": "w1",
+                    "text": "Water",
+                    "cost": 160
+                },
+                "c1": {
+                    "value": "c1",
+                    "text": "Concrete",
+                    "cost": 260
+                },
+                "g1": {
+                    "value": "g1",
+                    "text": "Grass",
+                    "cost": 360
+                }
+
+            }
+        },
+        "flood_wall": {
+            "name": "Floodwall",
+            "opts": true,
+            "cost": 250,
+            "ground_tile": true,
+            "structure_tile": true,
+            "id": "flood_wall_mit",
+            "opts_values": {
+                "1": {
+                    "value": 1,
+                    "text": "1 feets",
+                    "cost": 150
+                },
+                "2": {
+                    "value": 2,
+                    "text": "2 feets",
+                    "cost": 250
+                },
+                "3": {
+                    "value": 3,
+                    "text": "3 feets",
+                    "cost": 350
+                },
+                "4": {
+                    "value": 4,
+                    "text": "4 feets",
+                    "cost": 450
+                }
+
+            }
+        },
+        "sand_bag": {
+            "opts": true,
+            "cost": 250,
+            "ground_tile": true,
+            "structure_tile": true,
+            "id": "sand_bag_mit",
+            "opts_values": {
+                "1": {
+                    "value": 1,
+                    "text": "1 feets",
+                    "cost": 170
+                },
+                "2": {
+                    "value": 2,
+                    "text": "2 feets",
+                    "cost": 270
+                },
+                "3": {
+                    "value": 3,
+                    "text": "3 feets",
+                    "cost": 370
+                }
+
+
+            }
+        },
+        "insurance": {
+            "opts": false,
+            "cost": 250,
+            "ground_tile": true,
+            "structure_tile": true,
+            "id": "insurance_mit"
+        },
+        "relocate_structure": {
+            "opts": false,
+            "cost": 250,
+            "ground_tile": false,
+            "structure_tile": true,
+            "id": "relocate_structure_mit"
+        },
+        "remove_structure": {
+            "opts": false,
+            "cost": 250,
+            "ground_tile": false,
+            "structure_tile": true,
+            "id": "remove_structure_mit"
+        },
+        "elevate_structure": {
+            "opts": false,
+            "cost": 250,
+            "ground_tile": false,
+            "structure_tile": true,
+            "id": "elevate_structure_mit"
+        }
+    }

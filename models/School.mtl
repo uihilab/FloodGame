@@ -1,0 +1,40 @@
+newmtl Pink_Light
+Kd 0.9452768 0.9088148 0.8933923
+d 1
+
+newmtl white
+Kd 0.9593465 0.9593465 0.9593465
+d 1
+
+newmtl Glass.1
+Kd 0.1792362 0.572921 0.7014107
+d 1
+
+newmtl Brown
+Kd 0.826657 0.7792266 0.7094058
+d 1
+
+newmtl Grey
+Kd 0.6726329 0.6726329 0.6726329
+d 1
+
+newmtl Yellow
+Kd 0.9063317 0.8579041 0
+d 1
+
+newmtl Black
+Kd 0.4534661 0.4483453 0.4483453
+d 1
+
+newmtl Mat.1
+Kd 0.7917868 0.7269906 0.7171038
+d 1
+
+newmtl Glass_Green
+Kd 0.6565607 0.7857769 0.7575931
+d 1
+
+newmtl Steel
+Kd 0.7288625 0.7183117 0.6938041
+d 1
+

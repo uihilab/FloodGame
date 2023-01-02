@@ -261,7 +261,7 @@ var CameraControls = (function (_super) {
                 else if (_this._camera.isOrthographicCamera) {
                     var camera_2 = _this._camera;
                     var truckX = deltaX * (camera_2.right - camera_2.left) / camera_2.zoom / elementRect_1.z;
-                    var pedestalY = deltaY * (camera_2.top - camera_2.bottom) / camera_2.zoom / elementRect_1.w;
+                    var pedestalY = 5 * deltaY * (camera_2.top - camera_2.bottom) / camera_2.zoom / elementRect_1.w;
                     _this.truck(truckX, pedestalY, true);
                 }
             };

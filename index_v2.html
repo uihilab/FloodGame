@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>FloodGame </title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+    <link rel="stylesheet" href="./css/style.css">
+    <script type="module" src="./js/main_new.js"></script>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+</head>
+
+<body>
+    <div class="row no-gutters">
+        <div class="col-3">
+            <div class="main">
+                <div class="gameMenu">
+                    <div class="main-title">
+                        <span style="border-bottom: 2px solid #ce8d1c; padding-bottom: 3px;">FloodGame</span>
+                    </div>
+                    <div class="button-section card-one-section">
+                        <div class="card-title" id="timer">Game Actions</div>
+                        <div class="card-one-section-content">
+                            <button class="blue gameButton" value="start">Play Game</button>
+                            <button class="red gameButton" value="true">Show Risks</button>
+                            <button class="grey gameButton" value="true">Mitigated Areas</button>
+                            <button class="green gameButton" data-toggle="modal" data-target="#exampleModal">Progress</button>
+                        </div>
+                    </div>
+                    <div class="tile-info card_">
+                        <div class="card-title">Tile Information</div>
+                        <div class="card-content-left">
+                            <div class="card-content-item">
+                                <div class="card-content-item-def"> Type: </div>
+                                <div class="card-content-item-val"> Commercial Property </div>
+                            </div>
+                            <div class="card-content-item">
+                                <div class="card-content-item-def"> Water Level: </div>
+                                <div class="card-content-item-val"> 10 ft </div>
+                            </div>
+                        </div>
+                        <div class="card-content-right">
+                            <div class="card-content-item">
+                                <div class="card-content-item-def"> People: </div>
+                                <div class="card-content-item-val"> 50 </div>
+                            </div>
+                            <div class="card-content-item">
+                                <div class="card-content-item-def"> Risk Level: </div>
+                                <div class="card-content-item-val"> 5 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mitigation-opts card-mitigation">
+                        <div class="card-title">Mitigation Options</div>
+                        <div class="card-content-mitigation">
+                            <div class="mitigation-option" id="add_structure_mit">
+                                <div class="mitigation-name"> Add Structure </div>
+                                <div class="mitigation-value">
+                                    <select>
+                                        <option selected value="Res1">Small Residential</option>
+                                        <option value="Res2">Medium Residential</option>
+                                        <option value="Res3">Large Residential</option>
+                                        <option value="Com">Commercial Building</option>
+                                        <option value="Ind">Industrial Building</option>
+                                        <option value="Hos">Hospital</option>
+                                        <option value="Fire">Fire Station</option>
+                                        <option value="Pol">Police Station</option>
+                                        <option value="Wat">Water Treatment</option>
+                                        <option value="School">School</option>
+                                        <option value="t1">Tree</option>
+                                        <option value="road">Road</option>
+                                        <option value="road_h">Road_H</option>
+                                        <option value="road_c">Road_C</option>
+                                        <option value="parking">Parking</option>
+                                    </select>
+                                </div>
+                                <div class="mitigation-cost"> $1000 </div>
+                                <div class="mitigation-status"> <input type="checkbox"> </div>
+                            </div>
+                            <div class="mitigation-option" id="change_tile_mit">
+                                <div class="mitigation-name"> Change Tile </div>
+                                <div class="mitigation-value">
+                                    <select>
+                                        <option selected value="w1">Water</option>
+                                        <option value="c1">Concrete</option>
+                                        <option value="g1">Grass</option>
+                                        <option value="road1">Road1</option>
+                                        <option value="road2">Road2</option>
+                                    </select>
+                                </div>
+                                <div class="mitigation-cost"> $500 </div>
+                                <div class="mitigation-status"> <input type="checkbox"> </div>
+                            </div>
+                            <div class="mitigation-option" id="flood_wall_mit">
+                                <div class="mitigation-name"> Flood Wall </div>
+                                <div class="mitigation-value">
+                                    <select>
+                                        <option selected value="1">1 feet</option>
+                                        <option value="2">2 feet</option>
+                                        <option value="3">3 feet</option>
+                                        <option value="4">4 feet</option>
+                                    </select>
+                                </div>
+                                <div class="mitigation-cost"> $300 </div>
+                                <div class="mitigation-status"> <input type="checkbox"> </div>
+                            </div>
+                            <div class="mitigation-option" id="sand_bag_mit">
+                                <div class="mitigation-name"> Sand Bag </div>
+                                <div class="mitigation-value">
+                                    <select>
+                                        <option selected value="1">1 feet</option>
+                                        <option value="2">2 feet</option>
+                                        <option value="3">3 feet</option>
+                                    </select>
+                                </div>
+                                <div class="mitigation-cost"> $200 </div>
+                                <div class="mitigation-status"> <input type="checkbox"> </div>
+                            </div>
+                            <div class="mitigation-option" id="insurance_mit">
+                                <div class="mitigation-name"> Insurance </div>
+                                <div class="mitigation-value"> </div>
+                                <div class="mitigation-cost"> $300 </div>
+                                <div class="mitigation-status"> <input type="checkbox"> </div>
+                            </div>
+                            <div class="mitigation-option" id="relocate_structure_mit">
+                                <div class="mitigation-name"> Relocate Structure </div>
+                                <div class="mitigation-value"> </div>
+                                <div class="mitigation-cost"> $1200 </div>
+                                <div class="mitigation-status"> <input type="checkbox"> </div>
+                            </div>
+                            <div class="mitigation-option" id="remove_structure_mit">
+                                <div class="mitigation-name"> Remove Structure </div>
+                                <div class="mitigation-value"> </div>
+                                <div class="mitigation-cost"> $400 </div>
+                                <div class="mitigation-status"> <input type="checkbox"> </div>
+                            </div>
+                            <div class="mitigation-option" id="elevate_structure_mit">
+                                <div class="mitigation-name"> Elevate Structure </div>
+                                <div class="mitigation-value"><input type="range" min="1" max="10" value="1"> </div>
+                                <div class="mitigation-cost"> $200 </div>
+                                <div class="mitigation-status"> <input type="checkbox"> </div>
+                                </li>
+                            </div>
+                            <div class="mitigation-option" id="wetfloodproofing_mit">
+                                <div class="mitigation-name"> Wet Floodproofing </div>
+                                <div class="mitigation-value">
+                                    <select>
+                                        <option selected value="1">1 feet</option>
+                                        <option value="2">2 feet</option>
+                                        <option value="3">3 feet</option>
+                                    </select>
+                                </div>
+                                <div class="mitigation-cost"> $200 </div>
+                                <div class="mitigation-status"> <input type="checkbox"> </div>
+                            </div>
+                            <div class="mitigation-option" id="dryfloodproofing_mit">
+                                <div class="mitigation-name"> Dry Floodproofing </div>
+                                <div class="mitigation-value">
+                                    <select>
+                                        <option selected value="1">1 feet</option>
+                                        <option value="2">2 feet</option>
+                                        <option value="3">3 feet</option>
+                                    </select>
+                                </div>
+                                <div class="mitigation-cost"> $200 </div>
+                                <div class="mitigation-status"> <input type="checkbox"> </div>
+                            </div>
+                            <div class="mitigation-option" id="shelter_mit">
+                                <div class="mitigation-name"> Add Shelter </div>
+                                <div class="mitigation-value">
+                                    <select>
+                                        <option selected value="1">Small</option>
+                                        <option value="2">Medium</option>
+                                        <option value="3">Big</option>
+                                    </select>
+                                </div>
+                                <div class="mitigation-cost"> $200 </div>
+                                <div class="mitigation-status"> <input type="checkbox"> </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="quick-facts card_">
+                        <div class="card-title">Quick Facts</div>
+                        <div class="card-content-left">
+                            <div class="card-content-item">
+                                <div class="card-content-item-def"> Budget:</div>
+                                <div class="card-content-item-val"> $500000</div>
+                            </div>
+                            <div class="card-content-item">
+                                <div class="card-content-item-def"> Expenses:</div>
+                                <div class="card-content-item-val"> $300000</div>
+                            </div>
+                            <div class="card-content-item">
+                                <div class="card-content-item-def"> Remaining:</div>
+                                <div class="card-content-item-val"> $200000</div>
+                            </div>
+                        </div>
+                        <div class="card-content-right">
+                            <div class="card-content-item">
+                                <div class="card-content-item-def"> Secured Pop.:</div>
+                                <div class="card-content-item-val"> 400</div>
+                            </div>
+                            <div class="card-content-item">
+                                <div class="card-content-item-def"> Mitigated Area:</div>
+                                <div class="card-content-item-val"> 120</div>
+                            </div>
+                            <div class="card-content-item">
+                                <div class="card-content-item-def"> Risky Area:</div>
+                                <div class="card-content-item-val"> 200</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div id="status-report">
+                            <div class="main-title status-report-title">
+                                <span style="border-bottom: 2px solid #ce8d1c; padding-bottom: 3px;">FloodGame Game Progress</span>
+                            </div>
+                            <div class="card_ status-report-facts">
+                                <div class="card-title">Critical Facts</div>
+                                <div class="card-content-left">
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Secured Buildings:</div>
+                                        <div class="card-content-item-val">201/7700</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Secured Critical Facilities</div>
+                                        <div class="card-content-item-val">120/475</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Avoided Loss:</div>
+                                        <div class="card-content-item-val">400000</div>
+                                    </div>
+                                </div>
+                                <div class="card-content-right">
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Remaining Budget:</div>
+                                        <div class="card-content-item-val">4000/7700</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Sheltered Population:</div>
+                                        <div class="card-content-item-val">240/475</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Affected People:</div>
+                                        <div class="card-content-item-val">2500/4000</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card_ status-report-goals">
+                                <div class="card-title">Goals</div>
+                                <div class="card-content-left">
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Secure 50 Buildings:</div>
+                                        <div class="card-content-item-val">120/50</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Apply Sandbag:</div>
+                                        <div class="card-content-item-val">0/1</div>
+                                    </div>
+                                </div>
+                                <div class="card-content-right">
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Shelter 50 People:</div>
+                                        <div class="card-content-item-val">60/50</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Secure 50 Area :</div>
+                                        <div class="card-content-item-val">201/50</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel1" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div id="game-report">
+                            <div class="main-title game-report-title">
+                                <span style="border-bottom: 2px solid #ce8d1c; padding-bottom: 3px;">FloodGame Game Report</span>
+                            </div>
+                            <div class="card game-report-facts">
+                                <div class="card-title">Critical Facts</div>
+                                <div class="card-content-left">
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Secured Area:</div>
+                                        <div class="card-content-item-val">201</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Secured Building:</div>
+                                        <div class="card-content-item-val">120</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Secured People:</div>
+                                        <div class="card-content-item-val">250</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Secured Money:</div>
+                                        <div class="card-content-item-val">15000</div>
+                                    </div>
+                                </div>
+                                <div class="card-content-right">
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Affected Area:</div>
+                                        <div class="card-content-item-val">120</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Affected Building:</div>
+                                        <div class="card-content-item-val">150</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Affected People:</div>
+                                        <div class="card-content-item-val">150</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Total Damage:</div>
+                                        <div class="card-content-item-val">25000</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card game-report-goals">
+                                <div class="card-title ">Goals</div>
+                                <div class="card-content-left">
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Secure 50 Buildings:</div>
+                                        <div class="card-content-item-val">Pass</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Apply Sandbag:</div>
+                                        <div class="card-content-item-val">Pass</div>
+                                    </div>
+                                </div>
+                                <div class="card-content-right">
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Shelter 50 People:</div>
+                                        <div class="card-content-item-val">Fail</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Secure 50 Area :</div>
+                                        <div class="card-content-item-val">Pass</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card game-report-summary">
+                                <div class="card-title">Summary</div>
+                                <div class="card-content-left">
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Remaining Budget:</div>
+                                        <div class="card-content-item-val">25000</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Total Expanses:</div>
+                                        <div class="card-content-item-val">15000</div>
+                                    </div>
+                                </div>
+                                <div class="card-content-right">
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Applied Mitigation:</div>
+                                        <div class="card-content-item-val">210</div>
+                                    </div>
+                                    <div class="card-content-item">
+                                        <div class="card-content-item-def">Sheltered Population:</div>
+                                        <div class="card-content-item-val">40</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class=" col-9 " id="webgl-output">
+        </div>
+    </div>
+</body>
+
+</html>

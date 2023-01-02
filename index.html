@@ -1,19 +1,1491 @@
 <!DOCTYPE html>
-
 <html>
 
 <head>
-    <title>FloodGame Playground</title>
-    <meta charset="UTF-8" />
-    <script type="module" src="./js/main.js"></script>
-    <link rel="stylesheet" href="css/default.css" />
-   
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, height=device-height">
+    <title>FloodGame</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <script src="https://kit.fontawesome.com/b11836b105.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript" src="sources/data.json"></script>
+    <script type="module" src="./js/main_new_v2.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <!-- playground-hide -->
+    <script>
+        const process = { env: {} };
+      process.env.GOOGLE_MAPS_API_KEY =
+        "AIzaSyAi9ZclWNZruhG2e3mmR9GtH3p-V0dXgps";
+
+    </script>
 </head>
 
 <body>
-
-    <div id="webgl-output"></div>
-
+    <div class="tile is-ancestor is-fullheight top_layout" style="">
+        <div class="tile is-3 is-vertical is-parent has-background-black " style="min-width: 350px!important;">
+            <div class="tile is-child card" style="max-height: 15%;">
+                <header class="card-header" style="background-color: #296fa8">
+                    <p class="card-header-title is-centered" style="color: white" id="titleFloodGame">
+                        FloodGame
+                    </p>
+                </header>
+                <div class="card-content" style="padding: 1rem;">
+                    <div class="content">
+                        <div class="buttons is-centered">
+                            <button class="button is-small is-primary" value="start">Start</button>
+                            <button class="button is-small is-danger" value="true" id="show_risks">Show Risks</button>
+                            <button class="button is-small is-warning js-modal-trigger" data-target="modalDetails">Report</button>
+                            <button class="button is-small is-info js-modal-trigger" data-target="modalInfo">Info</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tile is-child box small-25" style="overflow-y: auto; padding: 0.75rem!important;" id="deneme">
+                <div class="tabs is-toggle is-size-7 is-centered">
+                    <ul>
+                        <li class="is-active" data-target="tile-information">
+                            <a>
+                                <span>Tile Information</span>
+                            </a>
+                        </li>
+                        <li data-target="mitigation-options">
+                            <a>
+                                <span>Mitigation Options</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div id="tile_mitigation" class="is-size-7">
+                    <div id="tile-information" class="is-centered">
+                        <div class="tile-information">
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Type:
+                                </div>
+                                <div class="has-text-right">
+                                    Commercial Property
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    People:
+                                </div>
+                                <div class="has-text-right">
+                                    50
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Water Level:
+                                </div>
+                                <div class="has-text-right">
+                                    5 ft
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Risk Level:
+                                </div>
+                                <div class="has-text-right">
+                                    3
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="mitigation-options" class="is-hidden">
+                        <div class="mitigation-options is-vcentered">
+                            <div class="mitigation-option" id="add_structure_mit">
+                                <div class="mitigation-name">
+                                    Add Structure
+                                </div>
+                                <div class="mitigation-value">
+                                    <div class="select">
+                                        <select id="buildingOptionsSelect">
+                                            <option selected value="Res1">S. Residential</option>
+                                            <option value="Res2">M. Residential</option>
+                                            <option value="Res3">L. Residential</option>
+                                            <option value="Com">Commercial Bldng.</option>
+                                            <option value="Ind">Industrial Bldng.</option>
+                                            <option value="Hos">Hospital</option>
+                                            <option value="Fire">Fire Station</option>
+                                            <option value="Pol">Police Station</option>
+                                            <option value="Wat">Water Treatment</option>
+                                            <option value="School">School</option>
+                                            <option value="t1">Tree</option>
+                                            <option value="road">Road</option>
+                                            <option value="road_h">Road_H</option>
+                                            <option value="road_c">Road_C</option>
+                                            <option value="parking">Parking</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mitigation-cost">
+                                    1000
+                                </div>
+                                <div class="mitigation-status">
+                                    <input type="checkbox">
+                                </div>
+                            </div>
+                            <div class="mitigation-option" id="change_tile_mit">
+                                <div class="mitigation-name">
+                                    Change Tile
+                                </div>
+                                <div class="mitigation-value">
+                                    <div class="select">
+                                        <select>
+                                            <option selected value="w1">Water</option>
+                                            <option value="c1">Concrete</option>
+                                            <option value="g1">Grass</option>
+                                            <option value="road1">Road1</option>
+                                            <option value="road2">Road2</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mitigation-cost">
+                                    1000
+                                </div>
+                                <div class="mitigation-status">
+                                    <input type="checkbox">
+                                </div>
+                            </div>
+                            <div class="mitigation-option" id="flood_wall_mit">
+                                <div class="mitigation-name">
+                                    Flood Wall
+                                </div>
+                                <div class="mitigation-value">
+                                    <div class="select">
+                                        <select>
+                                            <option selected value="1">1 feet</option>
+                                            <option value="2">2 feet</option>
+                                            <option value="3">3 feet</option>
+                                            <option value="4">4 feet</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mitigation-cost">
+                                    1000
+                                </div>
+                                <div class="mitigation-status">
+                                    <input type="checkbox">
+                                </div>
+                            </div>
+                            <div class="mitigation-option" id="sand_bag_mit">
+                                <div class="mitigation-name">
+                                    Sand Bag
+                                </div>
+                                <div class="mitigation-value">
+                                    <div class="select">
+                                        <select>
+                                            <option selected value="1">1 feet</option>
+                                            <option value="2">2 feet</option>
+                                            <option value="3">3 feet</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mitigation-cost">
+                                    1000
+                                </div>
+                                <div class="mitigation-status">
+                                    <input type="checkbox">
+                                </div>
+                            </div>
+                            <div class="mitigation-option" id="insurance_mit">
+                                <div class="mitigation-name">
+                                    Insurance
+                                </div>
+                                <div class="mitigation-value">
+                                </div>
+                                <div class="mitigation-cost">
+                                    1000
+                                </div>
+                                <div class="mitigation-status">
+                                    <input type="checkbox">
+                                </div>
+                            </div>
+                            <div class="mitigation-option" id="relocate_structure_mit">
+                                <div class="mitigation-name">
+                                    Relocate Structure
+                                </div>
+                                <div class="mitigation-value">
+                                </div>
+                                <div class="mitigation-cost">
+                                    1000
+                                </div>
+                                <div class="mitigation-status">
+                                    <input type="checkbox">
+                                </div>
+                            </div>
+                            <div class="mitigation-option" id="remove_structure_mit">
+                                <div class="mitigation-name">
+                                    Remove Structure
+                                </div>
+                                <div class="mitigation-value">
+                                </div>
+                                <div class="mitigation-cost">
+                                    1000
+                                </div>
+                                <div class="mitigation-status">
+                                    <input type="checkbox">
+                                </div>
+                            </div>
+                            <div class="mitigation-option" id="elevate_structure_mit">
+                                <div class="mitigation-name">
+                                    Elevate Structure
+                                </div>
+                                <div class="mitigation-value range-wrap">
+                                    <input type="range" min="1" max="10" value="1" class="range">
+                                    <output class="bubble has-text-centered"></output>
+                                </div>
+                                <div class="mitigation-cost">
+                                    1000
+                                </div>
+                                <div class="mitigation-status">
+                                    <input type="checkbox">
+                                </div>
+                            </div>
+                            <div class="mitigation-option" id="wetfloodproofing_mit">
+                                <div class="mitigation-name">
+                                    Wet Floodproofing
+                                </div>
+                                <div class="mitigation-value">
+                                    <div class="select">
+                                        <select>
+                                            <option selected value="1">1 feet</option>
+                                            <option value="2">2 feet</option>
+                                            <option value="3">3 feet</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mitigation-cost">
+                                    1000
+                                </div>
+                                <div class="mitigation-status">
+                                    <input type="checkbox">
+                                </div>
+                            </div>
+                            <div class="mitigation-option" id="dryfloodproofing_mit">
+                                <div class="mitigation-name">
+                                    Dry Floodproofing
+                                </div>
+                                <div class="mitigation-value">
+                                    <div class="select">
+                                        <select>
+                                            <option selected value="1">1 feet</option>
+                                            <option value="2">2 feet</option>
+                                            <option value="3">3 feet</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mitigation-cost">
+                                    1000
+                                </div>
+                                <div class="mitigation-status">
+                                    <input type="checkbox">
+                                </div>
+                            </div>
+                            <div class="mitigation-option" id="shelter_mit">
+                                <div class="mitigation-name"> Add Shelter </div>
+                                <div class="mitigation-value">
+                                    <div class="select">
+                                        <select>
+                                            <option selected value="Shel1">Small</option>
+                                            <option value="Shel2">Medium</option>
+                                            <option value="Shel3">Big</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mitigation-cost"> $465k </div>
+                                <div class="mitigation-status"> <input type="checkbox"> </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tile is-child accordion is-size-7" id="accordion-menu" style="max-height: 30%">
+                <div class="card">
+                    <header class="card-header is-toggle" data-target="critical-facts" style="background-color: #3e8ed0; border: 2px solid black; cursor: pointer;">
+                        <p class="card-header-title" style="color: white;">
+                            Game Progress
+                        </p>
+                        <button class="card-header-icon" aria-label="more options">
+                            <span class="icon">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </header>
+                    <div class="card-content" id="critical-facts" style="border: 2px solid black;">
+                        <div class="content game-progress">
+                            <div class="game-progress-info ">
+                                <div class="has-text-weight-bold">
+                                    Remaining Budget:
+                                </div>
+                                <div class="has-text-right">
+                                    300K / 500K
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Vulnerable Population:
+                                </div>
+                                <div class="has-text-right">
+                                    4000 / 6000
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Avoided Loss:
+                                </div>
+                                <div class="has-text-right">
+                                    500K
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Secured Building:
+                                </div>
+                                <div class="has-text-right">
+                                    3000 / 5000
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Shelter Capacity:
+                                </div>
+                                <div class="has-text-right">
+                                    5000
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Secured Critical Buildings:
+                                </div>
+                                <div class="has-text-right">
+                                    5 / 8
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <header class="card-header" data-target="goals" style="background-color: #3e8ed0; border: 2px solid black; cursor: pointer;">
+                        <p class="card-header-title" style="color: white;">
+                            Goals
+                        </p>
+                        <button class="card-header-icon" aria-label="more options">
+                            <span class="icon">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </header>
+                    <div class="card-content is-hidden" id="goals" style="border: 2px solid black;">
+                        <div class="content goal-information">
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Secure Critical Buildings:
+                                </div>
+                                <div class="has-text-right">
+                                    5 / 8
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Secured 100 People:
+                                </div>
+                                <div class="has-text-right">
+                                    0 / 100
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Apply FloodWall:
+                                </div>
+                                <div class="has-text-right">
+                                    In Progress
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Shelter 100 People:
+                                </div>
+                                <div class="has-text-right">
+                                    0 / 100
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tile is-9 is-parent" id="webgl-output" style="margin: 0; padding: 0">
+        </div>
+    </div>
+    <div class="card info-deneme" style="display: none; position: absolute; max-width: 300px; left: max( calc(25vw) , 350px ); bottom: 20px">
+        <header class="card-header" style="background-color: #3e8ed0;">
+            <p class="card-header-title" id="infoBoxHeader" style="color: white;">
+                Component
+            </p>
+        </header>
+        <div class="card-content">
+            <div class="content" id="infoBoxContent">
+                It provides an impermeable perimeter for the building at a certain design level which is ranging between 1 to 4 feet. This method is often applied to non-residential structures in the United States
+            </div>
+        </div>
+    </div>
+    <div class="card info-denemee" style="display: none; position: absolute; max-width: 300px; left: max( calc(25vw) , 350px ); bottom: 20px">
+        <header class="card-header" style="background-color: #3e8ed0;">
+            <p class="card-header-title" id="infoBoxHeaderr" style="color: white;">
+                Structures Info
+            </p>
+        </header>
+        <div class="card-content">
+            <div class="content" id="infoBoxContentt">
+                <div class="table-container">
+                    <table class="table is-narrow">
+                        <thead>
+                            <tr>
+                                <th>Structure</th>
+                                <th>People</th>
+                                <th>Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody style="font-weight: lighter!important;">
+                            <tr>
+                                <th>S. Residential</th>
+                                <th>5</th>
+                                <th>$465k</th>
+                            </tr>
+                            <tr>
+                                <th>M. Residential</th>
+                                <th>20</th>
+                                <th>$315k</th>
+                            </tr>
+                            <tr>
+                                <th>L. Residential</th>
+                                <th>40</th>
+                                <th>$900k</th>
+                            </tr>
+                            <tr>
+                                <th>Commercial Bldng</th>
+                                <th>50</th>
+                                <th>$1.6M</th>
+                            </tr>
+                            <tr>
+                                <th>Industrial Bldng</th>
+                                <th>50</th>
+                                <th>$3.96M</th>
+                            </tr>
+                            <tr>
+                                <th>Hospital</th>
+                                <th>50</th>
+                                <th>$50M</th>
+                            </tr>
+                            <tr>
+                                <th>Fire Station</th>
+                                <th>50</th>
+                                <th>$1.22M</th>
+                            </tr>
+                            <tr>
+                                <th>Police Station</th>
+                                <th>50</th>
+                                <th>$2.4M</th>
+                            </tr>
+                            <tr>
+                                <th>Water Treatment</th>
+                                <th>50</th>
+                                <th>$1.6M</th>
+                            </tr>
+                            <tr>
+                                <th>School</th>
+                                <th>50</th>
+                                <th>$390k</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card show_risks" style="display: none; position: absolute; max-width: 300px; left: max( calc(25vw) , 350px ); bottom: 20px">
+        <header class="card-header" style="background-color: #3e8ed0;">
+            <p class="card-header-title" style="color: white;">
+                Show Risks
+            </p>
+        </header>
+        <div class="card-content">
+            <div class="content">
+                <ul>
+                    <li><span style="color: red">Red</span> lines show risky regions.</li>
+                    <li><span style="color: green;">Green</span> lines show the regions that applied a mitigation and eliminated its flood risk.</li>
+                    <li><span style="color: #FFC300;">Yellow</span> lines show the regions that applied a mitigation and couldn't eliminate its flood risk.</li>
+                    <li><span style="color: white; background-color: black;">White</span> lines show the regions that never had a flood risks.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="clockDiv" style="display: none" value="start">
+        10:23
+    </div>
+    <div class="modal closeableModel" id="modalDetails">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head" style="background-color: #3e8ed0;">
+                <p class="modal-card-title has-text-centered" style="color: white;">Game Report</p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <section class="modal-card-body">
+                <div class="game-reports">
+                    <div>
+                        <h2 style="color: #3e8ed0">Social Vulnerability</h2>
+                        <hr style="margin-top: 1px; margin-bottom: 3px; background-color: #3e8ed0">
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); font-size: 80%;">
+                        <div class="content goal-information">
+                            <div class="game-progress-info game-progress-info-report">
+                                <div class="has-text-weight-bold">
+                                    Affected People:
+                                </div>
+                                <div class="has-text-right">
+                                    5 / 8
+                                </div>
+                            </div>
+                            <div class="game-progress-info game-progress-info-report">
+                                <div class="has-text-weight-bold">
+                                    Sheltered Population:
+                                </div>
+                                <div class="has-text-right">
+                                    0 / 100
+                                </div>
+                            </div>
+                            <div class="game-progress-info game-progress-info-report">
+                                <div class="has-text-weight-bold">
+                                    Impacted Residential Buildings:
+                                </div>
+                                <div class="has-text-right">
+                                    In Progress
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content goal-information">
+                            <div class="game-progress-info game-progress-info-report">
+                                <div class="has-text-weight-bold">
+                                    Secured People:
+                                </div>
+                                <div class="has-text-right">
+                                    5 / 8
+                                </div>
+                            </div>
+                            <div class="game-progress-info game-progress-info-report">
+                                <div class="has-text-weight-bold">
+                                    Secured Building:
+                                </div>
+                                <div class="has-text-right">
+                                    0 / 100
+                                </div>
+                            </div>
+                            <div class="game-progress-info game-progress-info-report">
+                                <div class="has-text-weight-bold">
+                                    Impacted Commercial Buildings:
+                                </div>
+                                <div class="has-text-right">
+                                    In Progress
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--                 <div class="game-reports">
+                    <div>
+                        <h2 style="color: #3e8ed0">Critical Infrastructure Vulnerability</h2>
+                        <hr style="margin-top: 1px; margin-bottom: 3px; background-color: #3e8ed0">
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); font-size: 80%;">
+                        <div class="content goal-information">
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Water Treatment Facility:
+                                </div>
+                                <div class="has-text-right">
+                                    In Progress
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Police Station:
+                                </div>
+                                <div class="has-text-right">
+                                    In Progress
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Fire Station:
+                                </div>
+                                <div class="has-text-right">
+                                    In Progress
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content goal-information">
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Hospital:
+                                </div>
+                                <div class="has-text-right">
+                                    In Progress
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    School:
+                                </div>
+                                <div class="has-text-right">
+                                    In Progress
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    City Hall:
+                                </div>
+                                <div class="has-text-right">
+                                    In Progress
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+                <div class="game-reports">
+                    <div>
+                        <h2 style="color: #3e8ed0">Economic Impact</h2>
+                        <hr style="margin-top: 1px; margin-bottom: 3px; background-color: #3e8ed0">
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); font-size: 80%;">
+                        <div class="content goal-information">
+                            <div class="game-progress-info game-progress-info-report">
+                                <div class="has-text-weight-bold">
+                                    Remaining Budget:
+                                </div>
+                                <div class="has-text-right">
+                                    5 / 8
+                                </div>
+                            </div>
+                            <div class="game-progress-info game-progress-info-report">
+                                <div class="has-text-weight-bold">
+                                    Total Loss:
+                                </div>
+                                <div class="has-text-right">
+                                    0 / 100
+                                </div>
+                            </div>
+                            <div class="game-progress-info game-progress-info-report">
+                                <div class="has-text-weight-bold">
+                                    Impacted Industrial Buildings:
+                                </div>
+                                <div class="has-text-right">
+                                    In Progress
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content goal-information">
+                            <div class="game-progress-info game-progress-info-report">
+                                <div class="has-text-weight-bold">
+                                    Avoided Loss:
+                                </div>
+                                <div class="has-text-right">
+                                    5 / 8
+                                </div>
+                            </div>
+                            <div class="game-progress-info game-progress-info-report">
+                                <div class="has-text-weight-bold">
+                                    Benefit Cost Ratio:
+                                </div>
+                                <div class="has-text-right">
+                                    0 / 100
+                                </div>
+                            </div>
+                            <div class="game-progress-info game-progress-info-report">
+                                <div class="has-text-weight-bold">
+                                    Applied Mitigation:
+                                </div>
+                                <div class="has-text-right">
+                                    In Progress
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="game-reports">
+                    <div>
+                        <h2 style="color: #3e8ed0">Goals</h2>
+                        <hr style="margin-top: 1px; margin-bottom: 3px; background-color: #3e8ed0">
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); font-size: 80%;">
+                        <div class="content goal-information">
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Secure Critical Buildings:
+                                </div>
+                                <div class="has-text-right">
+                                    5 / 8
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Apply FloodWall:
+                                </div>
+                                <div class="has-text-right">
+                                    0 / 100
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content goal-information">
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Secured 100 People:
+                                </div>
+                                <div class="has-text-right">
+                                    5 / 8
+                                </div>
+                            </div>
+                            <div class="game-progress-info">
+                                <div class="has-text-weight-bold">
+                                    Shelter 100 People:
+                                </div>
+                                <div class="has-text-right">
+                                    0 / 100
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <footer class="modal-card-foot" style="background-color: #3e8ed0">
+                <button class="button is-success">Export as PDF</button>
+            </footer>
+        </div>
+    </div>
+    <div class="modal closeableModel" id="modalInfo">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head" style="background-color: #3e8ed0">
+                <p class="modal-card-title has-text-centered" style="color: white;">FloodGame</p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <section class="modal-card-body">
+                <div style="margin-bottom: 5px">
+                    <p>
+                        FloodGame aims to create a web-based serious game geared towards educating K-12 and college students, and public on flood prevention and mitigation strategies, such that they are more informed about the implications of future flooding events.
+                    </p>
+                </div>
+                <h1 style="color: #3e8ed0">How to Play</h1>
+                <hr style="margin-top: 2px; margin-bottom: 2px; background-color: #3e8ed0">
+                <div class="content" style="font-size: 90%;">
+                    <ul>
+                        <li>Press Start button to begin the game.</li>
+                        <li>Select the tile and see its information.</li>
+                        <li>If decided to apply a mitigation to selected tile, select the mitigation option from the Mitigation Options tab.</li>
+                        <li>Game Progress and Goals sections give crucial information about the current situation.</li>
+                        <li>Click Show Risks button to risky areas.</li>
+                        <li>Hover mitigation or structure options to see details about them.</li>
+                        <li>Watch the <a href="https://hydroinformatics.uiowa.edu/" target="_blank">How to Play!</a> for more information.</li>
+                    </ul>
+                </div>
+            </section>
+            <footer class="modal-card-foot" style="background-color: #3e8ed0; justify-content: space-around">
+                <figure class="image" style="width: 20%">
+                    <a href="https://hydroinformatics.uiowa.edu/" target="_blank">
+                        <img src="css/img/uihilab.png">
+                    </a>
+                </figure>
+                <div style="color: white;">
+                    Contact us at: uihilab@gmail.com
+                </div>
+            </footer>
+        </div>
+    </div>
+    <div style=" position: absolute; max-width: 300px; right: 20px; top: 20px">
+        <span class="icon is-large" style="margin: 2px">
+            <i class="fas fa-search-minus is-clickable fa-2x fa-border zoomIcons" style="color:#3e8ed0; background-color: white;"></i>
+        </span>
+        <span class="icon is-large" style="margin: 2px">
+            <i class="fas fa-search-plus is-clickable fa-2x fa-border zoomIcons" style="color:#3e8ed0; background-color: white;"></i>
+        </span>
+    </div>
+    <!--     <div class="dialog" style="display: block; height:100px;">
+        <div class="modall-backdrop"></div>
+        <div class="modall card ">
+            <header class="card-header" style="background-color: #296fa8">
+                <p class="card-header-title is-centered is-size-4" style="color: white">
+                    FloodGame
+                </p>
+            </header>
+            <div class="modall__content">
+                <div id="test1" class="card">
+                    <div class="card-content" style="display:  grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div class="has-text-centered">
+                            <div class="card-image has-text-centered is-clickable" onclick="document.getElementById('test2').classList.remove('is-hidden'); document.getElementById('test1').classList.add('is-hidden');">
+                                <figure class="image is-1by1">
+                                    <img src="https://bulma.io/images/placeholders/1280x960.png" alt="Placeholder image">
+                                </figure>
+                                Default Maps
+                            </div>
+                            I understand that the information I receive here is not meant to replace my own physician's advice, and agree to the disclamer above.
+                        </div>
+                        <div class="has-text-centered">
+                            <div class="card-image has-text-centered is-clickable" onclick="initMap(); document.getElementById('test3').classList.remove('is-hidden'); document.getElementById('test1').classList.add('is-hidden');">
+                                <figure class="image is-1by1">
+                                    <img src="https://bulma.io/images/placeholders/1280x960.png" alt="Placeholder image">
+                                </figure>
+                                Google Maps
+                            </div>
+                            I understand that the information I receive here is not meant to replace my own physician's advice, and agree to the disclamer above.
+                        </div>
+                    </div>
+                </div>
+                <div id="test2" class="card is-hidden is-fullheight">
+                    <div class="card-content" style="display:  grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div class="has-text-centered">
+                            <div class="card-image has-text-centered is-clickable">
+                                <figure class="image is-1by1">
+                                    <img src="https://bulma.io/images/placeholders/1280x960.png" alt="Placeholder image">
+                                </figure>
+                                Iowa Maps
+                            </div>
+                        </div>
+                        <div class="has-text-centered">
+                            <div class="card-image has-text-centered is-clickable">
+                                <figure class="image is-1by1">
+                                    <img src="https://bulma.io/images/placeholders/1280x960.png" alt="Placeholder image">
+                                </figure>
+                                Cedar Rapids Maps
+                            </div>
+                        </div>
+                        <div class="has-text-centered">
+                            <div class="card-image has-text-centered is-clickable">
+                                <figure class="image is-1by1">
+                                    <img src="https://bulma.io/images/placeholders/1280x960.png" alt="Placeholder image">
+                                </figure>
+                                Des Moines Maps
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="test3" class="is-hidden has-text-centered" style="height: 400px; padding: 10px;">
+                    <div id="map" class="" style="height: 100%; padding: 10px;"></div>
+                    Move the rectangle to select an area!!!
+                </div>
+            </div>
+            <div class="modall__footer">
+                <button class="btn btn-secondary btn_close btn__toggle-modall" onclick="runCalcPage()">
+                    Back
+                </button>
+                <button class="btn btn-secondary btn_close btn__toggle-modall" onclick="location.href = './';">
+                    Initialize Map
+                </button>
+            </div>
+        </div>
+    </div> -->
+    <div id="modal-js-example" class="modal is-active">
+        <div class="modal-background"></div>
+        <div class="modal-card" style="position: fixed; top: 20px; ">
+            <header class="modal-card-head" style="background-color: #3e8ed0; padding: 10px;">
+                <p class="modal-card-title card-header-title is-centered has-text-centered" style="color: white;">FloodGame</p>
+            </header>
+            <section class="modal-card-body">
+                <div id="test1">
+                    <div class="card-content" style="display:  grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div class="has-text-centered">
+                            <div class="card-image has-text-centered is-clickable" onclick="document.getElementById('test2').classList.remove('is-hidden'); document.getElementById('test1').classList.add('is-hidden');">
+                                <figure class="image">
+                                    <img src="/images/skyline.jpg" alt="Placeholder image">
+                                </figure>
+                                <strong>Default Maps</strong>
+                            </div>
+                            Default Maps are customs maps of certain regions created by some manipulation on the results of Automatic Map Generation for better visualization.
+                        </div>
+                        <div class="has-text-centered">
+                            <div class="card-image has-text-centered is-clickable" onclick="initMap(); document.getElementById('test3').classList.remove('is-hidden'); document.getElementById('test1').classList.add('is-hidden'); activateStartMapInitButton();">
+                                <figure class="image">
+                                    <img src="/images/google-maps.jpg" alt="Placeholder image">
+                                </figure>
+                                <strong>Automatic Map Generation</strong>
+                            </div>
+                            Automatic Map Generation allows you to select a region from <strong>Google Maps</strong> to play on.
+                        </div>
+                    </div>
+                </div>
+                <div id="test2" class="is-hidden">
+                    <div class="card-content" style="display:  grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div id="iowa_city" class="has-text-centered map-option" onclick="changeColorOfPredefinedMaps(this)">
+                            <div class="card-image has-text-centered is-clickable" style="display: grid; justify-content: center;">
+                                <figure class="image is-128x128">
+                                    <img src="/images/iowa_city_image.png" alt="Placeholder image">
+                                </figure>
+                                <strong>Iowa City</strong>
+                            </div>
+                        </div>
+                        <div id="cedar_rapids" class="has-text-centered map-option" onclick="changeColorOfPredefinedMaps(this)">
+                            <div class="card-image has-text-centered is-clickable" style="display: grid; justify-content: center;">
+                                <figure class="image is-128x128">
+                                    <img src="/images/cedar_rapids_image.png" alt="Placeholder image">
+                                </figure>
+                                <strong>Cedar Rapids</strong>
+                            </div>
+                        </div>
+                        <div id="des_moines" class="has-text-centered map-option" onclick="changeColorOfPredefinedMaps(this)">
+                            <div class="card-image has-text-centered is-clickable is-centered" style="display: grid; justify-content: center;">
+                                <figure class="image is-128x128">
+                                    <img src="/images/des_moines_image.png" alt="Placeholder image">
+                                </figure>
+                                <strong>Des Moines</strong>
+                            </div>
+                        </div>
+                        <div id="davenport" class="has-text-centered map-option" onclick="changeColorOfPredefinedMaps(this)">
+                            <div class="card-image has-text-centered is-clickable is-centered" style="display: grid; justify-content: center;">
+                                <figure class="image is-128x128">
+                                    <img src="/images/davenport_image.png" alt="Placeholder image">
+                                </figure>
+                                <strong>Davenport</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="test3" class="is-hidden has-text-centered" style="height: 400px; padding: 10px;">
+                    <div id="map" class="" style="height: 100%; padding: 10px;"></div>
+                    <p class="has-text-weight-bold">Move the rectangle to select an area!!!</p>
+                </div>
+            </section>
+            <footer class="modal-card-foot buttons is-centered" style="padding: 10px">
+                <button class="button is-focused is-danger" onclick="document.getElementById('test2').classList.add('is-hidden'); document.getElementById('test1').classList.remove('is-hidden'); document.getElementById('test3').classList.add('is-hidden'); clearPredefinedMaps();">Back</button>
+                <button class="button is-focused is-static" id="start-map-init" onclick="startGame(sendStartInformation())">Start</button>
+            </footer>
+        </div>
+    </div>
+    <canvas id="myCanvas" style="border:1px solid #d3d3d3; display: none;"></canvas>
+    <img id="google-image" src="https://maps.googleapis.com/maps/api/staticmap?center=41.656910,-91.541321&zoom=17&size=640x640&key=AIzaSyAi9ZclWNZruhG2e3mmR9GtH3p-V0dXgps&style=feature:all|element:labels|visibility:off" style="display: none"/>
+    <canvas id="google-canvas" style="display: none"> </canvas>
 </body>
+<script>
+
+function changeImageUrl(locations){
+    
+};
+function initMap() {
+    const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 14,
+        center: {
+            lat: 41.656910,
+            lng: -91.541321
+        },
+        mapTypeId: "satellite",
+        streetViewControl: false,
+    });
+    const rectangle = new google.maps.Rectangle({
+        strokeColor: "#FF0000",
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: "#FF0000",
+        fillOpacity: 0.35,
+        map,
+        draggable: true,
+        bounds: {
+            north: 41.661910,
+            south: 41.651910,
+            east: -91.535321,
+            west: -91.547321,
+        },
+    });
+    window.rectangle = rectangle;
+    google.maps.event.addListener(rectangle, 'click', function() {
+        var a = rectangle.getBounds();
+        var b = a.getCenter().toString();
+        
+        console.log(b.substring(1, b.length - 1));
+
+    });
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Functions to open and close a modal
+    function openModal($el) {
+        $el.classList.add('is-active');
+    }
+
+    function closeModal($el) {
+        $el.classList.remove('is-active');
+    }
+
+    function closeAllModals() {
+        (document.querySelectorAll('.modal.closeableModel') || []).forEach(($modal) => {
+            closeModal($modal);
+        });
+    }
+
+    // Add a click event on buttons to open a specific modal
+    (document.querySelectorAll('.js-modal-trigger') || []).forEach(($trigger) => {
+        const modal = $trigger.dataset.target;
+        const $target = document.getElementById(modal);
+        $trigger.addEventListener('click', () => {
+            openModal($target);
+        });
+    });
+
+    // Add a click event on various child elements to close the parent modal
+    (document.querySelectorAll('.modal-background, .modal-close, .modal-card-head .delete, .modal-card-foot .button') || []).forEach(($close) => {
+        const $target = $close.closest('.modal.closeableModel');
+
+        $close.addEventListener('click', () => {
+            closeModal($target);
+        });
+    });
+
+    // Add a keyboard event to close all modals
+    document.addEventListener('keydown', (event) => {
+        const e = event || window.event;
+
+        if (e.keyCode === 27) { // Escape key
+            closeAllModals();
+        }
+    });
+});
+</script>
+<script>
+function nFormatter(num, digits) {
+    const lookup = [
+        { value: 1, symbol: "" },
+        { value: 1e3, symbol: "k" },
+        { value: 1e6, symbol: "M" },
+        { value: 1e9, symbol: "G" },
+        { value: 1e12, symbol: "T" },
+        { value: 1e15, symbol: "P" },
+        { value: 1e18, symbol: "E" }
+    ];
+    const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
+    var item = lookup.slice().reverse().find(function(item) {
+        return num >= item.value;
+    });
+    return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : "0";
+}
+</script>
+<script>
+const tabs = document.querySelectorAll(".tabs li");
+const tabContentBoxes = document.querySelectorAll("#tile_mitigation > div");
+const aa = document.getElementById("accordion-menu");
+tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+        tabs.forEach(item => item.classList.remove("is-active"));
+        tab.classList.add("is-active");
+        const target = tab.dataset.target;
+        tabContentBoxes.forEach(box => {
+            if (box.getAttribute("id") == target) {
+                box.classList.remove("is-hidden");
+                document.getElementById("deneme").classList.remove("large-25");
+                if (target == "mitigation-options") {
+                    aa.classList.add("is-hidden");
+                    document.getElementById("deneme").classList.add("large-25");
+
+                }
+            } else {
+                box.classList.add("is-hidden");
+                document.getElementById("deneme").classList.remove("small-25");
+                if (target != "mitigation-options") {
+                    aa.classList.remove("is-hidden");
+                    document.getElementById("deneme").classList.add("small-25");
+                }
+            }
+        })
+    })
+})
+
+const accordion = document.querySelectorAll(".accordion header");
+const accordionContent = document.querySelectorAll(".accordion .card-content");
+
+
+accordion.forEach((header) => {
+    header.addEventListener('click', () => {
+        const target2 = header.dataset.target;
+        accordionContent.forEach((content) => {
+            if (content.getAttribute("id") == target2) {
+                content.classList.remove("is-hidden");
+            } else {
+                content.classList.add("is-hidden");
+            }
+
+        })
+    })
+})
+
+var infoBoxDict = {
+
+    "Add Structure": {
+        "Header": "Add Structure",
+        "Content": "Content for Add Structure"
+    },
+    "Change Tile": {
+        "Header": "Change Tile",
+        "Content": "Content for Change Tile"
+    },
+    "Flood Wall": {
+        "Header": "Flood Wall",
+        "Content": "It works as a barrier against floods to prevent water from reaching multiple properties and lands."
+    },
+    "Sand Bag": {
+        "Header": "Sand Bag",
+        "Content": "Sandbagging is one of the most common mitigation applications and does not require sophisticated engineering like other mitigation types. It is applied at the perimeter of the desired structure or land. Storage and installation/removal time are important drawbacks of this mitigation."
+    },
+    "Dry Floodproofing": {
+        "Header": "Dry Floodproofing",
+        "Content": "It provides an impermeable perimeter for the building at a certain design level which is ranging between 1 to 4 feet. This method is often applied to non-residential structures in the United States."
+    },
+    "Wet Floodproofing": {
+        "Header": "Wet Floodproofing",
+        "Content": "This mitigation method only reduces structural losses of a property during a flood event. Wet floodproofing allows entering water into the unit and can still damage the contents."
+    },
+    "Insurance": {
+        "Header": "Insurance",
+        "Content": "Content for Insurance"
+    },
+    "Relocate Structure": {
+        "Header": "Relocate Structure",
+        "Content": "It requires the structure to be removed and rebuilt outside of the floodplain. Relocation is the most costly option due to the high cost of demolishing, building, and land acquisition. However, the risk and potential for human vulnerability are completely eliminated"
+    },
+    "Elevate Structure": {
+        "Header": "Elevate Structure",
+        "Content": "Content for Elevate Structure"
+    },
+    "Remove Structure": {
+        "Header": "Remove Structure",
+        "Content": "Content for Remove Structure"
+    },
+    "Add Shelter": {
+        "Header": "Add Shelter",
+        "Content": "Content for Add Shelter"
+    }
+
+}
+
+$(".mitigation-name").hover(function(event) {
+    document.getElementById("infoBoxHeader").innerText = infoBoxDict[this.innerText]["Header"];
+    document.getElementById("infoBoxContent").innerText = infoBoxDict[this.innerText]["Content"];
+    // $(".info-deneme").css({ top: event.clientY, left: event.clientX }).show();
+    $(".info-deneme").show()
+}, function() {
+    $(".info-deneme").hide();
+});
+$("#buildingOptionsSelect").hover(function() {
+    $(".info-denemee").show();
+}, function() {
+    $(".info-denemee").hide();
+})
+
+$("#show_risks").hover(function() {
+    $(".show_risks").show();
+}, function() {
+    $(".show_risks").hide();
+})
+</script>
+<script>
+const allRanges = document.querySelectorAll(".range-wrap");
+allRanges.forEach(wrap => {
+    const range = wrap.querySelector(".range");
+    const bubble = wrap.querySelector(".bubble");
+
+    range.addEventListener("input", () => {
+        setBubble(range, bubble);
+    });
+    setBubble(range, bubble);
+});
+
+function setBubble(range, bubble) {
+    const val = range.value;
+    const min = range.min ? range.min : 0;
+    const max = range.max ? range.max : 100;
+    const newVal = Number(((val - min) * 100) / (max - min));
+    bubble.innerHTML = val;
+
+    // Sorta magic numbers based on size of the native UI thumb
+    bubble.style.left = `calc(${newVal}% + (${8 - newVal * 0.15}px))`;
+}
+</script>
+<script>
+function clearPredefinedMaps() {
+    var predefinedmaps = document.querySelectorAll(".map-option");
+
+    for (let i = 0; i < predefinedmaps.length; i++) {
+        predefinedmaps[i].classList.remove("selected-map");
+    }
+    clearStartMapInitButton();
+
+
+
+};
+
+function sendStartInformation() {
+    if (!document.getElementById("test2").classList.contains("is-hidden")) {
+        var idOfMap = document.querySelector(".selected-map").id;
+        return [0, idOfMap]
+    }
+    else{
+        return [1, rectangle.getBounds().getCenter().toString()]
+    }
+
+}
+
+function changeColorOfPredefinedMaps(elem) {
+    var predefinedmaps = document.querySelectorAll(".map-option");
+    if (elem.classList.contains("selected-map")) {
+        elem.classList.remove("selected-map");
+        clearStartMapInitButton();
+    } else {
+        for (let i = 0; i < predefinedmaps.length; i++) {
+            predefinedmaps[i].classList.remove("selected-map");
+        }
+        elem.classList.add("selected-map");
+        activateStartMapInitButton();
+    }
+
+};
+
+function activateStartMapInitButton() {
+    var init_button = document.getElementById("start-map-init");
+    init_button.classList.add("is-primary");
+    init_button.classList.remove("is-static");
+}
+
+function clearStartMapInitButton() {
+    var init_button = document.getElementById("start-map-init");
+    init_button.classList.remove("is-primary");
+    init_button.classList.add("is-static");
+
+}
+</script>
+<style>
+.map-option {
+    border-style: solid;
+    border-width: thick;
+    border-color: transparent;
+
+}
+
+.map-option:hover {
+    border-color: hsl(204, 86%, 53%);
+}
+
+.selected-map {
+    border-color: hsl(141, 53%, 53%);
+}
+</style>
+<style>
+.bubble {
+    background: #3e8ed0;
+    width: 16px;
+    color: white;
+    position: relative;
+    border-radius: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.bubble::after {
+    content: "";
+    position: relative;
+    width: 16px;
+    height: 1px;
+    background: #3e8ed0;
+    top: -1px;
+    left: 50%;
+}
+</style>
+<style>
+option:hover {
+    background-color: red;
+}
+
+.disabledbutton {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.game-progress-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    padding: 3px 5px;
+    margin: 1px;
+    border-radius: 3px;
+    border: 1px solid #3e8ed0;
+    font-size: 110%;
+
+}
+
+.game-progress-info:hover {
+    border: 1px solid;
+    background-color: #3e8ed0;
+}
+
+.game-progress-info-report {
+    grid-template-columns: auto auto;
+}
+
+.small-25 {
+    max-height: 25%;
+}
+
+.large-25 {
+    max-height: auto;
+}
+
+
+#clockDiv {
+    position: absolute;
+    left: max(calc(25vw) - 70px, 290px);
+    top: 24px;
+    color: yellow;
+
+}
+
+.mitigation-options {
+    display: grid;
+    grid-template-rows: repeat(10, 1fr);
+}
+
+.mitigation-option {
+    display: grid;
+    grid-template-columns: 30% 45% 20% 5%;
+    padding: 3px 5px;
+    margin: 1px;
+    border-radius: 3px;
+    border-bottom: 1px solid #3e8ed0;
+    align-items: center;
+
+
+}
+
+.mitigation-option:hover {
+    border-bottom: 1px solid;
+    background-color: #3e8ed0;
+}
+
+.mitigation-value {
+    display: grid;
+    align-content: center;
+    justify-content: end;
+}
+
+.mitigation-cost {
+    display: grid;
+    align-content: center;
+    justify-content: end;
+}
+
+.mitigation-status {
+    display: grid;
+    align-content: center;
+    justify-content: end
+}
+
+.mitigation-name:hover {
+    cursor: help;
+}
+
+.disabled {
+    opacity: 0.6;
+}
+
+.disabled select,
+.disabled input {
+    pointer-events: none;
+}
+
+th {
+    font-weight: lighter !important;
+}
+</style>
+<style>
+/* DIALOG */
+.dialog {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    min-height: 100%;
+    overflow: auto;
+}
+
+.dialog.open {
+    display: block;
+}
+
+.modall-backdrop {
+    opacity: 0.9;
+    background-color: #fff;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1040;
+}
+
+.modall {
+    position: absolute;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, .5);
+    border-radius: .5rem;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1041;
+    background-color: #fff;
+    color: #5A6372;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    padding: 1.5rem 0;
+    width: 100%;
+}
+
+@media(min-width: 992px) {
+    .modall {
+        width: 900px;
+
+    }
+}
+
+@media(min-width: 768px) {
+    .modall {
+        width: 50%;
+
+    }
+}
+
+.modall__header {
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    border-bottom: 1px solid rgb(229, 229, 229);
+}
+
+
+.modall__content {
+    width: 100%;
+    height: 100%;
+}
+
+.modall__content p:not(:last-child) {
+    margin-bottom: 2rem;
+}
+
+
+.modall__footer {
+    padding: 1rem 2rem;
+}
+</style>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAi9ZclWNZruhG2e3mmR9GtH3p-V0dXgps&callback=initMap&v=weekly" defer></script>
 
 </html>
