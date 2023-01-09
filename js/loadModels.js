@@ -26,6 +26,47 @@ export function createMeshes(countMap){
 	var texFilesDict_flood = {};
 	var modelSize = {};
 
+
+
+texFilesDict_building["Bank"] = [
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Bank.obj",
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Bank.mtl",
+	"img/polyModels/OBJFiles/Textures/Urban/SPB/SPB_Bank.png"];
+
+texFilesDict_building["Chu"] = [
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Church.obj",
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Church.mtl",
+	"img/polyModels/OBJFiles/Textures/Urban/SPB/SPB_Church.png"];
+
+texFilesDict_building["Chse"] = [
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Court House.obj",
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Court House.mtl",
+	"img/polyModels/OBJFiles/Textures/Urban/SPB/SPB_Court House.png"];
+
+texFilesDict_building["Htl"] = [
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Hotel.obj",
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Hotel.mtl",
+	"img/polyModels/OBJFiles/Textures/Urban/SPB/SPB_Hotel.png"];
+
+texFilesDict_building["Com2"] = [
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_15.obj",
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_15.mtl",
+	"img/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Bldg_15.png"];	
+
+texFilesDict_building["Gas"] = [
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_Gas Station.obj",
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_Gas Station.mtl",
+	"img/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Bldg_Gas Station_Color02.png"];	
+
+texFilesDict_building["Hll"] = [
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_City Hall.obj",
+	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_City Hall.mtl",
+	"img/polyModels/OBJFiles/Textures/Urban/SPB/SPB_City Hall.png"];
+
+
+
+
+
 texFilesDict_building["Res1"] = [
 	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_01.obj",
 	"img/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_01.mtl",
@@ -254,6 +295,17 @@ texFilesDict_building["Shel3"] = [
 	modelSize["Shel1"] = 15;
 	modelSize["Shel2"] = 15;
 	modelSize["Shel3"] = 15;
+
+
+	modelSize["Bank"] = 10;
+	modelSize["Chu"] = 13;
+	modelSize["Chse"] = 14;
+	modelSize["Htl"] = 12;
+	modelSize["Com2"] = 13;
+	modelSize["Gas"] = 13;
+	modelSize["Hll"] = 13;
+
+
 
 
 	meshDict = {};

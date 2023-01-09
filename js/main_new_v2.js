@@ -277,7 +277,6 @@ async function main(opts, list_of_files) {
         updateGameProgressPanel();
         updateGoalsPanel();
         clickButton(0);
-        //addObjectss(20, 20, 150, "House3");
     };
 
 
@@ -411,7 +410,7 @@ async function main(opts, list_of_files) {
                 if (obj != 0){
                     [x, z] = calculatePosition(obj.row, obj.column);
                     if (obj.type == "Res1" || obj.type == "Res2" || obj.type == "Res3" || obj.type == "Hos" || obj.type == "School" || obj.type == "Pol" || obj.type == "Com" || obj.type == "Fire"){
-                    addObjects(x, z, groundTiles[row][column].elevation, obj.type)
+                    addObjects(x, z, groundTiles[row][column].elevation, obj.type, obj.row, obj.column)
                     }
                     else{
                     transform.position.set(
@@ -639,6 +638,63 @@ async function main(opts, list_of_files) {
 
 
     };
+
+
+    function isNonInstancing(name){
+        /*
+            if object is added to scene with non-instancing method, returns true.
+        */
+        if (name == "Res1" || name == "Res2" || name == "Res3" || name == "Hos" || name == "School" || name == "Pol" || name == "Com" || name == "Fire"){
+            return true;
+        };
+        return false;
+    };
+
+
+    function deleteObjectFromScene(externalID){
+        /*
+            This function takes externalID of object as input,
+            then removes it from the scene.
+        */
+        var ob = scene.getObjectByProperty("externalID", externalID);
+        removeObject3D(ob);
+    };
+
+    function changePositionofObject(externalID, x, y, z){
+        /*
+            This function takes externalID of object as input,
+            then change the position of it on the scene.
+        */
+
+        var ob = scene.getObjectByProperty("externalID", externalID);
+        ob.position.set(x, y, z);
+    };
+
+
+    function removeObject3D(object3D) {
+
+        /*
+            This function deletes any given object3D from the scene.
+        */
+
+        if (!(object3D instanceof THREE.Object3D)) return false;
+
+        // for better memory management and performance
+        if (object3D.geometry) object3D.geometry.dispose();
+
+        if (object3D.material) {
+            if (object3D.material instanceof Array) {
+                // for better memory management and performance
+                object3D.material.forEach(material => material.dispose());
+            } else {
+                // for better memory management and performance
+                object3D.material.dispose();
+            }
+        }
+        scene.remove(object3D); // the parent might be the scene or another Object3D, but it is sure to be removed this way
+        return true;
+    };
+
 
     function getRandomArbitrary(min, max) {
       return Math.random() * (max - min) + min;
@@ -1345,18 +1401,69 @@ async function main(opts, list_of_files) {
         };
     };
 
+    function waterMovement(){
+        /*
+            This function change water levels to give water
+            movement impression on the game.
+        */
+
+        var currentHeight, x, z;
+        for (var row = 0; row < numberOfRows; row++) {
+            for (var column = 0; column < numberOfColumns; column++) {
+                obj = groundTiles[row][column];
+                if (obj.type == "water"){
+                    [x, z] = calculatePosition(row, column);
+                    transform.scale.set(tileSize, obj.elevation, tileSize);
+                    transform.position.set(
+                        x,
+                        (groundTiles[row][column].elevation / 2) + Math.random() * (2 + 2) - 2,
+                        z);
+                    transform.updateMatrix();
+                    meshDict[obj.type].setMatrixAt(obj.instanceId, transform.matrix);
+                    
+                };
+            };
+        };
+        meshDict["water"].instanceMatrix.needsUpdate = true;
+    };
+
+    function clearwaterMovement(){
+        /*
+            This function change water levels to original values.
+        */
+
+        var currentHeight, x, z;
+        for (var row = 0; row < numberOfRows; row++) {
+            for (var column = 0; column < numberOfColumns; column++) {
+                obj = groundTiles[row][column];
+                if (obj.type == "water"){
+                    [x, z] = calculatePosition(row, column);
+                    transform.scale.set(tileSize, obj.elevation, tileSize);
+                    transform.position.set(
+                        x,
+                        groundTiles[row][column].elevation / 2,
+                        z);
+                    transform.updateMatrix();
+                    meshDict[obj.type].setMatrixAt(obj.instanceId, transform.matrix);
+                    
+                };
+            };
+        };
+        meshDict["water"].instanceMatrix.needsUpdate = true;
+    };
+
 
 
 
 
     function isABuilding(type){
-        if (["Res1", "Res2", "Res3", "Com", "Ind", "Hos", "Fire", "Pol", "School"].includes(type)){ return true; }
+        if (["Res1", "Res2", "Res3", "Com", "Ind", "Hos", "Fire", "Pol", "School", "Bank", "Chu", "Chse", "Htl", "Com2", "Gas", "Hll"].includes(type)){ return true; }
         else { return false; };
     };
 
 
     function isACriticalBuilding(type){
-        if (["Com", "Ind", "Hos", "Fire", "Pol", "School"].includes(type)){ return true; }
+        if (["Com", "Ind", "Hos", "Fire", "Pol", "School", "Bank", "Chu", "Chse", "Htl", "Com2", "Gas", "Hll"].includes(type)){ return true; }
         else { return false; };
     };
 
@@ -1443,7 +1550,7 @@ async function main(opts, list_of_files) {
     };
 
 
-    function addObjects(x, y, elevation_value, type){
+    function addObjects(x, z, elevation_value, type, row, column){
         // var [x_pos, z_pos] = calculatePosition(x, y);
         var sizeOfObjects = {
             "Res1": 1,
@@ -1457,56 +1564,24 @@ async function main(opts, list_of_files) {
 
         }
         new MTLLoader()
-                .setPath( '/models/' )
+                .setPath( './models/' )
                 .load( `${type}.mtl`, function ( materials ) {
                     materials.preload();
                     new OBJLoader()
                         .setMaterials( materials )
-                        .setPath( '/models/' )
+                        .setPath( './models/' )
                         .load( `${type}.obj`, function ( object ) {
-                            //var [pos_x, pos_z] = calculatePosition(xx, zz);
-                            //object.children[0].position.x = x;
-                            //object.children[0].position.y = elevation_value;
-                            //object.children[0].position.z = y;
-                            // object.children[0].scale.x = 1/2;
-                            // object.children[0].scale.y = 1/2;
-                            // object.children[0].scale.z = 1/2;
+                            object.externalID = `${row}_${column}`;
+                            object.name = type;
                             object.children[0].castShadow = true;
                             object.children[0].receiveShadow = true;
                             object.scale.set(sizeOfObjects[type], sizeOfObjects[type], sizeOfObjects[type]);
-                            object.position.set(x, elevation_value, y);
+                            object.position.set(x, elevation_value, z);
                             scene.add( object );
                                                         } );
 
                 } );
     };
-
-    function addObjectss(x, y, elevation_value, type){
-        var [x_pos, z_pos] = calculatePosition(x, y);
-        console.log("aaaaa")
-        new MTLLoader()
-                .setPath( '/Houses/' )
-                .load( 'Res1_1.mtl', function ( materials ) {
-                    materials.preload();
-                    new OBJLoader()
-                        .setMaterials( materials )
-                        .setPath( '/Houses/' )
-                        .load( "Res1_1.obj", function ( object ) {
-                            //var [pos_x, pos_z] = calculatePosition(x, y);
-                            //object.children[0].position.x = x;
-                            //object.children[0].position.y = elevation_value;
-                            //object.children[0].position.z = y;
-                            // object.children[0].scale.x = 1/2;
-                            // object.children[0].scale.y = 1/2;
-                            // object.children[0].scale.z = 1/2;
-                            //object.scale.set(100, 100, 100);
-                            object.position.set(x_pos, elevation_value, z_pos);
-                            scene.add( object );
-                    } );
-
-                } );
-    };
-
 
     function clearFlood() {
 
@@ -1550,7 +1625,10 @@ async function main(opts, list_of_files) {
 
             floodAction();
         };
+        if (Math.floor(Math.random() * 20) == 8 && doFlood == false){
+            waterMovement();
 
+        }
         render();
         //stats.update();
 
@@ -2137,27 +2215,29 @@ async function main(opts, list_of_files) {
 
         
         clearTileForBuilding(row, column);
+
         obj = surfaceTiles[selectedBuilding.row][selectedBuilding.column];
-
-
-
-        transform.scale.set(
-            1,
-            1,
-            1,
-        );
-
         var [x, z] = calculatePosition(row, column);
 
-        transform.position.set(
-            x,
-            groundTiles[row][column].elevation,
-            z);
-        transform.updateMatrix();
+        if (isNonInstancing(obj.type)){
+            changePositionofObject(`${obj.row}_${obj.column}`, x, groundTiles[row][column].elevation, z);
+        }
+        else{
+            transform.scale.set(
+                1,
+                1,
+                1,
+            );
 
-        meshDict[obj.type].setMatrixAt(obj.instanceId, transform.matrix);
-        meshDict[obj.type].instanceMatrix.needsUpdate = true;
+            transform.position.set(
+                x,
+                groundTiles[row][column].elevation,
+                z);
+            transform.updateMatrix();
 
+            meshDict[obj.type].setMatrixAt(obj.instanceId, transform.matrix);
+            meshDict[obj.type].instanceMatrix.needsUpdate = true;
+        }
         surfaceTiles[row][column] = surfaceTiles[obj.row][obj.column];
         surfaceTiles[obj.row][obj.column] = 0;
         surfaceTiles[row][column].row = row;
@@ -2339,7 +2419,14 @@ async function main(opts, list_of_files) {
 
 
 
-        } else {
+        } 
+        else if (isNonInstancing(type)){
+            addObjects(x, z, groundTiles[row][column].elevation, type, row, column);
+            surfaceTiles[row][column] = surfaceTile(
+                row, column, groundTiles[row][column].elevation, type, 0
+                );
+        }
+        else {
             transform.scale.set(
                 1,
                 1,
@@ -2586,14 +2673,24 @@ async function main(opts, list_of_files) {
         dictSurfacePositiontoInstancedId["tree"][
             [row, column]] = [];
         transform.scale.set(1, 1, 1);
-        for (var i = 0; i < 10; i++){
-            if (Math.random > 0.5) {
-                var x1 = x + Math.random() * 40;
-                var z1 = z + Math.random() * 40;
-            } else {
-                var x1 = x - Math.random() * 40;
-                var z1 = z - Math.random() * 40;
-            };
+        for (var i = 0; i < 4; i++){
+            if (i == 0){
+                var x1 = x + getRandomArbitrary(10, 45);
+                var z1 = z + getRandomArbitrary(10, 45);
+            }
+            else if (i == 1){
+                var x1 = x + getRandomArbitrary(10, 45); 
+                var z1 = z - getRandomArbitrary(10, 45);
+            }
+            else if (i == 2){
+                var x1 = x - getRandomArbitrary(10, 45);
+                var z1 = z + getRandomArbitrary(10, 45);
+
+            }
+            else{
+                var x1 = x - getRandomArbitrary(10, 45);
+                var z1 = z - getRandomArbitrary(10, 45);
+            }
             transform.position.set(
                 x1,
                 groundTiles[row][column].elevation,
@@ -2631,13 +2728,19 @@ async function main(opts, list_of_files) {
             };
             delete dictSurfacePositiontoInstancedId[selectedBuilding.meshName][selectedBuilding.row, selectedBuilding.column];
 
-        } else {
+        }
+        else if (isNonInstancing(selectedBuilding.meshName)){
+            deleteObjectFromScene(`${selectedBuilding.row}_${selectedBuilding.column}`);
+            createPark(selectedBuilding.row, selectedBuilding.column);
+        }
+        else {
 
             meshDict[selectedBuilding.meshName].setMatrixAt(selectedBuilding.instanceId, transform.matrix);
             meshDictIndex[selectedBuilding.meshName][1].push(selectedBuilding.instanceId);
             createPark(selectedBuilding.row, selectedBuilding.column);
+            meshDict[selectedBuilding.meshName].instanceMatrix.needsUpdate = true;
+
         };
-        meshDict[selectedBuilding.meshName].instanceMatrix.needsUpdate = true;
         surfaceTiles[selectedBuilding.row][selectedBuilding.column] = 0;
     };
 
@@ -3837,6 +3940,7 @@ async function main(opts, list_of_files) {
 
 
     function calculateTotalDamage() {
+
         /*
             It calculates the total damage in terms of money
         */
@@ -3929,6 +4033,10 @@ async function main(opts, list_of_files) {
         if (button_option == 0){
             buttons[0].click()
         };
+        // Show Report Button
+        if (button_option == 2){
+            buttons[2].click()
+        };
 
     };
 
@@ -3951,10 +4059,11 @@ async function main(opts, list_of_files) {
                 this.innerHTML = "Finish";
             } 
             else if (this.value == "finish"){
+                clickButton(2);
                 finishGame = 1000000;
                 this.value = "again";
                 this.innerHTML = "Start Again";
-            }
+                            }
             else {
                 
                 window.location.reload();
@@ -4030,13 +4139,29 @@ async function main(opts, list_of_files) {
 var dictOfDefaultMaps = {
 
     'iowa_city': [
-        "sources/GroundTiles.json",
-        "sources/SurfaceTiles.json",
-        "sources/SurfaceTiles_v2.json",
+        "maps/iowa_city/GroundTiles.json",
+        "maps/iowa_city/SurfaceTiles.json",
+        "maps/iowa_city/SurfaceTiles_v2.json",
         "sources/FloodTiles.json"
     ],
-
-
+    'cedar_rapids': [
+        "maps/cedar_rapids/GroundTiles.json",
+        "maps/cedar_rapids/SurfaceTiles.json",
+        "maps/cedar_rapids/SurfaceTiles_v2.json",
+        "sources/FloodTiles.json"
+    ],
+    'des_moines': [
+        "maps/des_moines/GroundTiles.json",
+        "maps/des_moines/SurfaceTiles.json",
+        "maps/des_moines/SurfaceTiles_v2.json",
+        "sources/FloodTiles.json"
+    ],
+    'davenport': [
+        "maps/davenport/GroundTiles.json",
+        "maps/davenport/SurfaceTiles.json",
+        "maps/davenport/SurfaceTiles_v2.json",
+        "sources/FloodTiles.json"
+    ],
 };
 
 
@@ -4270,9 +4395,10 @@ function groundTile (row, column, elevation, typee, instanceId, floodwall){
 };
 
 
-function surfaceTile(row, column, elevation, typee, instanceId, peopleOnIt=5){
+function surfaceTile(row, column, elevation, typee, instanceId, peopleOnIt=5, height=100){
     var t = {};
     t["row"] = row;
+    t["height"] = height;
     t["column"] = column;
     t["elevation"] = elevation;
     t["type"] = typee;
@@ -4757,8 +4883,8 @@ function idstoGroundTiles(objectIds){
     countMap["road_v"] = 100;
     countMap["road_h"] = 100;
     countMap["road_c"] = 5;
-    countMap["tree"] = 100;
-    countMap["tree2"] = 100;
+    countMap["tree"] = 1000;
+    countMap["tree2"] = 1000;
     countMap["parking"] = 20;
     countMap["flood"] = 5000;
 
@@ -4803,8 +4929,8 @@ function idstoGroundTiles(objectIds){
             };
 
             if (surfaceTileArray_2[row][column] != 0){
-                if (surfaceTileArray_2[row][column]["type"] == "tree"){countMap[surfaceTileArray_2[row][column]["type"]] += 4}
-                else if (surfaceTileArray_2[row][column]["type"] == "tree2"){countMap[surfaceTileArray_2[row][column]["type"]] += 4}
+                if (surfaceTileArray_2[row][column]["type"] == "tree"){countMap[surfaceTileArray_2[row][column]["type"]] += 8}
+                else if (surfaceTileArray_2[row][column]["type"] == "tree2"){countMap[surfaceTileArray_2[row][column]["type"]] += 8}
                 else if (surfaceTileArray_2[row][column]["type"] == "road_h"){countMap[surfaceTileArray_2[row][column]["type"]] += 2}
                 else if (surfaceTileArray_2[row][column]["type"] == "road_v"){countMap[surfaceTileArray_2[row][column]["type"]] += 2}
                 else if (surfaceTileArray_2[row][column]["type"] == "road_c"){countMap[surfaceTileArray_2[row][column]["type"]] += 1}
@@ -5073,7 +5199,7 @@ function testidstoGroundTiles(objectIds){
     countMap["road_v"] = 100;
     countMap["road_h"] = 100;
     countMap["road_c"] = 5;
-    countMap["tree"] = 100;
+    countMap["tree"] = 1000;
     countMap["parking"] = 20;
     countMap["flood"] = 5000;
 
@@ -5102,7 +5228,8 @@ function testidstoGroundTiles(objectIds){
             };
 
             if (surfaceTileArray_2[row][column] != 0){
-                if (surfaceTileArray_2[row][column]["type"] == "tree"){countMap[surfaceTileArray_2[row][column]["type"]] += 4}
+                if (surfaceTileArray_2[row][column]["type"] == "tree"){countMap[surfaceTileArray_2[row][column]["type"]] += 8}
+                else if (surfaceTileArray_2[row][column]["type"] == "tree2"){countMap[surfaceTileArray_2[row][column]["type2"]] += 8}
                 else if (surfaceTileArray_2[row][column]["type"] == "road_h"){countMap[surfaceTileArray_2[row][column]["type"]] += 2}
                 else if (surfaceTileArray_2[row][column]["type"] == "road_v"){countMap[surfaceTileArray_2[row][column]["type"]] += 2}
                 else if (surfaceTileArray_2[row][column]["type"] == "road_c"){countMap[surfaceTileArray_2[row][column]["type"]] += 1}

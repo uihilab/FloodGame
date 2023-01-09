@@ -80,6 +80,41 @@
                     "value": "Shel3",
                     "text": "Building 3",
                     "cost": 900000
+                },
+                "Bank": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 1000000
+                },
+                "Chu": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 1000000
+                },
+                "Chse": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 1000000
+                },
+                "Htl": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 1000000
+                },
+                "Com2": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 1000000
+                },
+                "Gas": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 1000000
+                },
+                "Hll": {
+                    "value": "Res3",
+                    "text": "Building 3",
+                    "cost": 1000000
                 }
 
             }

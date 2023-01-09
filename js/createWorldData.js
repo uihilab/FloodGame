@@ -11,9 +11,13 @@ export async function createTiles(list_of_files){
     var numberOfRows = 50;
     var numberOfColumns = 50;
 
-    groundTiles = await readExternalJSON("sources/GroundTiles.json");
-    surfaceTiles = await readExternalJSON("sources/SurfaceTiles.json");
-    surfaceTiles_v2 = await readExternalJSON("sources/SurfaceTiles_v2.json");
+    // groundTiles = await readExternalJSON("maps/GroundTiles.json");
+    // surfaceTiles = await readExternalJSON("maps/SurfaceTiles.json");
+    // surfaceTiles_v2 = await readExternalJSON("maps/SurfaceTiles_v2.json");
+    groundTiles = await readExternalJSON(list_of_files[0]);
+    surfaceTiles = await readExternalJSON(list_of_files[1]);
+    surfaceTiles_v2 = await readExternalJSON(list_of_files[2]);
+
     floodTiles = await readExternalJSON("sources/FloodTiles.json");
 
     countMap = {};
@@ -30,8 +34,8 @@ export async function createTiles(list_of_files){
     countMap["road_v"] = 100;
     countMap["road_h"] = 100;
     countMap["road_c"] = 5;
-    countMap["tree"] = 100;
-    countMap["tree2"] = 100;
+    countMap["tree"] = 1000;
+    countMap["tree2"] = 1000;
     countMap["parking"] = 20;
     countMap["flood"] = 5000;
 
@@ -67,6 +71,16 @@ export async function createTiles(list_of_files){
     countMap["Shel3"] = 3;
 
 
+    countMap["Bank"] = 1;
+    countMap["Chu"] = 1;
+    countMap["Chse"] = 1;
+    countMap["Htl"] = 1;
+    countMap["Com2"] = 1;
+    countMap["Gas"] = 1;
+    countMap["Hll"] = 1;
+
+
+
     for (var row = 0; row < numberOfRows; row++){
         for (var column = 0; column < numberOfColumns; column++){
             
@@ -77,7 +91,8 @@ export async function createTiles(list_of_files){
             };
 
             if (surfaceTiles_v2[row][column] != 0){
-                if (surfaceTiles_v2[row][column]["type"] == "tree"){countMap[surfaceTiles_v2[row][column]["type"]] += 4}
+                if (surfaceTiles_v2[row][column]["type"] == "tree"){countMap[surfaceTiles_v2[row][column]["type"]] += 8}
+                else if (surfaceTiles_v2[row][column]["type"] == "tree2"){countMap[surfaceTiles_v2[row][column]["type"]] += 8}
                 else if (surfaceTiles_v2[row][column]["type"] == "road_h"){countMap[surfaceTiles_v2[row][column]["type"]] += 2}
                 else if (surfaceTiles_v2[row][column]["type"] == "road_v"){countMap[surfaceTiles_v2[row][column]["type"]] += 2}
                 else if (surfaceTiles_v2[row][column]["type"] == "road_c"){countMap[surfaceTiles_v2[row][column]["type"]] += 1}

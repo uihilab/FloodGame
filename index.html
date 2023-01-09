@@ -885,7 +885,7 @@
             </div>
         </div>
     </div> -->
-    <div id="modal-js-example" class="modal is-active">
+    <div id="modal-js-example" class="modal">
         <div class="modal-background"></div>
         <div class="modal-card" style="position: fixed; top: 20px; ">
             <header class="modal-card-head" style="background-color: #3e8ed0; padding: 10px;">
@@ -897,7 +897,7 @@
                         <div class="has-text-centered">
                             <div class="card-image has-text-centered is-clickable" onclick="document.getElementById('test2').classList.remove('is-hidden'); document.getElementById('test1').classList.add('is-hidden');">
                                 <figure class="image">
-                                    <img src="/images/skyline.jpg" alt="Placeholder image">
+                                    <img src="./images/skyline.jpg" alt="Placeholder image">
                                 </figure>
                                 <strong>Default Maps</strong>
                             </div>
@@ -906,7 +906,7 @@
                         <div class="has-text-centered">
                             <div class="card-image has-text-centered is-clickable" onclick="initMap(); document.getElementById('test3').classList.remove('is-hidden'); document.getElementById('test1').classList.add('is-hidden'); activateStartMapInitButton();">
                                 <figure class="image">
-                                    <img src="/images/google-maps.jpg" alt="Placeholder image">
+                                    <img src="./images/google-maps.jpg" alt="Placeholder image">
                                 </figure>
                                 <strong>Automatic Map Generation</strong>
                             </div>
@@ -919,7 +919,7 @@
                         <div id="iowa_city" class="has-text-centered map-option" onclick="changeColorOfPredefinedMaps(this)">
                             <div class="card-image has-text-centered is-clickable" style="display: grid; justify-content: center;">
                                 <figure class="image is-128x128">
-                                    <img src="/images/iowa_city_image.png" alt="Placeholder image">
+                                    <img src="./images/iowa_city_image.png" alt="Placeholder image">
                                 </figure>
                                 <strong>Iowa City</strong>
                             </div>
@@ -927,7 +927,7 @@
                         <div id="cedar_rapids" class="has-text-centered map-option" onclick="changeColorOfPredefinedMaps(this)">
                             <div class="card-image has-text-centered is-clickable" style="display: grid; justify-content: center;">
                                 <figure class="image is-128x128">
-                                    <img src="/images/cedar_rapids_image.png" alt="Placeholder image">
+                                    <img src="./images/cedar_rapids_image.png" alt="Placeholder image">
                                 </figure>
                                 <strong>Cedar Rapids</strong>
                             </div>
@@ -935,7 +935,7 @@
                         <div id="des_moines" class="has-text-centered map-option" onclick="changeColorOfPredefinedMaps(this)">
                             <div class="card-image has-text-centered is-clickable is-centered" style="display: grid; justify-content: center;">
                                 <figure class="image is-128x128">
-                                    <img src="/images/des_moines_image.png" alt="Placeholder image">
+                                    <img src="./images/des_moines_image.png" alt="Placeholder image">
                                 </figure>
                                 <strong>Des Moines</strong>
                             </div>
@@ -943,7 +943,7 @@
                         <div id="davenport" class="has-text-centered map-option" onclick="changeColorOfPredefinedMaps(this)">
                             <div class="card-image has-text-centered is-clickable is-centered" style="display: grid; justify-content: center;">
                                 <figure class="image is-128x128">
-                                    <img src="/images/davenport_image.png" alt="Placeholder image">
+                                    <img src="./images/davenport_image.png" alt="Placeholder image">
                                 </figure>
                                 <strong>Davenport</strong>
                             </div>
@@ -958,6 +958,46 @@
             <footer class="modal-card-foot buttons is-centered" style="padding: 10px">
                 <button class="button is-focused is-danger" onclick="document.getElementById('test2').classList.add('is-hidden'); document.getElementById('test1').classList.remove('is-hidden'); document.getElementById('test3').classList.add('is-hidden'); clearPredefinedMaps();">Back</button>
                 <button class="button is-focused is-static" id="start-map-init" onclick="startGame(sendStartInformation())">Start</button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="starterInfo" class="modal is-active">
+        <div class="modal-background"></div>
+        <div class="modal-card" style="position: fixed; top: 20px; ">
+            <header class="modal-card-head" style="background-color: #3e8ed0">
+                <p class="modal-card-title has-text-centered" style="color: white; transform: translateX(5%)">FloodGame</p>
+                <button class="button is-success" onclick="document.getElementById('starterInfo').classList.remove('is-active'); document.getElementById('modal-js-example').classList.add('is-active');">Next</button>
+            </header>
+            <section class="modal-card-body">
+                <div style="margin-bottom: 5px">
+                    <p>
+                        FloodGame aims to create a web-based serious game geared towards educating K-12 and college students, and public on flood prevention and mitigation strategies, such that they are more informed about the implications of future flooding events.
+                    </p>
+                </div>
+                <h1 style="color: #3e8ed0">How to Play</h1>
+                <hr style="margin-top: 2px; margin-bottom: 2px; background-color: #3e8ed0">
+                <div class="content" style="font-size: 90%;">
+                    <ul>
+                        <li>Press Next button to select the game map.</li>
+                        <li>The goal of the game minimize the flood effects by applying appropriate mitigation actions.</li>
+                        <li>Game Progress and Goals sections give crucial information about the current situation.</li>
+                        <li>Click Show Risks button to see risky areas.</li>
+                        <li>Hover mitigation or structure options to see details about them.</li>
+                        <li>Once begin to game, the game's timer will start. Make your decisions before the time is up!</li>
+                        <li>Watch the <a href="https://hydroinformatics.uiowa.edu/" target="_blank">How to Play!</a> for more information.</li>
+                    </ul>
+                </div>
+            </section>
+            <footer class="modal-card-foot" style="background-color: #3e8ed0; justify-content: space-around">
+                <figure class="image" style="width: 20%">
+                    <a href="https://hydroinformatics.uiowa.edu/" target="_blank">
+                        <img src="css/img/uihilab.png">
+                    </a>
+                </figure>
+                <div style="color: white;">
+                    Contact us at: uihilab@gmail.com
+                </div>
             </footer>
         </div>
     </div>

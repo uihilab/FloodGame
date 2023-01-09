@@ -93,7 +93,14 @@
                 "Fire": "N/A",
                 "Police": "N/A",
                 "Water": "N/A",
-                "School": "N/A"
+                "School": "N/A",
+                "Bank": "N/A",
+                "Chu": "N/A",
+                "Chse": "N/A",
+                "Htl": "N/A",
+                "Com2": "N/A",
+                "Gas": "N/A",
+                "Hll": "N/A"
         },
         "Type": "Building"
     },
