@@ -5,7 +5,7 @@ export async function createTiles(list_of_files){
 		to represent the world.
 	*/
 
-    console.log(list_of_files);
+    //console.log(list_of_files);
 	var groundTiles, surfaceTiles, surfaceTiles_v2, floodTiles, countMap;
 
     var numberOfRows = 50;
@@ -56,16 +56,16 @@ export async function createTiles(list_of_files){
 
 
     // Surface Tiles
-    countMap["Res1"] = 50;
-    countMap["Res2"] = 50;
-    countMap["Res3"] = 50;
-    countMap["Pol"] = 1;
-    countMap["Fire"] = 1;
-    countMap["Hos"] = 1;
-    countMap["School"] = 1;
+    //countMap["Res1"] = 50;
+    //countMap["Res2"] = 50;
+    //countMap["Res3"] = 50;
+    //countMap["Pol"] = 1;
+    //countMap["Fire"] = 1;
+    //countMap["Hos"] = 1;
+    //countMap["School"] = 1;
     countMap["Wat"] = 1;
     countMap["Ind"] = 1;
-    countMap["Com"] = 1;
+    //countMap["Com"] = 1;
     countMap["Shel1"] = 3;
     countMap["Shel2"] = 3;
     countMap["Shel3"] = 3;
@@ -87,12 +87,14 @@ export async function createTiles(list_of_files){
             countMap[groundTiles[row][column]["type"]]++;
             
             if (surfaceTiles[row][column] != 0){
-                countMap[surfaceTiles[row][column]["type"]]++;
+                if (isInstancing(surfaceTiles[row][column]["type"])){
+                    countMap[surfaceTiles[row][column]["type"]]++;
+                };
             };
 
             if (surfaceTiles_v2[row][column] != 0){
-                if (surfaceTiles_v2[row][column]["type"] == "tree"){countMap[surfaceTiles_v2[row][column]["type"]] += 8}
-                else if (surfaceTiles_v2[row][column]["type"] == "tree2"){countMap[surfaceTiles_v2[row][column]["type"]] += 8}
+                if (surfaceTiles_v2[row][column]["type"] == "tree"){countMap[surfaceTiles_v2[row][column]["type"]] += 4}
+                else if (surfaceTiles_v2[row][column]["type"] == "tree2"){countMap[surfaceTiles_v2[row][column]["type"]] += 4}
                 else if (surfaceTiles_v2[row][column]["type"] == "road_h"){countMap[surfaceTiles_v2[row][column]["type"]] += 2}
                 else if (surfaceTiles_v2[row][column]["type"] == "road_v"){countMap[surfaceTiles_v2[row][column]["type"]] += 2}
                 else if (surfaceTiles_v2[row][column]["type"] == "road_c"){countMap[surfaceTiles_v2[row][column]["type"]] += 1}
@@ -125,4 +127,14 @@ async function readExternalJSON(filepath){
         .then(response => data = response.json());
     return data;
 
+};
+
+function isInstancing(name){
+    /*
+        if object is added to scene with non-instancing method, returns false.
+    */
+    if (name == "Res1" || name == "Res2" || name == "Res3" || name == "Hos" || name == "School" || name == "Pol" || name == "Com" || name == "Fire"){
+        return false;
+    };
+    return true;
 };

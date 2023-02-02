@@ -312,10 +312,13 @@ texFilesDict_building["Shel3"] = [
 	meshDictIndex = {};
 
 	for (name of Object.keys(texFilesDict_building)){
-		meshDict[name] = returnInstancedMeshModel(
-			texFilesDict_building[name][0], texFilesDict_building[name][1], texFilesDict_building[name][2], countMap[name] + 50, modelSize[name], name);
-		meshDict[name].name = name;
-		meshDictIndex[name] = [0, []];
+		if (isInstancing(name)){
+			meshDict[name] = returnInstancedMeshModel(
+				texFilesDict_building[name][0], texFilesDict_building[name][1], texFilesDict_building[name][2], countMap[name] + 50, modelSize[name], name);
+			meshDict[name].name = name;
+			meshDictIndex[name] = [0, []];
+
+		};
 	};
 
 	for (name of Object.keys(texFilesDict_ground)){
@@ -327,11 +330,10 @@ texFilesDict_building["Shel3"] = [
 
 	for (name of Object.keys(texFilesDict_groundd)){
 		meshDict[name] = returnInstancedMesh(
-			1, texFilesDict_groundd[name], 30000);
+			1, texFilesDict_groundd[name], 3000);
 		meshDict[name].name = name;
 		meshDictIndex[name] = [0, []];
 	};
-
 
 
 	for (name of Object.keys(texFilesDict_flood)){
@@ -563,3 +565,14 @@ function textureReturn(texPath){
 	var texture = new THREE.TextureLoader().load(texPath);
 	return texture
 }
+
+
+function isInstancing(name){
+    /*
+        if object is added to scene with non-instancing method, returns false.
+    */
+    if (name == "Res1" || name == "Res2" || name == "Res3" || name == "Hos" || name == "School" || name == "Pol" || name == "Com" || name == "Fire"){
+        return false;
+    };
+    return true;
+};

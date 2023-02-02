@@ -913,6 +913,18 @@
                             Automatic Map Generation allows you to select a region from <strong>Google Maps</strong> to play on.
                         </div>
                     </div>
+                    <div class="has-text-centered">
+                        <div class="control game-graphics">
+                            <label class="radio">
+                            <input type="radio" name="game-graphics" value="1" checked>
+                            Enrich Game Graphics
+                          </label>
+                          <label class="radio">
+                            <input type="radio" name="game-graphics" value="0">
+                            Optimized Game Graphics
+                          </label>
+                        </div>
+                    </div>
                 </div>
                 <div id="test2" class="is-hidden">
                     <div class="card-content" style="display:  grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
@@ -1262,12 +1274,19 @@ function clearPredefinedMaps() {
 };
 
 function sendStartInformation() {
+    var graphics = 1
+    for (let radiobtn of document.querySelectorAll('input[name="game-graphics"]')){
+        if  (radiobtn.checked){
+            graphics = radiobtn.value;
+        };
+    };
+
     if (!document.getElementById("test2").classList.contains("is-hidden")) {
         var idOfMap = document.querySelector(".selected-map").id;
-        return [0, idOfMap]
+        return [0, idOfMap, graphics]
     }
     else{
-        return [1, rectangle.getBounds().getCenter().toString()]
+        return [1, rectangle.getBounds().getCenter().toString(), graphics]
     }
 
 }

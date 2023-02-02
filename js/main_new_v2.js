@@ -10,10 +10,11 @@ import { LineSegments2 } from './../libs/three.js-dev/examples/jsm/lines/LineSeg
 import {LineSegmentsGeometry} from './../libs/three.js-dev/examples/jsm/lines/LineSegmentsGeometry.js';
 import { MTLLoader } from './../libs/three.js-dev/examples/jsm/loaders/MTLLoader.js';
 import { OBJLoader } from './../libs/three.js-dev/examples/jsm/loaders/OBJLoader.js';
+import Stats from './../libs/three.js-dev/examples/jsm/libs/stats.module.js';
 
 
 
-async function main(opts, list_of_files) {
+async function main(opts, list_of_files, game_graphics_opt) {
 
     var camera, scene, renderer, stats, gui, spotLight;
     var container = document.getElementById("webgl-output");
@@ -25,6 +26,7 @@ async function main(opts, list_of_files) {
     var totalCostAtTheStart;
     var meshDict, meshDictIndex, floodMesh;
     var borderSegments;
+    var game_graphics_opt = game_graphics_opt;
 
     var frame1, frame2;
 
@@ -171,7 +173,7 @@ async function main(opts, list_of_files) {
     //console.log("Active Drawcalls:", renderer.info.render.calls);
     //console.log("Textures in Memory", renderer.info.memory.textures);
     //console.log("Geometries in Memory", renderer.info.memory.geometries);
-    console.log("Rendere", renderer.info);
+    //console.log("Rendere", renderer.info);
 
     function init() {
 
@@ -220,6 +222,7 @@ async function main(opts, list_of_files) {
         dirLight.shadow.mapSize.height = 2048;
         dirLight.shadow.radius = 4;
         dirLight.shadow.bias = -0.0015;
+        dirLight.autoUpdate = false;
         scene.add(dirLight);
 
         // renderer
@@ -227,11 +230,26 @@ async function main(opts, list_of_files) {
         renderer = new THREE.WebGLRenderer({ container });
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize($(container).width(), $(container).height());
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.BasicShadowMap;
-        renderer.shadowMap.autoUpdate = true;
+        if (game_graphics_opt == "1"){
+            console.log(game_graphics_opt, "aaaa");
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.BasicShadowMap;
+            renderer.shadowMap.autoUpdate = true;
+            //renderer.shadowMap.needsUpdate = true;
+        }
+        else{
+            console.log(game_graphics_opt, "aaaa");
+            renderer.shadowMap.enabled = false;
+            renderer.shadowMap.type = THREE.BasicShadowMap;
+            renderer.shadowMap.autoUpdate = false; 
+
+        };
 
         container.appendChild(renderer.domElement);
+
+        stats = new Stats();
+        container.appendChild( stats.dom );
+
 
         createWorld();
         createWireframes();
@@ -273,7 +291,6 @@ async function main(opts, list_of_files) {
             if (event.deltaY < 0) { zoomInOut(1); }
             else {zoomInOut(0);}
         });
-        renderer.shadowMap.needsUpdate = true;
         updateGameProgressPanel();
         updateGoalsPanel();
         clickButton(0);
@@ -335,48 +352,6 @@ async function main(opts, list_of_files) {
             };
         };
 
-        // for (var row = 50; row < 55; row++) {
-        //     for (var column = -10; column < 55; column++) {
-
-        //         //obj = groundTiles[row][column];
-
-        //         transform.scale.set(tileSize, 100, tileSize);
-
-        //         [x, z] = calculatePosition(row, column);
-
-        //         transform.position.set(
-        //             x,
-        //             50,
-        //             z);
-        //         transform.updateMatrix();
-
-        //         meshDict["empty"].setMatrixAt(meshDictIndex["empty"][0]++, transform.matrix);
-        //         //groundTiles[row][column].instanceId = meshDictIndex[obj.type][0] - 1;
-        //         //meshDict[obj.type].renderOrder = 0;
-        //     };
-        // };
-
-        // for (var row = 0; row < 50; row++) {
-        //     for (var column = 50; column < 51; column++) {
-
-        //         //obj = groundTiles[row][column];
-
-        //         transform.scale.set(tileSize, 100, tileSize);
-
-        //         [x, z] = calculatePosition(row, column);
-
-        //         transform.position.set(
-        //             x,
-        //             50,
-        //             z);
-        //         transform.updateMatrix();
-
-        //         meshDict["empty"].setMatrixAt(meshDictIndex["empty"][0]++, transform.matrix);
-        //         //groundTiles[row][column].instanceId = meshDictIndex[obj.type][0] - 1;
-        //         //meshDict[obj.type].renderOrder = 0;
-        //     };
-        // };
-
         for (var row = 0; row < 50; row++) {
             for (var column = -1; column < 0; column++) {
 
@@ -433,39 +408,45 @@ async function main(opts, list_of_files) {
                     if (obj.type == "tree"){
                         dictSurfacePositiontoInstancedId["tree"][
                             [row, column]] = [];
-                        for (var i = 0; i < 4; i++){
-                            if (i == 0){
-                                var x1 = x + getRandomArbitrary(10, 45);
-                                var z1 = z + getRandomArbitrary(10, 45);
-                            }
-                            else if (i == 1){
-                                var x1 = x + getRandomArbitrary(10, 45); 
-                                var z1 = z - getRandomArbitrary(10, 45);
-                            }
-                            else if (i == 2){
-                                var x1 = x - getRandomArbitrary(10, 45);
-                                var z1 = z + getRandomArbitrary(10, 45);
+                        var randomTreeNumber = getRndInteger(1, 5);
+                        for (var i = 0; i < randomTreeNumber; i++){
+                            // if (i == 0){
+                            //     var x1 = x + getRandomArbitrary(10, 45);
+                            //     var z1 = z + getRandomArbitrary(10, 45);
+                            // }
+                            // else if (i == 1){
+                            //     var x1 = x + getRandomArbitrary(10, 45); 
+                            //     var z1 = z - getRandomArbitrary(10, 45);
+                            // }
+                            // else if (i == 2){
+                            //     var x1 = x - getRandomArbitrary(10, 45);
+                            //     var z1 = z + getRandomArbitrary(10, 45);
 
+                            // }
+                            // else{
+                            //     var x1 = x - getRandomArbitrary(10, 45);
+                            //     var z1 = z - getRandomArbitrary(10, 45);
+                            // }
+                            if (Math.random() > 0.5){
+                                if (Math.random() > 0.5){
+                                    var x1 = x + getRandomArbitrary(10, 45);
+                                    var z1 = z + getRandomArbitrary(10, 45);
+                                }
+                                else{
+                                    var x1 = x + getRandomArbitrary(10, 45);
+                                    var z1 = z - getRandomArbitrary(10, 45);
+                                };
                             }
                             else{
-                                var x1 = x - getRandomArbitrary(10, 45);
-                                var z1 = z - getRandomArbitrary(10, 45);
-                            }
-
-
-                            // if (Math.random > 0.5) {
-                            //     var x1 = x + Math.random() * 50;
-                                
-                            // } else {
-                            //     var x1 = x - Math.random() * 50;
-                            // };
-                            // if (Math.random > 0.5) {
-                            //     var z1 = z - Math.random() * 50;
-                            // } else {
-                                
-                            //     var z1 = z + Math.random() * 50;
-                            // };
-
+                                if (Math.random() > 0.5){
+                                    var x1 = x - getRandomArbitrary(10, 45);
+                                    var z1 = z + getRandomArbitrary(10, 45);
+                                }
+                                else{
+                                    var x1 = x - getRandomArbitrary(10, 45);
+                                    var z1 = z - getRandomArbitrary(10, 45);
+                                };
+                            };
                             transform.position.set(
                                 x1,
                                 groundTiles[row][column].elevation,
@@ -478,41 +459,49 @@ async function main(opts, list_of_files) {
                                 [row, column]].push(meshDictIndex["tree"][0] - 1);
                         };
                     }
-                    if (obj.type == "tree2"){
+                    else if (obj.type == "tree2"){
                         dictSurfacePositiontoInstancedId["tree2"][
                             [row, column]] = [];
-                        for (var i = 0; i < 4; i++){
-                            if (i == 0){
-                                var x1 = x + getRandomArbitrary(10, 45);
-                                var z1 = z + getRandomArbitrary(10, 45);
-                            }
-                            else if (i == 1){
-                                var x1 = x + getRandomArbitrary(10, 45); 
-                                var z1 = z - getRandomArbitrary(10, 45);
-                            }
-                            else if (i == 2){
-                                var x1 = x - getRandomArbitrary(10, 45);
-                                var z1 = z + getRandomArbitrary(10, 45);
+                        var randomTreeNumber = getRndInteger(1, 5);
+                        for (var i = 0; i < randomTreeNumber; i++){
+                            // if (i == 0){
+                            //     var x1 = x + getRandomArbitrary(10, 45);
+                            //     var z1 = z + getRandomArbitrary(10, 45);
+                            // }
+                            // else if (i == 1){
+                            //     var x1 = x + getRandomArbitrary(10, 45); 
+                            //     var z1 = z - getRandomArbitrary(10, 45);
+                            // }
+                            // else if (i == 2){
+                            //     var x1 = x - getRandomArbitrary(10, 45);
+                            //     var z1 = z + getRandomArbitrary(10, 45);
 
+                            // }
+                            // else{
+                            //     var x1 = x - getRandomArbitrary(10, 45);
+                            //     var z1 = z - getRandomArbitrary(10, 45);
+                            // }
+
+                            if (Math.random() > 0.5){
+                                if (Math.random() > 0.5){
+                                    var x1 = x + getRandomArbitrary(10, 45);
+                                    var z1 = z + getRandomArbitrary(10, 45);
+                                }
+                                else{
+                                    var x1 = x + getRandomArbitrary(10, 45);
+                                    var z1 = z - getRandomArbitrary(10, 45);
+                                }
                             }
                             else{
-                                var x1 = x - getRandomArbitrary(10, 45);
-                                var z1 = z - getRandomArbitrary(10, 45);
-                            }
-
-
-                            // if (Math.random > 0.5) {
-                            //     var x1 = x + Math.random() * 50;
-                                
-                            // } else {
-                            //     var x1 = x - Math.random() * 50;
-                            // };
-                            // if (Math.random > 0.5) {
-                            //     var z1 = z - Math.random() * 50;
-                            // } else {
-                                
-                            //     var z1 = z + Math.random() * 50;
-                            // };
+                                if (Math.random() > 0.5){
+                                    var x1 = x - getRandomArbitrary(10, 45);
+                                    var z1 = z + getRandomArbitrary(10, 45);
+                                }
+                                else{
+                                    var x1 = x - getRandomArbitrary(10, 45);
+                                    var z1 = z - getRandomArbitrary(10, 45);
+                                }
+                            };
 
                             transform.position.set(
                                 x1,
@@ -1625,12 +1614,12 @@ async function main(opts, list_of_files) {
 
             floodAction();
         };
-        if (Math.floor(Math.random() * 20) == 8 && doFlood == false){
-            waterMovement();
+        // if (Math.floor(Math.random() * 100) == 8 && doFlood == false){
+        //     waterMovement();
 
-        }
+        // }
         render();
-        //stats.update();
+        stats.update();
 
     };
 
@@ -3916,7 +3905,7 @@ async function main(opts, list_of_files) {
 
         };
         allCheckbox[10].onclick = function(){
-            console.log(allMitigationsSelects)
+            //console.log(allMitigationsSelects)
             createBuilding(
                 allMitigationsSelects[6].value,
                 selectedTile.row,
@@ -4179,11 +4168,11 @@ function showMapsUI(){
 
 function startGame(name){
     if (name[0] == 0){
-        main(0, dictOfDefaultMaps[name[1]]);
+        main(0, dictOfDefaultMaps[name[1]], name[2]);
         clearMapsUI();
     }
     else{
-        main(1, name[1]);
+        main(1, name[1], name[2]);
         clearMapsUI();
         //createAutomaticMapData(name[1]);
        //alert("Automatic Map Generation is under development!!!")
@@ -4520,7 +4509,7 @@ function findRoadType(i, j, arrayName){
         return findRoadTypefor3(b);
     }
     else {
-        console.log("Error findRoadType");
+        //console.log("Error findRoadType");
         return "road_c";
     };
 };
@@ -4551,7 +4540,7 @@ function findRoadTypefor3(b){
         return "road_left_right_up_3";
     }
     else{
-        console.log("Error on Type 3");
+        //console.log("Error on Type 3");
         return "road_h";
     };
 };
@@ -4590,7 +4579,7 @@ function findRoadTypefor2(b){
         return "road_left_up_2";
     }
     else{
-        console.log("Error on Type 1");
+        //console.log("Error on Type 1");
         return "road_h";
     };
 };
@@ -4616,7 +4605,7 @@ function findRoadTypefor1(b){
         return "road_h_left_1";
     }
     else {
-        console.log("Error on Type 1")
+        //console.log("Error on Type 1")
         return "road_h";
     };
 
@@ -4925,12 +4914,14 @@ function idstoGroundTiles(objectIds){
             countMap[groundTileArray[row][column]["type"]]++;
             
             if (surfaceTileArray[row][column] != 0){
-                countMap[surfaceTileArray[row][column]["type"]]++;
+                if (isInstancing(surfaceTileArray[row][column]["type"])){
+                    countMap[surfaceTileArray[row][column]["type"]]++;
+                };
             };
 
             if (surfaceTileArray_2[row][column] != 0){
-                if (surfaceTileArray_2[row][column]["type"] == "tree"){countMap[surfaceTileArray_2[row][column]["type"]] += 8}
-                else if (surfaceTileArray_2[row][column]["type"] == "tree2"){countMap[surfaceTileArray_2[row][column]["type"]] += 8}
+                if (surfaceTileArray_2[row][column]["type"] == "tree"){countMap[surfaceTileArray_2[row][column]["type"]] += 4}
+                else if (surfaceTileArray_2[row][column]["type"] == "tree2"){countMap[surfaceTileArray_2[row][column]["type"]] += 4}
                 else if (surfaceTileArray_2[row][column]["type"] == "road_h"){countMap[surfaceTileArray_2[row][column]["type"]] += 2}
                 else if (surfaceTileArray_2[row][column]["type"] == "road_v"){countMap[surfaceTileArray_2[row][column]["type"]] += 2}
                 else if (surfaceTileArray_2[row][column]["type"] == "road_c"){countMap[surfaceTileArray_2[row][column]["type"]] += 1}
@@ -4948,6 +4939,15 @@ function idstoGroundTiles(objectIds){
     return [groundTileArray, surfaceTileArray, surfaceTileArray_2, floodTileArray, countMap]; 
 };
 
+function isInstancing(name){
+    /*
+        if object is added to scene with non-instancing method, returns false.
+    */
+    if (name == "Res1" || name == "Res2" || name == "Res3" || name == "Hos" || name == "School" || name == "Pol" || name == "Com" || name == "Fire"){
+        return false;
+    };
+    return true;
+};
 
 
 function pixelValuesToSurfaceType(pixelValues){
