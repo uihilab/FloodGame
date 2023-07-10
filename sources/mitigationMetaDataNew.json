@@ -1,0 +1,166 @@
+{
+    "Sandbag": {
+        "name": "Sandbag",
+        "cost": {
+            "1": {
+                "Cost": 33
+            },
+            "2": {
+                "Cost": 66
+            },
+            "3": {
+                "Cost": 99
+            }
+        },
+        "Type": "Building"
+    },
+    "Dryfloodproofing": {
+        "name": "Dryfloodproofing",
+        "cost": {
+            "1": {
+                "Cost": 12
+            },
+            "2": {
+                "Cost": 23
+            },
+            "3": {
+                "Cost": 37
+            }
+        },
+        "Type": "Building"
+    },
+    "Wetfloodproofing": {
+        "name": "Wetfloodproofing",
+        "cost": {
+            "1": {
+                "Cost": 6
+            },
+            "2": {
+                "Cost": 11
+            },
+            "3": {
+                "Cost": 21
+            }
+        },
+        "Type": "Building"
+    },
+    "ElevateStructure": {
+        "name": "Elevate Structure",
+        "cost": {
+            "1": {
+                "Cost": 30
+            },
+            "2": {
+                "Cost": 35
+            },
+            "3": {
+                "Cost": 37
+            },
+            "4": {
+                "Cost": 39
+            },
+            "5": {
+                "Cost": 40
+            },
+            "6": {
+                "Cost": 42
+            },
+            "7": {
+                "Cost": 43
+            },
+            "8": {
+                "Cost": 45
+            },
+            "9": {
+                "Cost": 48
+            },
+            "10": {
+                "Cost": 54
+            }
+        },
+        "Type": "Building"
+    },
+    "Insurance": {
+        "name": "Insurance",
+        "cost": {
+            
+                "Res1": 0.01,
+                "Res2": 0.01,
+                "Res3": 0.01,
+                "Com": 0.005,
+                "Ind": 0.005,
+                "Hospital": 0.005,
+                "Fire": "N/A",
+                "Police": "N/A",
+                "Water": "N/A",
+                "School": "N/A",
+                "Bank": "N/A",
+                "Chu": "N/A",
+                "Chse": "N/A",
+                "Htl": "N/A",
+                "Com2": "N/A",
+                "Gas": "N/A",
+                "Hll": "N/A"
+        },
+        "Type": "Building"
+    },
+    "Relocate": {
+        "name": "Relocate",
+        "cost": 81,
+        "Type": "Building"
+    },
+    "Floodwall": {
+        "name": "Floodwall",
+        "cost": {
+            "1": {
+                "Cost": 38
+            },
+            "2": {
+                "Cost": 76
+            },
+            "3": {
+                "Cost": 143
+            },
+            "4": {
+                "Cost": 190
+            },
+            "5": {
+                "Cost": 238
+            },
+            "6": {
+                "Cost": 250
+            }
+        },
+        "Type": "Ground"
+    },
+    "Shelter1": {
+        "name": "Shelter Low Cap",
+        "Occupants": 100,
+        "cost": {
+            "N/A": {
+                "Ground": 300000
+            }
+        },
+        "Type": "Ground"
+    },
+    "Shelter2": {
+        "name": "Shelter Mid Cap",
+        "Occupants": 250,
+        "cost": {
+            "N/A": {
+                "Ground": 500000
+            }
+        },
+        "Type": "Ground"
+    },
+    "Shelter3": {
+        "name": "Shelter High Cap",
+        "Occupants": 500,
+        "cost": {
+            "N/A": {
+                "Ground": 800000
+            }
+        },
+        "Type": "Ground"
+    }
+}

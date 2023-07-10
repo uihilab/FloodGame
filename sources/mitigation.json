@@ -1,0 +1,172 @@
+{
+	"Sandbag": {
+			"name": "Sandbag",
+			"cost": {
+				"1foot": {
+					"Cost": 33
+				},
+				"2foot": {
+					"Cost": 66
+				},
+				"3foot": {
+					"Cost": 99
+				}
+			},
+			"Type": "Building"
+		},
+		"Dryfloodproofing": {
+			"name": "Dryfloodproofing",
+			"cost": {
+				"1foot": {
+					"Cost": 12
+				},
+				"2foot": {
+					"Cost": 23
+				},
+				"3foot": {
+					"Cost": 37
+				}
+			},
+			"Type": "Building"
+		},
+		"Wetfloodproofing": {
+			"name": "Wetfloodproofing",
+			"cost": {
+				"1foot": {
+					"Cost": 6
+				},
+				"2foot": {
+					"Cost": 11
+				},
+				"3foot": {
+					"Cost": 21
+				}
+			},
+			"Type": "Building"
+		},
+		"Elevate Structure": {
+			"name": "Elevate Structure",
+			"cost": {
+				"1foot": {
+					"Cost": "N/A"
+				},
+				"2foot": {
+					"Cost": 35
+				},
+				"3foot": {
+					"Cost": 37
+				},
+				"4foot": {
+					"Cost": 39
+				},
+				"5foot": {
+					"Cost": 40
+				},
+				"6foot": {
+					"Cost": 42
+				},
+				"7foot": {
+					"Cost": 43
+				},
+				"8foot": {
+					"Cost": 45
+				},
+				"9foot": {
+					"Cost": 48
+				},
+				"10foot": {
+					"Cost": 54
+				}
+			},
+			"Type": "Building"
+		},
+		"Insurance": {
+			"name": "Insurance",
+			"cost": {
+				"N/A": {
+					"Res1": 0.01,
+					"Res2": 0.01,
+					"Res3": 0.01,
+					"Com": 0.005,
+					"Ind": 0.005,
+					"Hospital": 0.005,
+					"Fire": "N/A",
+					"Police": "N/A",
+					"Water": "N/A",
+					"School": "N/A",
+					"Bank": "N/A",
+                    "Chu": "N/A",
+                    "Chse": "N/A",
+                    "Htl": "N/A",
+                    "Com2": "N/A",
+                    "Gas": "N/A",
+                    "Hll": "N/A"
+
+				}
+			},
+			"Type": "Building"
+		},
+		"Relocate": {
+			"name": "Relocate",
+			"cost": {
+				"N/A": {
+					"Cost": 81
+				}
+			},
+			"Type": "Building"
+		},
+		"Floodwall": {
+			"name": "Floodwall",
+			"cost": {
+				"1foot": {
+					"Cost": 38
+				},
+				"2foot": {
+					"Cost": 76				
+				},
+				"3foot": {
+					"Cost": 143				
+				},
+				"4foot": {
+					"Cost": 190					
+				},
+				"5foot": {
+					"Cost": 238
+				},
+				"6foot": {
+					"Cost": 250
+				}
+			},
+			"Type": "Ground"
+		},
+		"Shelter1": {
+			"name": "Shelter Low Cap",
+			"Occupants": 100,
+			"cost": {
+				"N/A": {
+					"Ground": 300000
+				}
+			},
+			"Type": "Ground"
+		},
+		"Shelter2": {
+			"name": "Shelter Mid Cap",
+			"Occupants": 250,			
+			"cost": {
+				"N/A": {
+					"Ground": 500000
+				}
+			},
+			"Type": "Ground"
+		},
+		"Shelter3": {
+			"name": "Shelter High Cap",
+			"Occupants": 500,
+			"cost": {
+				"N/A": {
+					"Ground": 800000
+				}
+			},
+			"Type": "Ground"
+		}
+}

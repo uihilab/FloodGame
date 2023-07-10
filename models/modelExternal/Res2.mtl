@@ -1,0 +1,24 @@
+newmtl Mat.3
+Kd 0.6484081 0.7611122 0.7322596
+d 1
+
+newmtl white
+Kd 0.9593465 0.9593465 0.9593465
+d 1
+
+newmtl Grey
+Kd 0.6726329 0.6726329 0.6726329
+d 1
+
+newmtl Mat.5_2
+Kd 0.8984323 0.5785821 0.5642771
+d 1
+
+newmtl Glass_2
+Kd 0.4826813 0.6386794 0.749665
+d 0.5
+
+newmtl Default-Material
+Kd 1 1 1
+d 1
+
