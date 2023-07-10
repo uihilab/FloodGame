@@ -1,8 +1,8 @@
-import * as THREE from "./../libs/three.js-dev/build/three.module.js"
-import * as BoxBufferGeometry from './../libs/three.js-dev/src/geometries/BoxGeometry.js';
-import { BufferGeometryUtils } from './../libs/three.js-dev/examples/jsm/utils/BufferGeometryUtils.js';
-import { MTLLoader } from './../libs/three.js-dev/examples/jsm/loaders/MTLLoader.js';
-import { OBJLoader } from './../libs/three.js-dev/examples/jsm/loaders/OBJLoader.js';
+import * as THREE from "./../libs/threejs/three.module.js"
+import * as BoxBufferGeometry from './../libs/threejs/BoxGeometry.js';
+import { BufferGeometryUtils } from './../libs/threejs/BufferGeometryUtils.js';
+import { MTLLoader } from './../libs/threejs/MTLLoader.js';
+import { OBJLoader } from './../libs/threejs/OBJLoader.js';
 
 
 var objLoader, mtlLoader;

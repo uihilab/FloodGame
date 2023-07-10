@@ -1,16 +1,16 @@
 import { createTiles } from "./createWorldData.js";
 import { createMeshes } from "./loadModels.js";
-import * as THREE from "./../libs/three.js-dev/build/three.module.js"
-import CameraControls from "./../libs/camera-controls/dist/camera-controls.module.js"
-import * as holdEvent from "./../libs/camera-controls/dist/hold-event.module.js";
-import { LineMaterial } from './../libs/three.js-dev/examples/jsm/lines/LineMaterial.js';
-import { LineGeometry } from './../libs/three.js-dev/examples/jsm/lines/LineGeometry.js';
-import { GeometryUtils } from './../libs/three.js-dev/examples/jsm/utils/GeometryUtils.js';
-import { LineSegments2 } from './../libs/three.js-dev/examples/jsm/lines/LineSegments2.js';
-import {LineSegmentsGeometry} from './../libs/three.js-dev/examples/jsm/lines/LineSegmentsGeometry.js';
-import { MTLLoader } from './../libs/three.js-dev/examples/jsm/loaders/MTLLoader.js';
-import { OBJLoader } from './../libs/three.js-dev/examples/jsm/loaders/OBJLoader.js';
-import Stats from './../libs/three.js-dev/examples/jsm/libs/stats.module.js';
+import * as THREE from "./../libs/threejs/three.module.js"
+import CameraControls from "./../libs/camera-controls/camera-controls.module.js"
+import * as holdEvent from "./../libs/camera-controls/hold-event.module.js";
+import { LineMaterial } from './../libs/threejs/LineMaterial.js';
+import { LineGeometry } from './../libs/threejs/LineGeometry.js';
+import { GeometryUtils } from './../libs/threejs/GeometryUtils.js';
+import { LineSegments2 } from './../libs/threejs/LineSegments2.js';
+import {LineSegmentsGeometry} from './../libs/threejs/LineSegmentsGeometry.js';
+import { MTLLoader } from './../libs/threejs/MTLLoader.js';
+import { OBJLoader } from './../libs/threejs/OBJLoader.js';
+import Stats from './../libs/threejs/stats.module.js';
 
 
 
