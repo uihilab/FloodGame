@@ -29,220 +29,220 @@ export function createMeshes(countMap){
 
 
 texFilesDict_building["Bank"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Bank.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Bank.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPB/SPB_Bank.png"];
+	"models/polyModels/Models/SPB/SPB_Bank.obj",
+	"models/polyModels/Models/SPB/SPB_Bank.mtl",
+	"models/polyModels/Textures/SPB_Bank.png"];
 
 texFilesDict_building["Chu"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Church.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Church.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPB/SPB_Church.png"];
+	"models/polyModels/Models/SPB_Church.obj",
+	"models/polyModels/Models/SPB_Church.mtl",
+	"models/polyModels/Textures/SPB_Church.png"];
 
 texFilesDict_building["Chse"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Court House.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Court House.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPB/SPB_Court House.png"];
+	"models/polyModels/Models/SPB_Court House.obj",
+	"models/polyModels/Models/SPB_Court House.mtl",
+	"models/polyModels/Textures/SPB_Court House.png"];
 
 texFilesDict_building["Htl"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Hotel.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Hotel.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPB/SPB_Hotel.png"];
+	"models/polyModels/Models/SPB_Hotel.obj",
+	"models/polyModels/Models/SPB_Hotel.mtl",
+	"models/polyModels/Textures/SPB_Hotel.png"];
 
 texFilesDict_building["Com2"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_15.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_15.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Bldg_15.png"];	
+	"models/polyModels/Models/SPW_Urban_Bldg_15.obj",
+	"models/polyModels/Models/SPW_Urban_Bldg_15.mtl",
+	"models/polyModels/Textures/SPW_Urban_Bldg_15.png"];	
 
 texFilesDict_building["Gas"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_Gas Station.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_Gas Station.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Bldg_Gas Station_Color02.png"];	
+	"models/polyModels/Models/SPW_Urban_Bldg_Gas Station.obj",
+	"models/polyModels/Models/SPW_Urban_Bldg_Gas Station.mtl",
+	"models/polyModels/Textures/SPW_Urban_Bldg_Gas Station_Color02.png"];	
 
 texFilesDict_building["Hll"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_City Hall.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_City Hall.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPB/SPB_City Hall.png"];
+	"models/polyModels/Models/SPB_City Hall.obj",
+	"models/polyModels/Models/SPB_City Hall.mtl",
+	"models/polyModels/Textures/SPB_City Hall.png"];
 
 
 
 
 
 texFilesDict_building["Res1"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Bldg_01_Color01.png"];
+	"models/polyModels/Models/SPW_Urban_Bldg_01.obj",
+	"models/polyModels/Models/SPW_Urban_Bldg_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Bldg_01_Color01.png"];
 
 texFilesDict_building["Res2"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_02.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_02.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Bldg_02_Color01.png"];
+	"models/polyModels/Models/SPW_Urban_Bldg_02.obj",
+	"models/polyModels/Models/SPW_Urban_Bldg_02.mtl",
+	"models/polyModels/Textures/SPW_Urban_Bldg_02_Color01.png"];
 
 texFilesDict_building["Res3"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Bldg_01_Color02.png"];
+	"models/polyModels/Models/SPW_Urban_Bldg_01.obj",
+	"models/polyModels/Models/SPW_Urban_Bldg_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Bldg_01_Color02.png"];
 
 texFilesDict_building["tree"] = [
-	"models/polyModels/OBJFiles/Models/Natures/Tree/SPW_Natures_Tree_02.obj",
-	"models/polyModels/OBJFiles/Models/Natures/Tree/SPW_Natures_Tree_02.mtl",
-	"models/polyModels/OBJFiles/Textures/Natures/SPW_Natures_01.png"];
+	"models/polyModels/Models/SPW_Natures_Tree_02.obj",
+	"models/polyModels/Models/SPW_Natures_Tree_02.mtl",
+	"models/polyModels/Textures/SPW_Natures_01.png"];
 
 texFilesDict_building["tree2"] = [
-	"models/polyModels/OBJFiles/Models/Natures/Tree/SPW_Natures_Tree_Fir_02.obj",
-	"models/polyModels/OBJFiles/Models/Natures/Tree/SPW_Natures_Tree_Fir_02.mtl",
-	"models/polyModels/OBJFiles/Textures/Natures/SPW_Natures_01.png"];
+	"models/polyModels/Models/SPW_Natures_Tree_Fir_02.obj",
+	"models/polyModels/Models/SPW_Natures_Tree_Fir_02.mtl",
+	"models/polyModels/Textures/SPW_Natures_01.png"];
 
 texFilesDict_building["road_v"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_01.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 texFilesDict_building["road_h"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_01.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 texFilesDict_building["road_right_down_2"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_Corner_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_Corner_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_Corner_01.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_Corner_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 texFilesDict_building["road_left_down_2"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_Corner_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_Corner_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_Corner_01.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_Corner_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 texFilesDict_building["road_left_up_2"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_Corner_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_Corner_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_Corner_01.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_Corner_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 texFilesDict_building["road_right_up_2"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_Corner_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_Corner_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_Corner_01.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_Corner_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 texFilesDict_building["road_up_down_right_3"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_T_Intersection_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_T_Intersection_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_T_Intersection_01.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_T_Intersection_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 
 texFilesDict_building["road_left_right_down_3"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_T_Intersection_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_T_Intersection_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_T_Intersection_01.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_T_Intersection_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 
 texFilesDict_building["road_up_down_left_3"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_T_Intersection_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_T_Intersection_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_T_Intersection_01.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_T_Intersection_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 texFilesDict_building["road_left_right_up_3"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_T_Intersection_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_T_Intersection_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_T_Intersection_01.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_T_Intersection_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 texFilesDict_building["road_v_down_1"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_04.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_04.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_04.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_04.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 texFilesDict_building["road_h_left_1"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_04.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_04.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_04.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_04.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 texFilesDict_building["road_v_up_1"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_04.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_04.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_04.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_04.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 texFilesDict_building["road_h_right_1"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_04.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_04.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_04.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_04.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 
 texFilesDict_building["road_c"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_Intersection_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road 2way_Intersection_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road 2way_Intersection_01.obj",
+	"models/polyModels/Models/SPW_Urban_Road 2way_Intersection_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 
 texFilesDict_building["parking"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road Parking Lot Small.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Roads_Bridges/Road/Road/SPW_Urban_Road Parking Lot Small.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Road.png"
+	"models/polyModels/Models/SPW_Urban_Road Parking Lot Small.obj",
+	"models/polyModels/Models/SPW_Urban_Road Parking Lot Small.mtl",
+	"models/polyModels/Textures/SPW_Urban_Road.png"
 ]
 texFilesDict_building["Pol"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Police Station.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Police Station.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPB/SPB_Police Station.png"
+	"models/polyModels/Models/SPB_Police Station.obj",
+	"models/polyModels/Models/SPB_Police Station.mtl",
+	"models/polyModels/Textures/SPB_Police Station.png"
 ]
 
 texFilesDict_building["Fire"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Fire Station.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Fire Station.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPB/SPB_Fire Station.png"
+	"models/polyModels/Models/SPB_Fire Station.obj",
+	"models/polyModels/Models/SPB_Fire Station.mtl",
+	"models/polyModels/Textures/SPB_Fire Station.png"
 ]
 
 texFilesDict_building["Hos"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Hospital.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_Hospital.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPB/SPB_Hospital.png"
+	"models/polyModels/Models/SPB_Hospital.obj",
+	"models/polyModels/Models/SPB_Hospital.mtl",
+	"models/polyModels/Textures/SPB_Hospital.png"
 ]
 
 texFilesDict_building["School"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_School.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPB/SPB_School.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPB/SPB_School.png"
+	"models/polyModels/Models/SPB_School.obj",
+	"models/polyModels/Models/SPB_School.mtl",
+	"models/polyModels/Textures/SPB_School.png"
 ]
 
 texFilesDict_building["Wat"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_13.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_13.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Bldg_13_Color01.png"
+	"models/polyModels/Models/SPW_Urban_Bldg_13.obj",
+	"models/polyModels/Models/SPW_Urban_Bldg_13.mtl",
+	"models/polyModels/Textures/SPW_Urban_Bldg_13_Color01.png"
 ]
 
 texFilesDict_building["Ind"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Factory/SPW_Urban_Factory_Bldg_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Factory/SPW_Urban_Factory_Bldg_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Factory.png"
+	"models/polyModels/Models/SPW_Urban_Factory_Bldg_01.obj",
+	"models/polyModels/Models/SPW_Urban_Factory_Bldg_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Factory.png"
 ]
 
 texFilesDict_building["Com"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_08.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_08.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Bldg_08_Color01.png"
+	"models/polyModels/Models/SPW_Urban_Bldg_08.obj",
+	"models/polyModels/Models/SPW_Urban_Bldg_08.mtl",
+	"models/polyModels/Textures/SPW_Urban_Bldg_08_Color01.png"
 ]
 
 texFilesDict_building["Shel1"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Bldg_01_Color02.png"];
+	"models/polyModels/Models/SPW_Urban_Bldg_01.obj",
+	"models/polyModels/Models/SPW_Urban_Bldg_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Bldg_01_Color02.png"];
 texFilesDict_building["Shel2"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Bldg_01_Color02.png"];
+	"models/polyModels/Models/SPW_Urban_Bldg_01.obj",
+	"models/polyModels/Models/SPW_Urban_Bldg_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Bldg_01_Color02.png"];
 texFilesDict_building["Shel3"] = [
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_01.obj",
-	"models/polyModels/OBJFiles/Models/Urban/Buildings/SPW_Urban_Bldg_01.mtl",
-	"models/polyModels/OBJFiles/Textures/Urban/SPW_Urban_Bldg_01_Color02.png"];
+	"models/polyModels/Models/SPW_Urban_Bldg_01.obj",
+	"models/polyModels/Models/SPW_Urban_Bldg_01.mtl",
+	"models/polyModels/Textures/SPW_Urban_Bldg_01_Color02.png"];
 
 
 
