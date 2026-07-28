@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
     <script src="https://kit.fontawesome.com/b11836b105.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/aiTutor.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="module" src="./js/aiTutor.js"></script>
     <script type="module" src="./js/main.js"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <!-- playground-hide -->
@@ -51,6 +53,11 @@
                         <li data-target="mitigation-options">
                             <a>
                                 <span>Mitigation Options</span>
+                            </a>
+                        </li>
+                        <li data-target="ai-tutor">
+                            <a>
+                                <span>AI Tutor</span>
                             </a>
                         </li>
                     </ul>
@@ -294,8 +301,23 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="mitigation-cost"> $465k </div>
+                                    <div class="mitigation-cost"> $465k </div>
                                 <div class="mitigation-status"> <input type="checkbox"> </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="ai-tutor" class="is-hidden">
+                        <div class="chat-container">
+                            <div id="chat-messages" class="chat-messages">
+                            </div>
+                            <div class="quick-prompts">
+                                <button class="button is-small quick-prompt-btn" data-query="Explain the 1927 Mississippi River flood.">1927 Flood</button>
+                                <button class="button is-small quick-prompt-btn" data-query="What is the difference between dry and wet floodproofing?">Dry vs Wet Proofing</button>
+                                <button class="button is-small quick-prompt-btn" data-query="How can I protect critical buildings?">Protect Buildings</button>
+                            </div>
+                            <div class="chat-input-area">
+                                <input type="text" id="chat-input" placeholder="Ask a question...">
+                                <button id="chat-send" class="button is-small is-info">Send</button>
                             </div>
                         </div>
                     </div>
@@ -1132,15 +1154,14 @@ tabs.forEach((tab) => {
             if (box.getAttribute("id") == target) {
                 box.classList.remove("is-hidden");
                 document.getElementById("deneme").classList.remove("large-25");
-                if (target == "mitigation-options") {
+                if (target == "mitigation-options" || target == "ai-tutor") {
                     aa.classList.add("is-hidden");
                     document.getElementById("deneme").classList.add("large-25");
-
                 }
             } else {
                 box.classList.add("is-hidden");
                 document.getElementById("deneme").classList.remove("small-25");
-                if (target != "mitigation-options") {
+                if (target != "mitigation-options" && target != "ai-tutor") {
                     aa.classList.remove("is-hidden");
                     document.getElementById("deneme").classList.add("small-25");
                 }
