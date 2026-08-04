@@ -4157,6 +4157,12 @@ var dictOfDefaultMaps = {
         "sources/maps/greenville/SurfaceTiles_v2.json?v=4",
         "sources/FloodTiles.json"
     ],
+    'st_bernard': [
+        "sources/maps/st_bernard/GroundTiles.json?v=4",
+        "sources/maps/st_bernard/SurfaceTiles.json?v=4",
+        "sources/maps/st_bernard/SurfaceTiles_v2.json?v=4",
+        "sources/FloodTiles.json"
+    ],
 };
 
 
