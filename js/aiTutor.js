@@ -148,6 +148,13 @@ ${userText}<|im_end|>
         });
     });
 
-    // Start model initialization
-    initModel();
+    // Only initialize the model when the user clicks the AI Tutor tab
+    const aiTutorTab = document.querySelector('li[data-target="ai-tutor"]');
+    if (aiTutorTab) {
+        aiTutorTab.addEventListener("click", () => {
+            if (!worker) {
+                initModel();
+            }
+        });
+    }
 });

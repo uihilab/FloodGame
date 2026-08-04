@@ -29,8 +29,8 @@ export function createMeshes(countMap){
 
 
 texFilesDict_building["Bank"] = [
-	"models/polyModels/Models/SPB/SPB_Bank.obj",
-	"models/polyModels/Models/SPB/SPB_Bank.mtl",
+	"models/polyModels/Models/SPB_Bank.obj",
+	"models/polyModels/Models/SPB_Bank.mtl",
 	"models/polyModels/Textures/SPB_Bank.png"];
 
 texFilesDict_building["Chu"] = [

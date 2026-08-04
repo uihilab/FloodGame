@@ -1,5 +1,5 @@
 import { createTiles } from "./createWorldData.js";
-import { createMeshes } from "./loadModels.js";
+import { createMeshes } from "./loadModels.js?v=2";
 import * as THREE from "./../libs/threejs/three.module.js"
 import CameraControls from "./../libs/camera-controls/camera-controls.module.js"
 import * as holdEvent from "./../libs/camera-controls/hold-event.module.js";
@@ -4149,6 +4149,12 @@ var dictOfDefaultMaps = {
         "sources/maps/davenport/GroundTiles.json",
         "sources/maps/davenport/SurfaceTiles.json",
         "sources/maps/davenport/SurfaceTiles_v2.json",
+        "sources/FloodTiles.json"
+    ],
+    'greenville': [
+        "sources/maps/greenville/GroundTiles.json?v=4",
+        "sources/maps/greenville/SurfaceTiles.json?v=4",
+        "sources/maps/greenville/SurfaceTiles_v2.json?v=4",
         "sources/FloodTiles.json"
     ],
 };
