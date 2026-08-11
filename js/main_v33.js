@@ -5118,7 +5118,7 @@ var dictOfDefaultMaps = {
 function clearMapsUI(){
     document.getElementById("modal-js-example").classList.remove("is-active");
     // Show top and bottom HUD bars, but keep left sidebar closed!
-    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar");
+    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .top-hud-toggle-btn");
     for (var i = 0; i < hudEls.length; i++) {
         hudEls[i].classList.remove("is-hidden");
     }
@@ -5129,7 +5129,7 @@ function clearMapsUI(){
 function showMapsUI(){
     document.getElementById("modal-js-example").classList.add("is-active");
     // Hide all HUD elements
-    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .left-hud-panel");
+    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .left-hud-panel, .top-hud-toggle-btn");
     for (var i = 0; i < hudEls.length; i++) {
         hudEls[i].classList.add("is-hidden");
     }
@@ -5158,7 +5158,7 @@ function startGame(name){
     });
 
     // Show top and bottom HUD bars, but keep left sidebar and AI tutor drawer closed!
-    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar");
+    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .top-hud-toggle-btn");
     for (var i = 0; i < hudEls.length; i++) {
         hudEls[i].classList.remove("is-hidden");
     }
