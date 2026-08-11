@@ -4500,14 +4500,30 @@ async function main(opts, list_of_files, game_graphics_opt) {
     function updateTileInformationPanelOnMouseMove(row, column) {
         if (!surfaceTiles || !surfaceTiles[row] || !groundTiles || !groundTiles[row]) return;
 
-        updateTileInformationPanelForTile(row, column);
-
+        // Hover tooltip updates floating tooltip over mouse - does NOT overwrite clicked tile panel!
         var tt = document.getElementById("tile-hover-tooltip");
         if (tt) {
+            var typeName = "Empty Land";
+            if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] != 0) {
+                var st = surfaceTiles[row][column];
+                var typeKey = (typeof st === 'object') ? st.type : st;
+                if (buildingMetaDict && buildingMetaDict[typeKey] && buildingMetaDict[typeKey]["name"]) {
+                    typeName = buildingMetaDict[typeKey]["name"];
+                } else {
+                    typeName = "Structure";
+                }
+            } else {
+                var gtType = (groundTiles[row][column] && groundTiles[row][column].type) ? groundTiles[row][column].type.toLowerCase() : "";
+                if (gtType === "water" || gtType.includes("water")) typeName = "River / Water";
+                else if (gtType === "parking_lot" || gtType.includes("parking")) typeName = "Parking Lot";
+                else if (gtType === "parks" || gtType === "park") typeName = "Park";
+                else if (gtType === "road" || gtType.includes("road")) typeName = "Road";
+                else typeName = "Open Land";
+            }
+
             var elev = (groundTiles[row][column] && groundTiles[row][column].elevation)
                 ? groundTiles[row][column].elevation.toFixed(1) : "40.0";
             var risk = findRiskValue(row, column);
-            var typeName = (document.getElementById("tile-info-type")) ? document.getElementById("tile-info-type").textContent : "Tile";
             var nameEl = document.getElementById("tooltip-tile-name");
             var elevEl = document.getElementById("tooltip-tile-elev");
             var riskEl = document.getElementById("tooltip-tile-risk");
