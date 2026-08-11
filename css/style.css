@@ -1257,7 +1257,53 @@ html, body {
     backdrop-filter: blur(12px);
     font-family: var(--font-primary);
     width: max-content !important;
-    max-width: 95vw !important;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Top HUD Toggle Button & Collapsed State */
+.top-hud-toggle-btn {
+    position: absolute !important;
+    bottom: -15px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: rgba(15, 23, 42, 0.95) !important;
+    border: 1px solid rgba(0, 240, 255, 0.5) !important;
+    border-radius: 12px !important;
+    color: #00f0ff !important;
+    padding: 3px 14px !important;
+    font-size: 0.68rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px !important;
+    cursor: pointer !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5) !important;
+    z-index: 1045 !important;
+    transition: all 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+    pointer-events: auto !important;
+}
+
+.top-hud-toggle-btn:hover {
+    background: rgba(0, 240, 255, 0.25) !important;
+    color: #ffffff !important;
+}
+
+/* Collapsed State */
+.top-hud-bar.hud-collapsed {
+    transform: translate(-50%, -102%) !important;
+}
+
+.top-hud-bar.hud-collapsed .top-hud-toggle-btn {
+    bottom: -32px !important;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%) !important;
+    border-color: #00f0ff !important;
+    color: #00f0ff !important;
+    padding: 5px 16px !important;
+    font-size: 0.75rem !important;
+    border-radius: 14px !important;
+    box-shadow: 0 4px 15px rgba(0, 240, 255, 0.3) !important;
 }
 
 .hud-sim-controls {

@@ -93,6 +93,11 @@
                 <i class="fas fa-play"></i> Start
             </button>
         </div>
+
+        <!-- Toggle Collapse/Expand Button for Mobile HUD -->
+        <button class="top-hud-toggle-btn" id="top-hud-toggle-btn" onclick="toggleTopHUDBar()" title="Toggle Top HUD Panel">
+            <i class="fas fa-chevron-up"></i> HIDE
+        </button>
     </div>
 
 
@@ -1577,6 +1582,21 @@ function openBudgetInfoModal() {
 function closeBudgetInfoModal() {
     const modal = document.getElementById("modalBudgetInfo");
     if (modal) modal.classList.remove("is-active");
+}
+
+function toggleTopHUDBar() {
+    const bar = document.querySelector(".top-hud-bar");
+    const btn = document.getElementById("top-hud-toggle-btn");
+    if (!bar) return;
+
+    const isCollapsed = bar.classList.contains("hud-collapsed");
+    if (isCollapsed) {
+        bar.classList.remove("hud-collapsed");
+        if (btn) btn.innerHTML = '<i class="fas fa-chevron-up"></i> HIDE';
+    } else {
+        bar.classList.add("hud-collapsed");
+        if (btn) btn.innerHTML = '<i class="fas fa-chart-bar"></i> STATS <i class="fas fa-chevron-down"></i>';
+    }
 }
 </script>
 <script>
