@@ -2971,10 +2971,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
         moveWireFrame_3(2, 0, 0);
         tileInformationPanelTabButtons[0].click();
 
-        // Hide mobile toast
-        const toast = document.getElementById("mobile-tile-toast");
-        if (toast) toast.classList.add("is-hidden");
-
         // Hide left panel if no active tool is selected
         var activeToolBtn = document.querySelector(".hud-circle-btn-container.active-tool");
         if (!activeToolBtn) {
@@ -4509,28 +4505,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
         if (elRisk) elRisk.textContent = riskVal;
         if (elElev) elElev.textContent = elevVal;
         if (elMit) elMit.textContent = mitText;
-
-        // 5. Populate Mobile Quick Tile Toast Banner
-        const toast = document.getElementById("mobile-tile-toast");
-        if (toast) {
-            const toastTitle = document.getElementById("mobile-toast-title");
-            const toastElev = document.getElementById("mobile-toast-elev");
-            const toastRisk = document.getElementById("mobile-toast-risk");
-            const toastPeople = document.getElementById("mobile-toast-people");
-
-            if (toastTitle) toastTitle.textContent = typeName;
-            if (toastElev) toastElev.textContent = "Elev: " + elevVal;
-            if (toastRisk) {
-                toastRisk.textContent = "Status: " + riskVal;
-                toastRisk.style.color = (riskVal.toLowerCase().includes("risk") || riskVal.toLowerCase().includes("high")) ? "#f87171" : "#4ade80";
-            }
-            if (toastPeople) toastPeople.textContent = "People: " + peopleCount;
-
-            // Show mobile toast if on touch device or screen <= 768px
-            if ('ontouchstart' in window || window.innerWidth <= 768) {
-                toast.classList.remove("is-hidden");
-            }
-        }
     }
 
     function updateTileInformationPanelOnMouseMove(row, column, clientX, clientY) {
