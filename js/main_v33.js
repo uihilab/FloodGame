@@ -1285,15 +1285,17 @@ async function main(opts, list_of_files, game_graphics_opt) {
             var z = pos[1];
             var elev = groundTiles[r][c].elevation;
             
-            boatGroup.position.set(x + (Math.random() - 0.5) * 20, elev + 0.5, z + (Math.random() - 0.5) * 20);
-            boatGroup.rotation.y = Math.random() * Math.PI * 2;
+            var angle = Math.random() * Math.PI * 2;
+            boatGroup.position.set(x + (Math.random() - 0.5) * 15, elev + 0.5, z + (Math.random() - 0.5) * 15);
+            boatGroup.rotation.y = angle;
             
             scene.add(boatGroup);
             
             activeBoats.push({
                 mesh: boatGroup,
                 baseY: elev + 0.5,
-                seed: Math.random() * 100
+                seed: Math.random() * 100,
+                speed: 0.08 + Math.random() * 0.06 // Gentle slow sailing speed
             });
         }
     }
@@ -1302,9 +1304,22 @@ async function main(opts, list_of_files, game_graphics_opt) {
         if (!activeBoats) return;
         for (var i = 0; i < activeBoats.length; i++) {
             var boat = activeBoats[i];
-            boat.mesh.position.y = boat.baseY + Math.sin(elapsedTime * 1.8 + boat.seed) * 0.35;
-            boat.mesh.rotation.z = Math.sin(elapsedTime * 1.0 + boat.seed) * 0.04;
+            
+            // Slow forward sailing movement in the water
+            var dirX = Math.sin(boat.mesh.rotation.y);
+            var dirZ = Math.cos(boat.mesh.rotation.y);
+            boat.mesh.position.x += dirX * boat.speed;
+            boat.mesh.position.z += dirZ * boat.speed;
+            
+            // Gentle wave bobbing & subtle hull rocking
+            boat.mesh.position.y = boat.baseY + Math.sin(elapsedTime * 1.5 + boat.seed) * 0.3;
+            boat.mesh.rotation.z = Math.sin(elapsedTime * 1.0 + boat.seed) * 0.03;
             boat.mesh.rotation.x = Math.cos(elapsedTime * 0.8 + boat.seed) * 0.02;
+
+            // Smoothly turn around if sailing near map boundaries
+            if (Math.abs(boat.mesh.position.x) > 2300 || Math.abs(boat.mesh.position.z) > 2300) {
+                boat.mesh.rotation.y += Math.PI * 0.9;
+            }
         }
     }
 
