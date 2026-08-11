@@ -2513,10 +2513,13 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
     function onMouseMove(event) {
         event.preventDefault();
+        const clientX = event.clientX;
+        const clientY = event.clientY;
+
         const { top, left, width, height } = renderer.domElement.getBoundingClientRect();
 
-        mouse.x = ((event.clientX - left) / width) * 2 - 1;
-        mouse.y = -((event.clientY - top) / height) * 2 + 1;
+        mouse.x = ((clientX - left) / width) * 2 - 1;
+        mouse.y = -((clientY - top) / height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
         var intersection = raycaster.intersectObjects(scene.children, true);
         var res = resolveRowColumn(intersection);
@@ -2524,9 +2527,12 @@ async function main(opts, list_of_files, game_graphics_opt) {
             var [row, column, size] = res;
             if (row >= 0 && row < 50 && column >= 0 && column < 50) {
                 var [pos_x, pos_z] = calculatePosition(row, column);
-                updateTileInformationPanelOnMouseMove(row, column);
+                updateTileInformationPanelOnMouseMove(row, column, clientX, clientY);
                 moveWireFrame_2(1, row, column);
             }
+        } else {
+            var tt = document.getElementById("tile-hover-tooltip");
+            if (tt) tt.classList.add("is-hidden");
         }
     }
 
@@ -4501,7 +4507,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
         if (elMit) elMit.textContent = mitText;
     }
 
-    function updateTileInformationPanelOnMouseMove(row, column) {
+    function updateTileInformationPanelOnMouseMove(row, column, clientX, clientY) {
         if (!surfaceTiles || !surfaceTiles[row] || !groundTiles || !groundTiles[row]) return;
 
         // Hover tooltip updates floating tooltip over mouse - does NOT overwrite clicked tile panel!
@@ -4538,6 +4544,29 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 riskEl.style.color = (risk.toLowerCase().includes("risk") || risk.toLowerCase().includes("high"))
                     ? "#f87171" : "#4ade80";
             }
+
+            // Position tooltip smoothly at cursor position, avoiding top HUD bar overlap!
+            if (typeof clientX === 'number' && typeof clientY === 'number') {
+                var tooltipWidth = 180;
+                var tooltipHeight = 55;
+                var posX = clientX + 16;
+                var posY = clientY + 16;
+
+                if (posX + tooltipWidth > window.innerWidth) {
+                    posX = clientX - tooltipWidth - 10;
+                }
+                if (posY + tooltipHeight > window.innerHeight) {
+                    posY = clientY - tooltipHeight - 10;
+                }
+                // Avoid pushing underneath top HUD bar (top < 85px)
+                if (posY < 85) {
+                    posY = 85;
+                }
+
+                tt.style.left = posX + "px";
+                tt.style.top = posY + "px";
+            }
+
             tt.classList.remove("is-hidden");
         }
     };
