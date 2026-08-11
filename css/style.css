@@ -309,6 +309,7 @@ html, body {
 
 /* Illustrated map card style */
 .map-card {
+    position: relative;
     background: #ffffff;
     border: 3px solid #d8e4ec;
     border-radius: 14px;
@@ -319,6 +320,24 @@ html, body {
     flex-direction: column;
     padding: 0;
     box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+
+.map-card-corner-tag {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 10;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    border-radius: 6px;
+    padding: 3px 8px;
+    color: #00f0ff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    pointer-events: none;
 }
 
 .map-card img {
