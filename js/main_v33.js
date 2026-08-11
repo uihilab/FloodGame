@@ -2440,28 +2440,36 @@ async function main(opts, list_of_files, game_graphics_opt) {
     function resolveRowColumn(intersection) {
         if (!intersection || intersection.length === 0) return null;
         
-        var obj = intersection[0].object;
-        while (obj && obj !== scene) {
-            if (obj.externalID) {
-                var parts = obj.externalID.split("_");
-                return [parseInt(parts[0]), parseInt(parts[1]), 1];
+        for (var k = 0; k < intersection.length; k++) {
+            var hit = intersection[k];
+            if (!hit || !hit.object) continue;
+
+            var obj = hit.object;
+            while (obj && obj !== scene) {
+                if (obj.externalID) {
+                    var parts = obj.externalID.split("_");
+                    return [parseInt(parts[0]), parseInt(parts[1]), 1];
+                }
+                obj = obj.parent;
             }
-            obj = obj.parent;
-        }
 
-        var meshName = intersection[0].object.name;
-        var instanceId = intersection[0].instanceId;
+            var meshName = hit.object.name;
+            var instanceId = hit.instanceId;
 
-        if (meshName === "smoothTerrain") {
-            var [r, c] = calculateArrayPosition(intersection[0].point.x, intersection[0].point.z);
-            return [r, c, 1];
-        }
+            if (meshName === "smoothTerrain" && hit.point) {
+                var [r, c] = calculateArrayPosition(hit.point.x, hit.point.z);
+                if (r >= 0 && r < 50 && c >= 0 && c < 50) {
+                    return [r, c, 1];
+                }
+            }
 
-        if (instanceId !== undefined && instanceId !== -1 && !isWireFrame(meshName)) {
-            try {
-                return findPosition(instanceId, meshName);
-            } catch (e) {
-                // silent catch
+            if (instanceId !== undefined && instanceId !== -1 && !isWireFrame(meshName)) {
+                try {
+                    var pos = findPosition(instanceId, meshName);
+                    if (pos) return pos;
+                } catch (e) {
+                    // silent catch
+                }
             }
         }
 
