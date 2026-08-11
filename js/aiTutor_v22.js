@@ -82,10 +82,34 @@
         });
     }
 
+    function getLiveRemainingBudget() {
+        if (typeof window.totalAvailableMoney === 'number' && !isNaN(window.totalAvailableMoney)) {
+            return window.totalAvailableMoney;
+        }
+        const bEl = document.querySelector("#budget-progress");
+        if (bEl && bEl.textContent) {
+            const text = bEl.textContent.trim().replace("$", "");
+            if (text.includes("M")) {
+                const val = parseFloat(text.replace("M", ""));
+                if (!isNaN(val)) return val * 1000000;
+            } else {
+                const val = parseFloat(text.replace(/,/g, ""));
+                if (!isNaN(val)) return val;
+            }
+        }
+        const factsEl = document.querySelectorAll("#critical-facts .has-text-right")[0];
+        if (factsEl && factsEl.textContent) {
+            const raw = factsEl.textContent.split("/")[0].replace(/[^0-9.]/g, "");
+            const val = parseFloat(raw);
+            if (!isNaN(val) && val > 0) return val;
+        }
+        return 50000000;
+    }
+
     // ── Local Rule & Knowledge Response Engine (Instant 0ms Fallback) ─────────────
     function generateLocalAIResponse(text) {
         const cityName = document.getElementById("hud-city-name")?.textContent || "Iowa City";
-        const remBudget = typeof window.totalAvailableMoney !== 'undefined' ? window.totalAvailableMoney : 50000000;
+        const remBudget = getLiveRemainingBudget();
         const budgetMillions = (remBudget / 1000000).toFixed(1);
         const lower = text.toLowerCase().trim();
 
