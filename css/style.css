@@ -570,28 +570,46 @@ html, body {
 /* 2. Left HUD Panel (Tile Inspector & Mitigation) */
 .left-hud-panel {
     position: absolute;
-    top: 90px;
+    top: 75px;
     left: 20px;
     width: 350px;
-    max-height: calc(100vh - 200px);
-    z-index: 10;
+    max-height: calc(100vh - 215px);
+    z-index: 1040;
     background: var(--bg-hud);
     border: 1px solid var(--border-hud);
-    border-radius: 12px;
-    box-shadow: var(--glow-cyan);
-    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6), var(--glow-cyan);
+    backdrop-filter: blur(12px);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
+.hud-panel-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    padding: 15px;
+}
+
 @media (max-width: 768px) {
     .left-hud-panel {
-        width: calc(100% - 40px);
-        max-height: 45vh;
-        bottom: 90px;
-        top: auto;
+        left: 2.5vw !important;
+        right: 2.5vw !important;
+        width: 95vw !important;
+        max-width: 95vw !important;
+        max-height: 38vh !important;
+        bottom: 82px !important;
+        top: auto !important;
+        border-radius: 16px !important;
+    }
+    .hud-panel-content {
+        max-height: calc(38vh - 45px) !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
     }
 }
 
