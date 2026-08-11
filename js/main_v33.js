@@ -1296,7 +1296,8 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 mesh: boatGroup,
                 baseY: floatY,
                 seed: Math.random() * 100,
-                speed: 0.06 + Math.random() * 0.04 // Gentle slow sailing speed
+                speed: 0.06 + Math.random() * 0.04, // Gentle slow sailing speed
+                turnCooldown: 0
             });
         }
     }
@@ -1306,6 +1307,10 @@ async function main(opts, list_of_files, game_graphics_opt) {
         for (var i = 0; i < activeBoats.length; i++) {
             var boat = activeBoats[i];
             
+            if (boat.turnCooldown > 0) {
+                boat.turnCooldown--;
+            }
+
             // Calculate projected next position
             var dirX = Math.sin(boat.mesh.rotation.y);
             var dirZ = Math.cos(boat.mesh.rotation.y);
@@ -1328,12 +1333,13 @@ async function main(opts, list_of_files, game_graphics_opt) {
             if (isWaterTile) {
                 boat.mesh.position.x = nextX;
                 boat.mesh.position.z = nextZ;
-            } else {
-                // Reached land, road, or map boundary: smoothly turn back into water channel!
-                boat.mesh.rotation.y += Math.PI * 0.85 + (Math.random() - 0.5) * 0.4;
+            } else if (boat.turnCooldown <= 0) {
+                // Turn boat around into open water and pause turn checks for 35 frames so it sails away smoothly
+                boat.mesh.rotation.y += Math.PI * 0.75 + Math.random() * 0.5;
+                boat.turnCooldown = 35;
             }
             
-            // Gentle wave bobbing (reduced amplitude so hull stays above water surface)
+            // Gentle wave bobbing & subtle hull rocking
             boat.mesh.position.y = boat.baseY + Math.sin(elapsedTime * 1.4 + boat.seed) * 0.12;
             boat.mesh.rotation.z = Math.sin(elapsedTime * 0.8 + boat.seed) * 0.02;
             boat.mesh.rotation.x = Math.cos(elapsedTime * 0.6 + boat.seed) * 0.015;
