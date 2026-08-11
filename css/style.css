@@ -1251,58 +1251,66 @@ html, body {
 
 /* 3. Top Center Bar Layout Adjustments */
 .top-hud-bar {
-    position: absolute;
-    top: 18px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1040;
-    display: flex;
-    align-items: center;
-    gap: 20px;
+    position: absolute !important;
+    top: 18px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 1040 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
     background: rgba(15, 23, 42, 0.92) !important;
     border: 1px solid rgba(0, 240, 255, 0.45) !important;
     border-radius: 20px !important;
-    padding: 10px 32px 10px 20px !important; /* Generous 32px right padding */
+    padding: 0 !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 240, 255, 0.15) !important;
     backdrop-filter: blur(12px);
     font-family: var(--font-primary);
     width: max-content !important;
+    max-width: 95vw !important;
+    overflow: visible !important;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Top HUD Toggle Button & Collapsed State */
+.top-hud-scroll-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 20px !important;
+    padding: 10px 28px 10px 20px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Attached Bottom Edge Toggle Tab */
+.top-hud-edge-tab,
 .top-hud-toggle-btn {
-    position: fixed !important;
-    top: 68px !important;
+    position: absolute !important;
+    bottom: -18px !important;
+    top: auto !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     background: rgba(15, 23, 42, 0.95) !important;
     border: 1px solid rgba(0, 240, 255, 0.5) !important;
-    border-radius: 12px !important;
+    border-top: none !important;
+    border-radius: 0 0 12px 12px !important;
     color: #00f0ff !important;
-    padding: 3px 14px !important;
-    font-size: 0.72rem !important;
+    padding: 2px 16px !important;
+    font-size: 0.7rem !important;
     font-weight: 800 !important;
     letter-spacing: 0.5px !important;
     cursor: pointer !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
     z-index: 1045 !important;
-    transition: top 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, border-color 0.2s ease !important;
+    transition: all 0.25s ease !important;
     display: inline-flex !important;
     align-items: center !important;
     gap: 5px !important;
     white-space: nowrap !important;
+    line-height: 1 !important;
     pointer-events: auto !important;
 }
 
-@media (max-width: 768px) {
-    .top-hud-toggle-btn {
-        top: 56px !important;
-        font-size: 0.75rem !important;
-        padding: 4px 16px !important;
-    }
-}
-
+.top-hud-edge-tab:hover,
 .top-hud-toggle-btn:hover {
     background: rgba(0, 240, 255, 0.25) !important;
     color: #ffffff !important;
@@ -1310,19 +1318,19 @@ html, body {
 
 /* Collapsed State */
 .top-hud-bar.hud-collapsed {
-    transform: translate(-50%, -105%) !important;
+    transform: translate(-50%, -100%) !important;
 }
 
-.top-hud-bar.hud-collapsed + .top-hud-toggle-btn,
-.top-hud-toggle-btn.is-collapsed-btn {
-    top: 10px !important;
+.top-hud-bar.hud-collapsed .top-hud-edge-tab,
+.top-hud-bar.hud-collapsed .top-hud-toggle-btn {
+    bottom: -28px !important;
+    border-top: 1px solid rgba(0, 240, 255, 0.5) !important;
+    border-radius: 0 0 14px 14px !important;
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%) !important;
-    border-color: #00f0ff !important;
     color: #00f0ff !important;
-    padding: 6px 18px !important;
-    font-size: 0.78rem !important;
-    border-radius: 14px !important;
-    box-shadow: 0 4px 18px rgba(0, 240, 255, 0.35) !important;
+    padding: 4px 18px !important;
+    font-size: 0.75rem !important;
+    box-shadow: 0 4px 15px rgba(0, 240, 255, 0.35) !important;
 }
 
 .hud-sim-controls {
@@ -2072,9 +2080,13 @@ html, body {
 
     /* Top HUD Mobile Width & Horizontal Swipe Containment */
     .top-hud-bar {
+        top: 10px !important;
         width: 94vw !important;
         max-width: 94vw !important;
         box-sizing: border-box !important;
+        overflow: visible !important;
+    }
+    .top-hud-scroll-wrapper {
         overflow-x: auto !important;
         overflow-y: hidden !important;
         -webkit-overflow-scrolling: touch !important;
@@ -2083,8 +2095,9 @@ html, body {
         gap: 12px !important;
         padding: 8px 16px !important;
         scrollbar-width: none !important;
+        width: 100% !important;
     }
-    .top-hud-bar::-webkit-scrollbar {
+    .top-hud-scroll-wrapper::-webkit-scrollbar {
         display: none !important;
     }
     .top-hud-bar .hud-card-item,
