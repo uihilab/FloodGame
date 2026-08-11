@@ -1,9 +1,13 @@
-// AI Tutor v23 — Fully integrated into the unified #ai-tutor-bubble with Instant Local Strategy Fallback Engine
+// AI Tutor v24 — Mobile-Optimized Instant Location Engine & Desktop Web Worker AI
 (function () {
     let worker = null;
     let isWorkerReady = false;
-    let currentProgressStr = "0%";
     let modelInitStarted = false;
+
+    // Detect mobile / touch devices to bypass heavy 350MB WASM memory allocation & tab reloads
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        || ('ontouchstart' in window)
+        || (window.innerWidth < 768);
 
     // ── DOM refs (bubble elements) ─────────────────────────────────────────
     function getInput()      { return document.getElementById("ai-chat-input"); }
@@ -78,6 +82,7 @@
         if (input) {
             input.disabled = !enabled;
             input.style.opacity = enabled ? "1" : "0.6";
+            input.placeholder = "Ask AI Flood Tutor...";
         }
         document.querySelectorAll(".ai-quick-chip").forEach(btn => {
             btn.disabled = !enabled;
@@ -86,7 +91,7 @@
         });
     }
 
-    // ── Local Rule & Knowledge Response Engine (Instant Fallback) ─────────────
+    // ── Local Rule & Knowledge Response Engine (Instant 0ms Fallback) ─────────────
     function generateLocalAIResponse(text) {
         const cityName = document.getElementById("hud-city-name")?.textContent || "Iowa City";
         const remBudget = typeof window.totalAvailableMoney !== 'undefined' ? window.totalAvailableMoney : 50000000;
@@ -170,10 +175,13 @@
         if (modelInitStarted) return;
         modelInitStarted = true;
 
-        // Ensure UI is enabled right away with local strategy engine
         setInputEnabled(true);
-        const input = getInput();
-        if (input) input.placeholder = "Ask AI Flood Tutor...";
+
+        // On mobile devices, bypass heavy 350MB Web Worker WASM allocation to protect mobile RAM
+        if (isMobileDevice) {
+            console.log("Mobile device detected: using instant Local Location & Strategy Engine (0MB RAM).");
+            return;
+        }
 
         try {
             worker = new Worker('./js/aiTutorWorker.js?v=21', { type: 'module' });
@@ -181,16 +189,8 @@
             worker.addEventListener('message', (event) => {
                 const { type, data, text, error } = event.data;
 
-                if (type === 'progress') {
-                    if (data.status === 'progress') {
-                        const filename = data.file.split('/').pop();
-                        const percent  = Math.round(data.progress);
-                        currentProgressStr = `${percent}%`;
-                        if (input && !isWorkerReady) input.placeholder = `Downloading LLM: ${filename} (${percent}%)`;
-                    }
-                } else if (type === 'ready') {
+                if (type === 'ready') {
                     isWorkerReady = true;
-                    if (input) input.placeholder = "Ask AI Flood Tutor...";
                 } else if (type === 'result') {
                     removeTypingIndicator();
                     appendBubbleMsg(text || generateLocalAIResponse("general"), "tutor");
@@ -199,7 +199,6 @@
                     removeTypingIndicator();
                     isWorkerReady = false;
                     setInputEnabled(true);
-                    if (input) input.placeholder = "Ask AI Flood Tutor...";
                 }
             });
 
@@ -208,7 +207,6 @@
         } catch (err) {
             console.warn("Web Worker not supported or blocked, using local rule engine:", err);
             setInputEnabled(true);
-            if (input) input.placeholder = "Ask AI Flood Tutor...";
         }
     }
 
@@ -218,7 +216,7 @@
 
         appendBubbleMsg(text, "student");
 
-        if (isWorkerReady && worker) {
+        if (isWorkerReady && worker && !isMobileDevice) {
             const cityName  = document.getElementById("hud-city-name")?.textContent || "this city";
             const remBudget = (typeof window.totalAvailableMoney !== 'undefined')
                 ? "$" + (window.totalAvailableMoney / 1e6).toFixed(1) + "M"
@@ -233,7 +231,7 @@ ${text}<|im_end|>
             showTypingIndicator();
             worker.postMessage({ type: 'generate', prompt });
         } else {
-            // Instant response from Local Knowledge Engine
+            // Instant response from Local Location Engine (0ms, 0MB RAM)
             showTypingIndicator();
             setTimeout(() => {
                 removeTypingIndicator();
