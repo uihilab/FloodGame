@@ -1789,3 +1789,35 @@ html, body {
     font-family: 'Courier New', Courier, monospace !important;
     box-shadow: 0 2px 10px rgba(0, 240, 255, 0.15) !important;
 }
+
+/* Mobile Responsive Bottom HUD Bar & Touch Scroll */
+@media (max-width: 768px) {
+    .bottom-hud-bar {
+        bottom: 12px !important;
+        width: 95vw !important;
+        max-width: 95vw !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        justify-content: flex-start !important;
+        padding: 8px 14px !important;
+        gap: 12px !important;
+        border-radius: 16px !important;
+        scrollbar-width: none !important;
+    }
+    .bottom-hud-bar::-webkit-scrollbar {
+        display: none !important;
+    }
+    .hud-circle-btn-container {
+        flex-shrink: 0 !important;
+    }
+    .hud-circle-btn {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 1rem !important;
+    }
+    .hud-circle-btn-label {
+        font-size: 0.64rem !important;
+        white-space: nowrap !important;
+    }
+}

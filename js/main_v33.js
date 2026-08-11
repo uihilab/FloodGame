@@ -339,12 +339,17 @@ async function main(opts, list_of_files, game_graphics_opt) {
         cameraControls = new CameraControls(camera, renderer.domElement);
         cameraControls.setBoundary(bb);
         cameraControls.mouseButtons.left = CameraControls.ACTION.TRUCK;
-        //cameraControls.mouseButtons.right = CameraControls.ACTION["NONE"];
         cameraControls.mouseButtons.wheel = CameraControls.ACTION["NONE"];
-        //cameraControls.verticalDragToForward = false;
-        //cameraControls.truckSpeed = 8.0;
-        //cameraControls.zoom(0.25, false);
-        cameraControls.rotate(-45 * THREE.Math.DEG2RAD, 0, true);
+
+        // Clamp polar pitch angles so camera CAN NEVER flip upside-down on mobile touch
+        const deg2rad = (THREE.MathUtils && THREE.MathUtils.DEG2RAD) ? THREE.MathUtils.DEG2RAD : (Math.PI / 180);
+        cameraControls.minPolarAngle = 10 * deg2rad; // ~10 deg above ground horizon
+        cameraControls.maxPolarAngle = 82 * deg2rad; // ~82 deg (prevents under-map flip)
+        cameraControls.touches.one = CameraControls.ACTION.TOUCH_TRUCK;
+        cameraControls.touches.two = CameraControls.ACTION.TOUCH_ZOOM_TRUCK;
+        cameraControls.touches.three = CameraControls.ACTION.NONE;
+
+        cameraControls.rotate(-45 * deg2rad, 0, true);
 
         cameraMovement();
 
