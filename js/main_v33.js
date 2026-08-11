@@ -372,8 +372,50 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         window.addEventListener('resize', onWindowResize);
 
+        var touchStartX = 0;
+        var touchStartY = 0;
+        var touchStartTime = 0;
+
         renderer.domElement.addEventListener('mousemove', onMouseMove, false);
-        renderer.domElement.addEventListener('mousedown', onMouseClick, false);
+        
+        renderer.domElement.addEventListener('mousedown', function(e) {
+            touchStartX = e.clientX;
+            touchStartY = e.clientY;
+            touchStartTime = Date.now();
+        }, false);
+
+        renderer.domElement.addEventListener('mouseup', function(e) {
+            if (e.button === 0) {
+                var dist = Math.hypot(e.clientX - touchStartX, e.clientY - touchStartY);
+                var duration = Date.now() - touchStartTime;
+                if (dist < 14 && duration < 500) {
+                    handlePointerSelect(e.clientX, e.clientY);
+                }
+            } else if (e.button === 2) {
+                clearSelectedTile();
+            }
+        }, false);
+
+        // Mobile touch event listeners (iOS Safari / Android Chrome)
+        renderer.domElement.addEventListener('touchstart', function(e) {
+            if (e.touches && e.touches.length === 1) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
+            }
+        }, { passive: true });
+
+        renderer.domElement.addEventListener('touchend', function(e) {
+            if (e.changedTouches && e.changedTouches.length === 1) {
+                var touch = e.changedTouches[0];
+                var dist = Math.hypot(touch.clientX - touchStartX, touch.clientY - touchStartY);
+                var duration = Date.now() - touchStartTime;
+                if (dist < 16 && duration < 550) {
+                    handlePointerSelect(touch.clientX, touch.clientY);
+                }
+            }
+        }, { passive: true });
+
         window.addEventListener('wheel', function(event) {
             if (event.deltaY < 0) { zoomInOut(1); }
             else {zoomInOut(0);}
@@ -2495,101 +2537,102 @@ async function main(opts, list_of_files, game_graphics_opt) {
         return false;
     }
 
-    function onMouseClick(event) {
-        event.preventDefault();
+    function handlePointerSelect(clientX, clientY) {
         const { top, left, width, height } = renderer.domElement.getBoundingClientRect();
 
-        mouse.x = ((event.clientX - left) / width) * 2 - 1;
-        mouse.y = -((event.clientY - top) / height) * 2 + 1;
+        mouse.x = ((clientX - left) / width) * 2 - 1;
+        mouse.y = -((clientY - top) / height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
         var intersection = raycaster.intersectObjects(scene.children, true);
         var res = resolveRowColumn(intersection);
         if (res !== null) {
             var [row, column, size] = res;
             if (row >= 0 && row < 50 && column >= 0 && column < 50) {
-                switch (event.button) {
-                    case 0: //left
-                        wireframe_1.visible = false;
-                        wireframe_4.visible = false;
+                wireframe_1.visible = false;
+                wireframe_4.visible = false;
 
-                        // Check for bottom HUD active tools
-                        var activeToolBtn = document.querySelector(".hud-circle-btn-container.active-tool");
-                        var activeTool = activeToolBtn ? activeToolBtn.querySelector(".hud-circle-btn-label").textContent.trim().toLowerCase() : null;
+                // Check for bottom HUD active tools
+                var activeToolBtn = document.querySelector(".hud-circle-btn-container.active-tool");
+                var activeTool = activeToolBtn ? activeToolBtn.querySelector(".hud-circle-btn-label").textContent.trim().toLowerCase() : null;
 
-                        if (activeTool && activeTool !== "info" && activeTool !== "settings") {
-                            // Apply the tool directly to the clicked tile!
-                            selectedTile.row = row;
-                            selectedTile.column = column;
+                if (activeTool && activeTool !== "info" && activeTool !== "settings") {
+                    // Apply the tool directly to the clicked tile!
+                    selectedTile.row = row;
+                    selectedTile.column = column;
 
-                            if (activeTool === "build") {
-                                var selectVal = document.getElementById("buildingOptionsSelect").value;
-                                createBuilding(selectVal, row, column);
-                                expenses += mitigationMetaData["add_structure"]["opts_values"][selectVal]["cost"];
-                                totalAvailableMoney -= mitigationMetaData["add_structure"]["opts_values"][selectVal]["cost"];
-                            } else if (activeTool === "roads") {
-                                createBuilding("road", row, column);
-                                expenses += mitigationMetaData["add_structure"]["opts_values"]["road"]["cost"];
-                                totalAvailableMoney -= mitigationMetaData["add_structure"]["opts_values"]["road"]["cost"];
-                            } else if (activeTool === "zone") {
-                                var selectVal = document.querySelector("#change_tile_mit select").value;
-                                changeTileType(selectVal, row, column);
-                                expenses += mitigationMetaData["change_tile"]["opts_values"][selectVal]["cost"];
-                                totalAvailableMoney -= mitigationMetaData["change_tile"]["opts_values"][selectVal]["cost"];
-                            } else if (activeTool === "parks") {
-                                createBuilding("t1", row, column);
-                                expenses += mitigationMetaData["add_structure"]["opts_values"]["t1"]["cost"];
-                                totalAvailableMoney -= mitigationMetaData["add_structure"]["opts_values"]["t1"]["cost"];
-                            } else if (activeTool === "prevention") {
-                                var selectVal = parseInt(document.querySelector("#flood_wall_mit select").value);
-                                groundTiles[row][column].floodWall = selectVal;
-                                if (surfaceTiles[row][column] != 0){
-                                    expenses += mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * buildingMetaDict[surfaceTiles[row][column]["type"]]["Perimeter"];
-                                    totalAvailableMoney -= mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * buildingMetaDict[surfaceTiles[row][column]["type"]]["Perimeter"];
-                                } else {
-                                    expenses += mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * 500;
-                                    totalAvailableMoney -= mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * 500;
-                                }
-                                updateTileOptions(row, column);
-                            }
-
-                            // Update common UI and HUD stats
-                            updateGameProgressPanel();
-                            updateGoalsPanel();
-                            
-                            // Re-sync budget instantly in bottom bar script
-                            const budgetText = document.querySelectorAll("#critical-facts .has-text-right")[0]?.textContent;
-                            if (budgetText) {
-                                document.querySelector("#budget-progress").textContent = budgetText.split("/")[0].trim();
-                            }
-                            
-                            break; // Done, prevent standard selection panel logic!
-                        }
-
-                        if (!selectedTile.isSelected) {
-                            showEmptyTileGUI(true);
-                            showBuildingTileGUI(true);
-                            fillSelectedTile(row, column, event);
+                    if (activeTool === "build") {
+                        var selectVal = document.getElementById("buildingOptionsSelect").value;
+                        createBuilding(selectVal, row, column);
+                        expenses += mitigationMetaData["add_structure"]["opts_values"][selectVal]["cost"];
+                        totalAvailableMoney -= mitigationMetaData["add_structure"]["opts_values"][selectVal]["cost"];
+                    } else if (activeTool === "roads") {
+                        createBuilding("road", row, column);
+                        expenses += mitigationMetaData["add_structure"]["opts_values"]["road"]["cost"];
+                        totalAvailableMoney -= mitigationMetaData["add_structure"]["opts_values"]["road"]["cost"];
+                    } else if (activeTool === "zone") {
+                        var selectVal = document.querySelector("#change_tile_mit select").value;
+                        changeTileType(selectVal, row, column);
+                        expenses += mitigationMetaData["change_tile"]["opts_values"][selectVal]["cost"];
+                        totalAvailableMoney -= mitigationMetaData["change_tile"]["opts_values"][selectVal]["cost"];
+                    } else if (activeTool === "parks") {
+                        createBuilding("t1", row, column);
+                        expenses += mitigationMetaData["add_structure"]["opts_values"]["t1"]["cost"];
+                        totalAvailableMoney -= mitigationMetaData["add_structure"]["opts_values"]["t1"]["cost"];
+                    } else if (activeTool === "prevention") {
+                        var selectVal = parseInt(document.querySelector("#flood_wall_mit select").value);
+                        groundTiles[row][column].floodWall = selectVal;
+                        if (surfaceTiles[row][column] != 0){
+                            expenses += mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * buildingMetaDict[surfaceTiles[row][column]["type"]]["Perimeter"];
+                            totalAvailableMoney -= mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * buildingMetaDict[surfaceTiles[row][column]["type"]]["Perimeter"];
                         } else {
-                            if (selectedTile.row == row && selectedTile.column == column) {
-                                showEmptyTileGUI(false);
-                                showBuildingTileGUI(false);
-                                clearSelectedTile();
-                            } else if (selectedBuilding.isMove) {
-                                changePositionBuilding(row, column);
-                            } else {
-                                clearSelectedTile();
-                                showEmptyTileGUI(true);
-                                showBuildingTileGUI(true);
-                                fillSelectedTile(row, column, event);
-                            }
+                            expenses += mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * 500;
+                            totalAvailableMoney -= mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * 500;
                         }
-                        break;
-                    case 2: // right
+                        updateTileOptions(row, column);
+                    }
+
+                    // Update common UI and HUD stats
+                    updateGameProgressPanel();
+                    updateGoalsPanel();
+                    
+                    // Re-sync budget instantly in bottom bar script
+                    const budgetText = document.querySelectorAll("#critical-facts .has-text-right")[0]?.textContent;
+                    if (budgetText) {
+                        document.querySelector("#budget-progress").textContent = budgetText.split("/")[0].trim();
+                    }
+                    
+                    return; // Done!
+                }
+
+                var eventObj = { clientX: clientX, clientY: clientY };
+                if (!selectedTile.isSelected) {
+                    showEmptyTileGUI(true);
+                    showBuildingTileGUI(true);
+                    fillSelectedTile(row, column, eventObj);
+                } else {
+                    if (selectedTile.row == row && selectedTile.column == column) {
+                        showEmptyTileGUI(false);
+                        showBuildingTileGUI(false);
                         clearSelectedTile();
+                    } else if (selectedBuilding.isMove) {
+                        changePositionBuilding(row, column);
+                    } else {
+                        clearSelectedTile();
+                        showEmptyTileGUI(true);
+                        showBuildingTileGUI(true);
+                        fillSelectedTile(row, column, eventObj);
+                    }
                 }
             }
         }
-    };
+    }
+
+    function onMouseClick(event) {
+        if (event && event.preventDefault) event.preventDefault();
+        var clientX = event ? event.clientX : touchStartX;
+        var clientY = event ? event.clientY : touchStartY;
+        handlePointerSelect(clientX, clientY);
+    }
 
 
     function calculatePosition(row, column, tileSize = 100, offset_x = 3900, offset_z = 5000) {
