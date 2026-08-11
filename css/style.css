@@ -1960,19 +1960,42 @@ html, body {
     box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25) !important;
 }
 
-/* Budget Info Modal Mobile Height & Scroll */
+/* Budget Info Modal Mobile Height & Sticky Footer Fix */
+#modalBudgetInfo {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 10px !important;
+}
+
 #modalBudgetInfo .modal-card {
-    max-height: 72vh !important;
-    width: 94vw !important;
-    margin: 0 auto !important;
+    max-height: 65vh !important;
+    height: auto !important;
+    width: 90vw !important;
+    max-width: 580px !important;
+    margin: auto !important;
     border-radius: 18px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
 }
 
 #modalBudgetInfo .modal-card-body {
-    max-height: calc(72vh - 110px) !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     touch-action: pan-y !important;
+}
+
+#modalBudgetInfo .modal-card-foot {
+    flex-shrink: 0 !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: #0f172a !important;
+    z-index: 20 !important;
+    padding: 10px 18px !important;
 }
 
 /* Mobile Responsive Menu Container & Launch Simulation Scroll Fix */

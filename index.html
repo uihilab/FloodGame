@@ -532,20 +532,20 @@
     <!-- Budget Info & Breakdown Modal -->
     <div class="modal closeableModel" id="modalBudgetInfo">
         <div class="modal-background" onclick="closeBudgetInfoModal()"></div>
-        <div class="modal-card" style="max-width: 600px; max-height: 75vh; width: 92vw; border-radius: 20px; overflow: hidden; border: 1px solid rgba(0, 240, 255, 0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column;">
-            <header class="modal-card-head" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-bottom: 1px solid rgba(0, 240, 255, 0.25); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
+        <div class="modal-card" style="max-width: 580px; max-height: 65vh; width: 90vw; border-radius: 20px; overflow: hidden; border: 1px solid rgba(0, 240, 255, 0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; margin: auto;">
+            <header class="modal-card-head" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-bottom: 1px solid rgba(0, 240, 255, 0.25); padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(72, 187, 120, 0.2); border: 1px solid #48bb78; display: flex; align-items: center; justify-content: center; color: #48bb78; font-size: 1rem; flex-shrink: 0;">
+                    <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(72, 187, 120, 0.2); border: 1px solid #48bb78; display: flex; align-items: center; justify-content: center; color: #48bb78; font-size: 0.95rem; flex-shrink: 0;">
                         <i class="fas fa-chart-pie"></i>
                     </div>
                     <div>
-                        <p class="modal-card-title" style="color: #ffffff; font-weight: 800; font-size: 1.1rem; margin: 0;">Budget & Financial Breakdown</p>
-                        <p style="color: #94a3b8; font-size: 0.75rem; margin: 0;">Capital allocation summary & mitigation cost catalog</p>
+                        <p class="modal-card-title" style="color: #ffffff; font-weight: 800; font-size: 1.05rem; margin: 0;">Budget & Financial Breakdown</p>
+                        <p style="color: #94a3b8; font-size: 0.72rem; margin: 0;">Capital allocation summary & mitigation cost catalog</p>
                     </div>
                 </div>
                 <button class="delete" aria-label="close" onclick="closeBudgetInfoModal()"></button>
             </header>
-            <section class="modal-card-body" style="background: #0b1329; color: #e2e8f0; padding: 16px 20px; font-family: var(--font-primary); overflow-y: auto; max-height: calc(75vh - 110px); -webkit-overflow-scrolling: touch; touch-action: pan-y;">
+            <section class="modal-card-body" style="background: #0b1329; color: #e2e8f0; padding: 14px 18px; font-family: var(--font-primary); flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
                 
                 <!-- Live Financial Summary Cards -->
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
@@ -617,8 +617,8 @@
                     </div>
                 </div>
             </section>
-            <footer class="modal-card-foot" style="background: #0f172a; border-top: 1px solid rgba(0, 240, 255, 0.2); justify-content: flex-end; padding: 12px 24px;">
-                <button class="button is-small" style="background: linear-gradient(135deg, #00f0ff 0%, #3b82f6 100%); color: #0f172a; font-weight: 800; border-radius: 12px; padding: 6px 18px;" onclick="closeBudgetInfoModal()">Got it!</button>
+            <footer class="modal-card-foot" style="background: #0f172a; border-top: 1px solid rgba(0, 240, 255, 0.25); justify-content: flex-end; padding: 10px 18px; flex-shrink: 0; position: sticky; bottom: 0; z-index: 10;">
+                <button class="button is-small" style="background: linear-gradient(135deg, #00f0ff 0%, #3b82f6 100%); color: #0f172a; font-weight: 800; border-radius: 12px; padding: 6px 20px; font-size: 0.88rem;" onclick="closeBudgetInfoModal()">Got it!</button>
             </footer>
         </div>
     </div>
