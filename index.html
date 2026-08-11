@@ -51,16 +51,16 @@
     <!-- Top HUD Status Bar (Location, Budget, Safety, Population) -->
     <div class="top-hud-bar is-hidden">
         <!-- City Location Badge -->
-        <div class="hud-card-item city-location-badge" style="background: rgba(0, 240, 255, 0.12); border: 1px solid rgba(0, 240, 255, 0.4); border-radius: 12px; padding: 5px 12px; display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+        <div class="hud-card-item city-location-badge" style="background: rgba(0, 240, 255, 0.12); border: 1px solid rgba(0, 240, 255, 0.4); border-radius: 12px; padding: 6px 14px; display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 1.1rem; color: #00f0ff;">📍</span>
             <div class="hud-card-text">
                 <div class="hud-card-label" style="font-size: 0.6rem; color: #94a3b8; letter-spacing: 0.5px;">LOCATION:</div>
-                <div class="hud-card-value hud-city-name-text" id="hud-city-name" style="font-size: 0.9rem; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px;">Iowa City, IA</div>
+                <div class="hud-card-value hud-city-name-text" id="hud-city-name" style="font-size: 0.92rem; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px;">Iowa City, IA</div>
             </div>
         </div>
 
         <!-- Budget -->
-        <div class="hud-card-item budget" style="flex-shrink: 0;">
+        <div class="hud-card-item budget">
             <div class="hud-circle-icon green">
                 <i class="fas fa-dollar-sign"></i>
             </div>
@@ -68,13 +68,13 @@
                 <div class="hud-card-label">BUDGET:</div>
                 <div class="hud-card-value green" id="budget-progress">$50.0M</div>
             </div>
-            <button class="hud-plus-btn green" onclick="triggerAbilitiesTab()">
-                <i class="fas fa-plus"></i>
+            <button class="hud-plus-btn green" onclick="openBudgetInfoModal()" title="Budget Info & Cost Breakdown">
+                <i class="fas fa-info"></i>
             </button>
         </div>
 
         <!-- Population / Progress -->
-        <div class="hud-card-item population" style="flex-shrink: 0;">
+        <div class="hud-card-item population">
             <div class="hud-card-text">
                 <div class="hud-card-label" id="population-label">SAFE POPULATION: 100%</div>
                 <div class="hud-progress-container">
@@ -85,8 +85,8 @@
         </div>
 
         <!-- Play/Pause Simulation Controls inside Top HUD -->
-        <div class="hud-sim-controls" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-            <div id="clockDiv" class="hud-timer-badge" value="start" style="flex-shrink: 0;">
+        <div class="hud-sim-controls" style="display: flex; align-items: center; gap: 8px;">
+            <div id="clockDiv" class="hud-timer-badge" value="start">
                 ⏱️ 10:00
             </div>
             <button id="sim-play-btn" class="hud-btn button is-small" value="start" title="Start Simulation">
@@ -524,6 +524,100 @@
     <div id="clockDiv" style="display: none" value="start">
         10:23
     </div>
+    <!-- Budget Info & Breakdown Modal -->
+    <div class="modal closeableModel" id="modalBudgetInfo">
+        <div class="modal-background" onclick="closeBudgetInfoModal()"></div>
+        <div class="modal-card" style="max-width: 620px; border-radius: 20px; overflow: hidden; border: 1px solid rgba(0, 240, 255, 0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+            <header class="modal-card-head" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-bottom: 1px solid rgba(0, 240, 255, 0.25); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(72, 187, 120, 0.2); border: 1px solid #48bb78; display: flex; align-items: center; justify-content: center; color: #48bb78; font-size: 1.1rem;">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <p class="modal-card-title" style="color: #ffffff; font-weight: 800; font-size: 1.2rem; margin: 0;">Budget & Financial Breakdown</p>
+                        <p style="color: #94a3b8; font-size: 0.78rem; margin: 0;">Capital allocation summary & mitigation cost catalog</p>
+                    </div>
+                </div>
+                <button class="delete" aria-label="close" onclick="closeBudgetInfoModal()"></button>
+            </header>
+            <section class="modal-card-body" style="background: #0b1329; color: #e2e8f0; padding: 20px 24px; font-family: var(--font-primary);">
+                
+                <!-- Live Financial Summary Cards -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0, 240, 255, 0.35); border-radius: 12px; padding: 12px; text-align: center;">
+                        <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Starting Capital</div>
+                        <div style="font-size: 1.25rem; font-weight: 800; color: #00f0ff; margin-top: 2px;">$50.0M</div>
+                    </div>
+                    <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; padding: 12px; text-align: center;">
+                        <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Total Spent</div>
+                        <div id="budget-info-spent" style="font-size: 1.25rem; font-weight: 800; color: #f87171; margin-top: 2px;">$0.0M</div>
+                    </div>
+                    <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(72, 187, 120, 0.35); border-radius: 12px; padding: 12px; text-align: center;">
+                        <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Remaining Balance</div>
+                        <div id="budget-info-remaining" style="font-size: 1.25rem; font-weight: 800; color: #48bb78; margin-top: 2px;">$50.0M</div>
+                    </div>
+                </div>
+
+                <!-- Mitigation Cost Catalog -->
+                <h4 style="font-size: 0.88rem; font-weight: 700; color: #f5d060; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-shield-alt"></i> Mitigation Cost Reference Guide
+                </h4>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(30, 41, 59, 0.6); padding: 10px 14px; border-radius: 12px; border-left: 4px solid #00f0ff;">
+                        <div>
+                            <span style="font-weight: 700; color: #ffffff; font-size: 0.88rem;">🛡️ Permanent Flood Wall</span>
+                            <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">100% elevation protection against high river crests</div>
+                        </div>
+                        <span style="font-weight: 800; color: #00f0ff; font-size: 0.92rem; white-space: nowrap;">$1,200,000 / tile</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(30, 41, 59, 0.6); padding: 10px 14px; border-radius: 12px; border-left: 4px solid #f5d060;">
+                        <div>
+                            <span style="font-weight: 700; color: #ffffff; font-size: 0.88rem;">📦 HESCO Sandbag Barrier</span>
+                            <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Low-cost emergency perimeter defense</div>
+                        </div>
+                        <span style="font-weight: 800; color: #f5d060; font-size: 0.92rem; white-space: nowrap;">$150,000 / tile</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(30, 41, 59, 0.6); padding: 10px 14px; border-radius: 12px; border-left: 4px solid #38bdf8;">
+                        <div>
+                            <span style="font-weight: 700; color: #ffffff; font-size: 0.88rem;">🏠 Dry Floodproofing</span>
+                            <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Waterproof seal around structure walls (1-4 ft)</div>
+                        </div>
+                        <span style="font-weight: 800; color: #38bdf8; font-size: 0.92rem; white-space: nowrap;">$400,000 / structure</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(30, 41, 59, 0.6); padding: 10px 14px; border-radius: 12px; border-left: 4px solid #a78bfa;">
+                        <div>
+                            <span style="font-weight: 700; color: #ffffff; font-size: 0.88rem;">🌊 Wet Floodproofing</span>
+                            <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Equalizes hydrostatic pressure in utility spaces</div>
+                        </div>
+                        <span style="font-weight: 800; color: #a78bfa; font-size: 0.92rem; white-space: nowrap;">$250,000 / structure</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(30, 41, 59, 0.6); padding: 10px 14px; border-radius: 12px; border-left: 4px solid #34d399;">
+                        <div>
+                            <span style="font-weight: 700; color: #ffffff; font-size: 0.88rem;">🏗️ Elevate Structure</span>
+                            <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Lifts building foundation above crest line</div>
+                        </div>
+                        <span style="font-weight: 800; color: #34d399; font-size: 0.92rem; white-space: nowrap;">$800,000 / level</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(30, 41, 59, 0.6); padding: 10px 14px; border-radius: 12px; border-left: 4px solid #f472b6;">
+                        <div>
+                            <span style="font-weight: 700; color: #ffffff; font-size: 0.88rem;">📄 National Flood Insurance Policy</span>
+                            <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Reimburses 80% of structural flood damage loss</div>
+                        </div>
+                        <span style="font-weight: 800; color: #f472b6; font-size: 0.92rem; white-space: nowrap;">$300,000 / policy</span>
+                    </div>
+                </div>
+            </section>
+            <footer class="modal-card-foot" style="background: #0f172a; border-top: 1px solid rgba(0, 240, 255, 0.2); justify-content: flex-end; padding: 12px 24px;">
+                <button class="button is-small" style="background: linear-gradient(135deg, #00f0ff 0%, #3b82f6 100%); color: #0f172a; font-weight: 800; border-radius: 12px; padding: 6px 18px;" onclick="closeBudgetInfoModal()">Got it!</button>
+            </footer>
+        </div>
+    </div>
+
     <div class="modal closeableModel" id="modalDetails">
         <div class="modal-background" onclick="document.getElementById('modalDetails').classList.remove('is-active');"></div>
         <div class="modal-card">
@@ -1461,6 +1555,28 @@ function setBubble(range, bubble) {
 
     // Sorta magic numbers based on size of the native UI thumb
     bubble.style.left = `calc(${newVal}% + (${8 - newVal * 0.15}px))`;
+}
+
+function openBudgetInfoModal() {
+    const total = 50000000;
+    const current = (typeof window.totalAvailableMoney === 'number' && !isNaN(window.totalAvailableMoney))
+        ? window.totalAvailableMoney
+        : 50000000;
+    const spent = Math.max(0, total - current);
+
+    const spentEl = document.getElementById("budget-info-spent");
+    const remEl = document.getElementById("budget-info-remaining");
+
+    if (spentEl) spentEl.textContent = "$" + (spent / 1000000).toFixed(1) + "M";
+    if (remEl) remEl.textContent = "$" + (current / 1000000).toFixed(1) + "M";
+
+    const modal = document.getElementById("modalBudgetInfo");
+    if (modal) modal.classList.add("is-active");
+}
+
+function closeBudgetInfoModal() {
+    const modal = document.getElementById("modalBudgetInfo");
+    if (modal) modal.classList.remove("is-active");
 }
 </script>
 <script>
