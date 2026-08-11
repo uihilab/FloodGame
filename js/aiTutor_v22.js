@@ -137,17 +137,25 @@
             return "🛡️ St. Bernard Parish Flood Profile (Hurricane Katrina 2005): 98% flooded by 2005 storm surge. Construct maximum-height Flood Walls along storm canals to protect regional Evacuation Shelters (Shel)!";
         }
 
-        // Strategy & Action Queries
-        if (lower.includes("build first") || lower.includes("what to build") || lower.includes("start")) {
-            return "💡 In " + cityName + ", start by placing Flood Walls along low-lying riverbank tiles in front of Hospitals (Hos) and Water Facilities (Wat). Once vital services are protected, extend defenses to Residential neighborhoods.";
-        } else if (lower.includes("critical") || lower.includes("priority") || lower.includes("structures") || lower.includes("save")) {
-            return "🏰 Priority buildings in " + cityName + " include Hospitals (Hos), Emergency Stations (Fire/Pol), Water Infrastructure (Wat), and dense Residential housing (Res). Protect these first to keep your Safe Population at 100%!";
-        } else if (lower.includes("budget") || lower.includes("money") || lower.includes("cost") || lower.includes("save budget")) {
+        // Strategy & Action Queries (Budget checked FIRST to avoid keyword collision)
+        if (lower.includes("budget") || lower.includes("money") || lower.includes("cost") || lower.includes("save budget") || lower.includes("finance")) {
             if (remBudget < 15000000) {
-                return "💰 Low Budget Alert ($" + budgetMillions + "M remaining)! Avoid expensive high walls. Use targeted Sandbags ($150k) or Flood Insurance to protect critical structures within budget.";
+                return "💰 Low Budget Alert ($" + budgetMillions + "M remaining)! Avoid expensive continuous flood walls. Use low-cost Sandbags ($150k/tile) or Flood Insurance ($300k) to safeguard high-density blocks within budget.";
             } else {
-                return "💰 Healthy Budget ($" + budgetMillions + "M remaining)! Construct permanent Flood Walls along low riverbanks and elevate vulnerable residential structures.";
+                return "💰 Budget Strategy ($" + budgetMillions + "M remaining): Allocate funds by building high-elevation Flood Walls ($1.2M) along primary riverfront channels first. Reserve 20% of budget for targeted Sandbags during sudden crest spikes!";
             }
+        } else if (lower.includes("critical") || lower.includes("priority") || lower.includes("structures") || lower.includes("important")) {
+            if (cityName.toLowerCase().includes("des moines")) {
+                return "🏰 Critical Buildings in Des Moines: Submerged Water Works plant (Wat), Downtown Commercial district (Com), and Police/Fire Stations. Protecting Water Works preserves safe drinking water for the city!";
+            } else if (cityName.toLowerCase().includes("st. bernard")) {
+                return "🏰 Critical Buildings in St. Bernard Parish: Regional Evacuation Shelters (Shel), Medical Centers (Hos), and Drainage Pumping Stations along storm surge canals.";
+            } else if (cityName.toLowerCase().includes("cedar rapids")) {
+                return "🏰 Critical Buildings in Cedar Rapids: Food Processing Facilities (Ind), Water Treatment Plants (Wat), and downtown Government / Commercial blocks.";
+            } else {
+                return "🏰 Critical Buildings in " + cityName + ": Hospitals (Hos), Water Infrastructure (Wat), Police/Fire Stations, and High-Density Residential blocks (Res3). Focus flood walls here first!";
+            }
+        } else if (lower.includes("build first") || lower.includes("what to build") || lower.includes("start") || lower.includes("recommendation")) {
+            return "💡 Action Plan for " + cityName + ": 1) Toggle RISK on your HUD to locate purple/red danger tiles. 2) Place Flood Walls along low riverbanks. 3) Add Sandbags in front of Hospitals and Water Utilities!";
         } else if (lower.includes("wall") || lower.includes("sandbag") || lower.includes("barrier") || lower.includes("hesco")) {
             return "🛡️ Flood Walls provide 100% elevation protection against high crests, while Sandbags are low-cost emergency barriers ($150k). Use Flood Walls along main river channels and Sandbags for quick perimeter defense!";
         } else if (lower.includes("wet") || lower.includes("dry") || lower.includes("proofing")) {
