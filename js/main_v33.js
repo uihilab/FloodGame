@@ -4940,13 +4940,13 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     document.getElementById("clockDiv").style.display = "inline-flex";
                     countdown("clockDiv", 10, 0);
                     this.value = "finish";
-                    this.innerHTML = "Finish";
+                    this.innerHTML = '<i class="fas fa-flag-checkered"></i> Finish';
                 } 
                 else if (this.value == "finish"){
                     clickButton(2);
                     finishGame = 1000000;
                     this.value = "again";
-                    this.innerHTML = "Start Again";
+                    this.innerHTML = '<i class="fas fa-redo"></i> Start Again';
                     
                     // Open Economic & Financial Results Report modal automatically
                     const modalDetails = document.getElementById("modalDetails");

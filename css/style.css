@@ -1843,3 +1843,46 @@ html, body {
         touch-action: pan-x !important;
     }
 }
+
+/* Top HUD Action Button (Start / Finish / Start Again) */
+#sim-play-btn {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    background: linear-gradient(135deg, rgba(0, 240, 255, 0.25) 0%, rgba(59, 130, 246, 0.35) 100%) !important;
+    border: 1px solid rgba(0, 240, 255, 0.5) !important;
+    border-radius: 20px !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    font-size: 0.85rem !important;
+    padding: 6px 16px !important;
+    letter-spacing: 0.5px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    box-shadow: 0 2px 10px rgba(0, 240, 255, 0.2) !important;
+    transition: all 0.2s ease !important;
+    font-family: var(--font-primary) !important;
+    height: auto !important;
+    line-height: 1.2 !important;
+}
+
+#sim-play-btn:hover {
+    background: linear-gradient(135deg, rgba(0, 240, 255, 0.4) 0%, rgba(59, 130, 246, 0.55) 100%) !important;
+    box-shadow: 0 4px 15px rgba(0, 240, 255, 0.4) !important;
+    transform: translateY(-1px) !important;
+}
+
+#sim-play-btn[value="finish"] {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(239, 68, 68, 0.35) 100%) !important;
+    border-color: rgba(245, 158, 11, 0.6) !important;
+    color: #fbbf24 !important;
+    box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25) !important;
+}
+
+#sim-play-btn[value="again"] {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(59, 130, 246, 0.35) 100%) !important;
+    border-color: rgba(16, 185, 129, 0.6) !important;
+    color: #34d399 !important;
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25) !important;
+}
