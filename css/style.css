@@ -1242,20 +1242,40 @@ html, body {
 /* 3. Top Center Bar Layout Adjustments */
 .top-hud-bar {
     position: absolute;
-    top: 20px;
+    top: 16px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1040;
     display: flex;
     align-items: center;
-    gap: 25px;
-    background: rgba(22, 32, 50, 0.9) !important;
-    border: 2px solid #2e5b66 !important;
-    border-radius: 16px !important;
-    padding: 10px 25px !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
-    backdrop-filter: blur(10px);
+    gap: 14px;
+    max-width: 96vw;
+    width: max-content;
+    background: rgba(15, 23, 42, 0.88) !important;
+    border: 1px solid rgba(0, 240, 255, 0.4) !important;
+    border-radius: 18px !important;
+    padding: 8px 18px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 240, 255, 0.1) !important;
+    backdrop-filter: blur(12px);
     font-family: var(--font-primary);
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 850px) {
+    .top-hud-bar {
+        top: 10px !important;
+        max-width: 98vw !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        justify-content: flex-start !important;
+        padding: 6px 12px !important;
+        gap: 10px !important;
+        scrollbar-width: none !important;
+    }
+    .top-hud-bar::-webkit-scrollbar {
+        display: none !important;
+    }
 }
 .top-hud-bar .hud-card-item {
     display: flex;
