@@ -44,9 +44,14 @@
 }
 
 html, body {
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+    width: 100% !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background-color: #0b0e14;
     font-family: var(--font-primary);
     color: var(--text-color);
@@ -2042,5 +2047,27 @@ html, body {
         padding: 14px 28px !important;
         font-size: 1.05rem !important;
         margin-bottom: 40px !important; /* Ensure launch button is 100% reachable */
+    }
+
+    /* Top HUD Mobile Width & Horizontal Swipe Containment */
+    .top-hud-bar {
+        width: 94vw !important;
+        max-width: 94vw !important;
+        box-sizing: border-box !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-x !important;
+        justify-content: flex-start !important;
+        gap: 12px !important;
+        padding: 8px 16px !important;
+        scrollbar-width: none !important;
+    }
+    .top-hud-bar::-webkit-scrollbar {
+        display: none !important;
+    }
+    .top-hud-bar .hud-card-item,
+    .top-hud-bar .hud-sim-controls {
+        flex-shrink: 0 !important;
     }
 }
