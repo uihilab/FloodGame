@@ -1333,6 +1333,113 @@ html, body {
     box-shadow: 0 4px 15px rgba(0, 240, 255, 0.35) !important;
 }
 
+/* Mobile Tap Quick Tile Info Toast */
+#mobile-tile-toast {
+    position: fixed !important;
+    bottom: 95px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 92vw !important;
+    max-width: 440px !important;
+    z-index: 24500 !important;
+    background: rgba(15, 23, 42, 0.94) !important;
+    border: 1px solid rgba(0, 240, 255, 0.5) !important;
+    border-radius: 16px !important;
+    padding: 10px 14px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(0, 240, 255, 0.2) !important;
+    backdrop-filter: blur(12px);
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    pointer-events: auto !important;
+}
+
+#mobile-tile-toast.is-hidden {
+    opacity: 0 !important;
+    transform: translate(-50%, 20px) !important;
+    pointer-events: none !important;
+    display: none !important;
+}
+
+.mobile-toast-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.mobile-toast-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mobile-toast-icon {
+    font-size: 1rem;
+}
+
+.mobile-toast-title {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mobile-toast-stats {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.mobile-toast-pill {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 2px 7px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #cbd5e1;
+    white-space: nowrap;
+}
+
+.mobile-toast-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.mobile-toast-inspect-btn {
+    background: linear-gradient(135deg, rgba(0, 240, 255, 0.25) 0%, rgba(59, 130, 246, 0.35) 100%);
+    border: 1px solid rgba(0, 240, 255, 0.6);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 240, 255, 0.2);
+}
+
+.mobile-toast-close-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px 6px;
+}
+
 .hud-sim-controls {
     display: flex !important;
     align-items: center !important;
