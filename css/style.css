@@ -1854,17 +1854,34 @@ html, body {
     }
 }
 
+.hud-sim-controls {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    margin-left: 14px !important;
+    flex-shrink: 0 !important;
+}
+
+#clockDiv {
+    margin-right: 6px !important;
+    flex-shrink: 0 !important;
+}
+
 /* Top HUD Action Button (Start / Finish / Start Again) */
 #sim-play-btn {
     white-space: nowrap !important;
     flex-shrink: 0 !important;
+    min-width: 115px !important;
+    justify-content: center !important;
+    margin-left: 8px !important;
+    margin-right: 4px !important;
     background: linear-gradient(135deg, rgba(0, 240, 255, 0.25) 0%, rgba(59, 130, 246, 0.35) 100%) !important;
     border: 1px solid rgba(0, 240, 255, 0.5) !important;
     border-radius: 20px !important;
     color: #ffffff !important;
     font-weight: 800 !important;
     font-size: 0.85rem !important;
-    padding: 6px 16px !important;
+    padding: 7px 18px !important;
     letter-spacing: 0.5px !important;
     cursor: pointer !important;
     display: inline-flex !important;
