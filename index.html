@@ -1576,12 +1576,18 @@ function openBudgetInfoModal() {
     if (remEl) remEl.textContent = "$" + (current / 1000000).toFixed(1) + "M";
 
     const modal = document.getElementById("modalBudgetInfo");
-    if (modal) modal.classList.add("is-active");
+    if (modal) {
+        modal.classList.add("is-active");
+        modal.style.display = "flex";
+    }
 }
 
 function closeBudgetInfoModal() {
     const modal = document.getElementById("modalBudgetInfo");
-    if (modal) modal.classList.remove("is-active");
+    if (modal) {
+        modal.classList.remove("is-active");
+        modal.style.display = "none";
+    }
 }
 
 function toggleTopHUDBar() {

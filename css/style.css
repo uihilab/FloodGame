@@ -1962,6 +1962,10 @@ html, body {
 
 /* Budget Info Modal Mobile Height & Sticky Footer Fix */
 #modalBudgetInfo {
+    display: none;
+}
+
+#modalBudgetInfo.is-active {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
