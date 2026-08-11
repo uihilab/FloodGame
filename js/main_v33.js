@@ -5005,12 +5005,20 @@ function showMapsUI(){
     }
 };
 
-function startGame(name){
+async function startGame(name){
     var loadingOverlay = document.getElementById("sim-loading-overlay");
     if (loadingOverlay) {
         loadingOverlay.style.opacity = "1";
         loadingOverlay.classList.remove("is-hidden");
     }
+
+    // Safety timeout: ensure loading overlay is force-removed after 4s max
+    var forceHideTimeout = setTimeout(() => {
+        if (loadingOverlay && !loadingOverlay.classList.contains("is-hidden")) {
+            loadingOverlay.style.opacity = "0";
+            setTimeout(() => { loadingOverlay.classList.add("is-hidden"); loadingOverlay.style.opacity = "1"; }, 400);
+        }
+    }, 4000);
 
     var mapNames = {
         'des_moines': 'Des Moines',
@@ -5020,7 +5028,7 @@ function startGame(name){
         'iowa_city': 'Iowa City',
         'cedar_rapids': 'Cedar Rapids'
     };
-    var mapKey = name[1];
+    var mapKey = (name && name[1]) ? name[1] : 'iowa_city';
     var displayName = mapNames[mapKey] || 'Riverton City';
     var cityEl = document.getElementById("hud-city-name");
     if (cityEl) {
@@ -5044,13 +5052,28 @@ function startGame(name){
     const bottomBtns = document.querySelectorAll(".hud-circle-btn-container");
     bottomBtns.forEach(btn => btn.classList.remove("active-tool"));
 
-    if (name[0] == 0){
-        main(0, dictOfDefaultMaps[name[1]], name[2]);
+    try {
+        if (name && name[0] == 0){
+            var files = (dictOfDefaultMaps && dictOfDefaultMaps[name[1]]) ? dictOfDefaultMaps[name[1]] : dictOfDefaultMaps['iowa_city'];
+            await main(0, files, name[2]);
+        }
+        else if (name) {
+            await main(1, name[1], name[2]);
+        } else {
+            await main(0, dictOfDefaultMaps['iowa_city'], 1);
+        }
+    } catch(err) {
+        console.error("Error initializing simulation map:", err);
+    } finally {
+        clearTimeout(forceHideTimeout);
         clearMapsUI();
-    }
-    else{
-        main(1, name[1], name[2]);
-        clearMapsUI();
+        if (loadingOverlay) {
+            loadingOverlay.style.opacity = "0";
+            setTimeout(() => {
+                loadingOverlay.classList.add("is-hidden");
+                loadingOverlay.style.opacity = "1";
+            }, 400);
+        }
     }
 }
 
