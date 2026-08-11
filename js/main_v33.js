@@ -27,7 +27,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
     var meshDict, meshDictIndex, floodMesh;
     var borderSegments;
     var game_graphics_opt = game_graphics_opt;
-    var allMitigationsSelects, allCheckbox, allMitigationsCostTexts, mitigation_opts, tile_info, quick_fact_budget_panel, quick_fact_info_panel, elevateStructureSlider, tileInformationPanelTabButtons;
 
     var frame1, frame2;
 
@@ -139,96 +138,105 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
     
 
-    allMitigationsSelects = document.querySelectorAll(".mitigation-option select");
-    allCheckbox = document.querySelectorAll("[type='checkbox']");
-    allMitigationsCostTexts = document.querySelectorAll(".mitigation-option .mitigation-cost");
+    var allMitigationsSelects = document.querySelectorAll(".mitigation-option select");
+    var allCheckbox = document.querySelectorAll("[type='checkbox']");
+    var allMitigationsCostTexts = document.querySelectorAll(".mitigation-option .mitigation-cost");
 
-    mitigation_opts = document.querySelectorAll(".mitigation-option");
-    tile_info = document.querySelector(".tile-info");
-    quick_fact_budget_panel = document.querySelectorAll(".quick-facts .card-content-left .card-content-item-val");
-    quick_fact_info_panel = document.querySelectorAll(".quick-facts .card-content-right .card-content-item-val");
+    var mitigation_opts = document.querySelectorAll(".mitigation-option");
+    var tile_info = document.querySelector(".tile-info");
+    var quick_fact_budget_panel = document.querySelectorAll(".quick-facts .card-content-left .card-content-item-val");
+    var quick_fact_info_panel = document.querySelectorAll(".quick-facts .card-content-right .card-content-item-val");
 
-    elevateStructureSlider = document.querySelectorAll("[type='range']");
+    var elevateStructureSlider = document.querySelectorAll("[type='range']");
 
-    tileInformationPanelTabButtons = document.querySelectorAll(".tabs li");
+    var tileInformationPanelTabButtons = document.querySelectorAll(".tabs li");
 
-    try {
-        if (opts == 0){
-            [groundTiles, surfaceTiles, surfaceTiles_v2, floodTiles, countMap] = await createTiles(list_of_files);
-        }
-        else{
-            [groundTiles, surfaceTiles, surfaceTiles_v2, floodTiles, countMap] = await createAutomaticMapData(list_of_files);
-        }
+    if (opts == 0){
+        
+        [groundTiles, surfaceTiles, surfaceTiles_v2, floodTiles, countMap] = await createTiles(list_of_files);
+    
+    }
+    else{
+        
+        [groundTiles, surfaceTiles, surfaceTiles_v2, floodTiles, countMap] = await createAutomaticMapData(list_of_files);
 
-        // Apply Laplacian smoothing filter for St. Bernard Parish map to soften sharp levee steps
-        if (list_of_files && list_of_files[0] && list_of_files[0].toLowerCase().includes("st_bernard")) {
-            var iterations = 3;
-            for (var iter = 0; iter < iterations; iter++) {
-                var newElevations = [];
-                for (var r = 0; r < numberOfRows; r++) {
-                    newElevations[r] = [];
-                    for (var c = 0; c < numberOfColumns; c++) {
-                        var cell = groundTiles[r][c];
-                        if (cell.type === "water") {
-                            newElevations[r][c] = cell.elevation; // Keep water level flat
-                            continue;
-                        }
-                        var sum = 0;
-                        var count = 0;
-                        for (var dr = -1; dr <= 1; dr++) {
-                            for (var dc = -1; dc <= 1; dc++) {
-                                var nr = r + dr;
-                                var nc = c + dc;
-                                if (nr >= 0 && nr < numberOfRows && nc >= 0 && nc < numberOfColumns) {
-                                    sum += groundTiles[nr][nc].elevation;
-                                    count++;
-                                }
+    }
+
+    // Apply Laplacian smoothing filter for St. Bernard Parish map to soften sharp levee steps
+    if (list_of_files && list_of_files[0] && list_of_files[0].toLowerCase().includes("st_bernard")) {
+        var iterations = 3;
+        for (var iter = 0; iter < iterations; iter++) {
+            var newElevations = [];
+            for (var r = 0; r < numberOfRows; r++) {
+                newElevations[r] = [];
+                for (var c = 0; c < numberOfColumns; c++) {
+                    var cell = groundTiles[r][c];
+                    if (cell.type === "water") {
+                        newElevations[r][c] = cell.elevation; // Keep water level flat
+                        continue;
+                    }
+                    var sum = 0;
+                    var count = 0;
+                    for (var dr = -1; dr <= 1; dr++) {
+                        for (var dc = -1; dc <= 1; dc++) {
+                            var nr = r + dr;
+                            var nc = c + dc;
+                            if (nr >= 0 && nr < numberOfRows && nc >= 0 && nc < numberOfColumns) {
+                                sum += groundTiles[nr][nc].elevation;
+                                count++;
                             }
                         }
-                        var avg = sum / count;
-                        newElevations[r][c] = cell.elevation * 0.4 + avg * 0.6;
                     }
+                    var avg = sum / count;
+                    newElevations[r][c] = cell.elevation * 0.4 + avg * 0.6;
                 }
-                for (var r = 0; r < numberOfRows; r++) {
-                    for (var c = 0; c < numberOfColumns; c++) {
-                        groundTiles[r][c].elevation = newElevations[r][c];
-                    }
+            }
+            for (var r = 0; r < numberOfRows; r++) {
+                for (var c = 0; c < numberOfColumns; c++) {
+                    groundTiles[r][c].elevation = newElevations[r][c];
                 }
             }
         }
+    }
 
-        // Procedurally add parking lots next to civic and commercial buildings in Greenville and St. Bernard
-        if (list_of_files && list_of_files[0]) {
-            var mapPath = list_of_files[0].toLowerCase();
-            if (mapPath.includes("greenville") || mapPath.includes("st_bernard")) {
-                if (!countMap["parking"]) countMap["parking"] = 0;
-                if (!countMap["parking_lot"]) countMap["parking_lot"] = 0;
-                
-                for (var r = 0; r < numberOfRows; r++) {
-                    for (var c = 0; c < numberOfColumns; c++) {
-                        var obj = surfaceTiles[r][c];
-                        if (obj && obj !== 0 && ["Hos", "Pol", "School", "Fire", "Com"].includes(obj.type)) {
-                            var dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-                            var convertedCount = 0;
-                            for (var d = 0; d < dirs.length; d++) {
-                                var nr = r + dirs[d][0];
-                                var nc = c + dirs[d][1];
-                                if (nr >= 0 && nr < numberOfRows && nc >= 0 && nc < numberOfColumns) {
-                                    if (surfaceTiles[nr][nc] === 0 && surfaceTiles_v2[nr][nc] === 0 && groundTiles[nr][nc].type === "parks") {
-                                        groundTiles[nr][nc].type = "parking_lot";
-                                        var rotY = 0;
-                                        if (nr - r === -1) rotY = 0;
-                                        else if (nr - r === 1) rotY = Math.PI;
-                                        else if (nc - c === -1) rotY = -Math.PI / 2;
-                                        else if (nc - c === 1) rotY = Math.PI / 2;
-                                        surfaceTiles_v2[nr][nc] = { "type": "parking", "instanceId": [], "rotY": rotY };
-                                        
-                                        countMap["parking"]++;
-                                        countMap["parking_lot"]++;
-                                        if (countMap["parks"]) countMap["parks"]--;
-                                        
-                                        convertedCount++;
-                                        if (convertedCount >= 2) break;
+    // Procedurally add parking lots next to civic and commercial buildings in Greenville and St. Bernard
+    if (list_of_files && list_of_files[0]) {
+        var mapPath = list_of_files[0].toLowerCase();
+        if (mapPath.includes("greenville") || mapPath.includes("st_bernard")) {
+            if (!countMap["parking"]) countMap["parking"] = 0;
+            if (!countMap["parking_lot"]) countMap["parking_lot"] = 0;
+            
+            for (var r = 0; r < numberOfRows; r++) {
+                for (var c = 0; c < numberOfColumns; c++) {
+                    var obj = surfaceTiles[r][c];
+                    if (obj && obj !== 0 && ["Hos", "Pol", "School", "Fire", "Com"].includes(obj.type)) {
+                        // Find empty neighbors to convert to parking
+                        var dirs = [
+                            [-1, 0], [1, 0], [0, -1], [0, 1]
+                        ];
+                        var convertedCount = 0;
+                        for (var d = 0; d < dirs.length; d++) {
+                            var nr = r + dirs[d][0];
+                            var nc = c + dirs[d][1];
+                            if (nr >= 0 && nr < numberOfRows && nc >= 0 && nc < numberOfColumns) {
+                                if (surfaceTiles[nr][nc] === 0 && surfaceTiles_v2[nr][nc] === 0 && groundTiles[nr][nc].type === "parks") {
+                                    // Convert to parking lot!
+                                    groundTiles[nr][nc].type = "parking_lot";
+                                    var rotY = 0;
+                                    if (nr - r === -1) rotY = 0;
+                                    else if (nr - r === 1) rotY = Math.PI;
+                                    else if (nc - c === -1) rotY = -Math.PI / 2;
+                                    else if (nc - c === 1) rotY = Math.PI / 2;
+                                    surfaceTiles_v2[nr][nc] = { "type": "parking", "instanceId": [], "rotY": rotY };
+                                    
+                                    // Update counts
+                                    countMap["parking"]++;
+                                    countMap["parking_lot"]++;
+                                    if (countMap["parks"]) countMap["parks"]--;
+                                    
+                                    convertedCount++;
+                                    if (convertedCount >= 2) {
+                                        break; // limit to 2 per building
                                     }
                                 }
                             }
@@ -237,24 +245,22 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 }
             }
         }
+    }
 
-        [meshDict, meshDictIndex] = createMeshes(countMap);
+    [meshDict, meshDictIndex] = createMeshes(countMap);
+    //console.log(meshDict);
+    //console.log("meshDict is created!!!");
+    
+    
 
-        if (container) container.innerHTML = "";
-        init();
-        animate();
-    } catch (err) {
-        console.error("Error initializing WebGL simulation:", err);
-    } finally {
-        const overlay = document.getElementById("sim-loading-overlay");
-        if (overlay) {
-            overlay.style.opacity = "0";
-            overlay.style.pointerEvents = "none";
-            setTimeout(() => { 
-                overlay.style.display = "none";
-                overlay.classList.add("is-hidden"); 
-            }, 400);
-        }
+    init();
+    //onWindowResize();
+    animate();
+
+    const overlay = document.getElementById("sim-loading-overlay");
+    if (overlay) {
+        overlay.style.opacity = "0";
+        setTimeout(() => { overlay.classList.add("is-hidden"); overlay.style.opacity = "1"; }, 400);
     }
 
     //console.log("Scene polycount:", renderer.info.render.triangles);
@@ -272,19 +278,28 @@ async function main(opts, list_of_files, game_graphics_opt) {
         scene.background = new THREE.Color("#d2e4f6");
         // Camera set up
         var frustumSize = 1000;
-        var a = (container && container.clientWidth > 0) ? container.clientWidth : window.innerWidth;
-        var b = (container && container.clientHeight > 0) ? container.clientHeight : window.innerHeight;
-        if (!a || a <= 0) a = 1200;
-        if (!b || b <= 0) b = 800;
+        var a = $(container).width();
+        var b = $(container).height();
         var aspect = a / b;
         camera = new THREE.OrthographicCamera(frustumSize * aspect / -2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / -2, 1, 10000);
-        camera.position.set(0, 2000, -2000);
+        camera.position.set(0 * a, a, -2 * a);
         camera.lookAt(scene.position);
         scene.add(camera);
-
+        //var planeGeometry = new THREE.PlaneGeometry(20000, 20000, 1, 1);
+        //var texture = new THREE.TextureLoader().load( '../extras/staticmap_v3.png' );
+        //var planeMaterial = new THREE.MeshLambertMaterial( { map: texture } );
+        //var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+        //var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        //plane.receiveShadow = true;
+        // rotate and position the plane
+        //plane.rotation.x = -0.5 * Math.PI;
+        //plane.position.set(0,0,0);
+        // add the plane to the scene
+        //scene.add(plane);
         // Lights
         var light = new THREE.AmbientLight(0xd5e2f5, 0.55);
         scene.add(light);
+
 
         var dirLight = new THREE.DirectionalLight( 0xfffcf0, 1.15 );
         dirLight.position.set(2000, 3000, 1000);
@@ -301,10 +316,13 @@ async function main(opts, list_of_files, game_graphics_opt) {
         dirLight.shadow.radius = 4;
         scene.add(dirLight);
 
+
+
         // renderer
-        renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+
+        renderer = new THREE.WebGLRenderer({ container });
         renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(a, b);
+        renderer.setSize($(container).width(), $(container).height());
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.shadowMap.autoUpdate = true;
@@ -1456,19 +1474,12 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function onWindowResize() {
-        var w = (container && container.clientWidth > 0) ? container.clientWidth : window.innerWidth;
-        var h = (container && container.clientHeight > 0) ? container.clientHeight : window.innerHeight;
-        if (!w || w <= 0) w = 1200;
-        if (!h || h <= 0) h = 800;
-        var aspect = w / h;
-        var frustumSize = 1000;
-        camera.left = -frustumSize * aspect / 2;
-        camera.right = frustumSize * aspect / 2;
-        camera.top = frustumSize / 2;
-        camera.bottom = -frustumSize / 2;
+
+        camera.aspect = document.getElementById("webgl-output").clientWidth / document.getElementById("webgl-output").clientHeight;
         camera.updateProjectionMatrix();
 
-        renderer.setSize(w, h);
+        renderer.setSize( document.getElementById("webgl-output").clientWidth, document.getElementById("webgl-output").clientHeight );
+
     };
 
 
@@ -2396,9 +2407,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 updateTileInformationPanelOnMouseMove(row, column);
                 moveWireFrame_2(1, row, column);
             }
-        } else {
-            var tt = document.getElementById("tile-hover-tooltip");
-            if (tt) tt.classList.add("is-hidden");
         }
     }
 
@@ -3699,6 +3707,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
         ];
 
 
+        if (!floodTiles || !floodTiles[row] || floodTiles[row][column] === undefined) return list_of_colors[0];
         if (floodTiles[row][column] != 0){
             if (hasMitigation(row, column)){
                 return list_of_colors[2]
@@ -3732,10 +3741,18 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     async function readExternalJSON(filepath){
-        const response = await fetch(filepath);
-        const data = await response.json();
+        /*
+            This function reads and return the json
+            file at given path.
+        */
+
+        var data;
+
+        await fetch(filepath)
+            .then(response => data = response.json());
         return data;
-    }
+
+    };
 
 
     function createBorderWireframe(size) {
@@ -4125,7 +4142,11 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function uncheckAllMitigationStatus() {
-        if (!mitigation_opts) return;
+        /*
+            It unchecks checkboxes for all mitigation types.
+            It uses uncheckMitigationStatus function.
+        */
+
         for (var i = 0; i < mitigation_opts.length; i++) {
             uncheckMitigationStatus(mitigation_opts[i]);
         };
@@ -4133,27 +4154,15 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function findRiskValue(row, column) {
-        /*
-            It calculates the risk level of a tile.
-        */
-        var obj;
-        obj = floodTiles[row][column];
-        var risk_level = 0;
-        if (obj != 0) {
-            risk_level = 5;
-        };
-        return risk_level;
+        if (!floodTiles || !floodTiles[row] || floodTiles[row][column] === undefined) return "Safe";
+        var obj = floodTiles[row][column];
+        return (obj != 0) ? "High Risk" : "Safe";
     };
 
 
     function calculateWaterLevel(row, column) {
-
-        /*
-            It calculates the risk level of a tile.
-        */
-
-        var obj;
-        obj = floodTiles[row][column];
+        if (!floodTiles || !floodTiles[row] || floodTiles[row][column] === undefined) return 0;
+        var obj = floodTiles[row][column];
         var water_level = 0;
         if (obj != 0) {
             water_level = obj.water_level;
@@ -4283,71 +4292,49 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function updateTileInformationPanelOnMouseMove(row, column) {
-        /*
-            This function updates tile information panel 
-            on the game menu. Panel contains information
-            about selected tile's type, water level, number of people
-            on the tile and risk level. 
-
-        */
-
         if (!surfaceTiles || !surfaceTiles[row] || !groundTiles || !groundTiles[row]) return;
-        var values = document.querySelectorAll("#tile-information .has-text-right");
+
+        // Determine tile type label
         var type;
-
-            if (surfaceTiles[row][column] == 0) {
-                /* Update #ofPeople */
-                values[1].textContent = 0;
-
-                if (groundTiles[row][column].type == "parking_lot"){
-                    type = "Parking Lot";
-                }
-                else if (groundTiles[row][column].type == "water"){
-                    type = "Water";
-                }
-                else if (groundTiles[row][column].type == "parks"){
-                    type = "Park";
-                }
-                else{
-                    type = "Road";
-                }
-            }
-            else {
-                type = buildingMetaDict[surfaceTiles[row][column].type]["name"];
-                /* Update #ofPeople */
-                values[1].textContent = surfaceTiles[row][column].peopleOnIt;
-            };
-            
-            values[0].textContent = type;
-            /* Update Water Level */
-            values[2].textContent = calculateWaterLevel(row, column) + " FT"; //groundTiles[selectedTile.row][selectedTile.column].type;
-            
-
-            
-            values[3].textContent = findRiskValue(row, column);
-
-            // Update Floating Cursor Tile Info Tooltip
-            var tt = document.getElementById("tile-hover-tooltip");
-            if (tt) {
-                var elev = (groundTiles[row][column] && groundTiles[row][column].elevation) ? groundTiles[row][column].elevation.toFixed(1) : "40.0";
-                var risk = findRiskValue(row, column);
-                var nameEl = document.getElementById("tooltip-tile-name");
-                var elevEl = document.getElementById("tooltip-tile-elev");
-                var riskEl = document.getElementById("tooltip-tile-risk");
-                if (nameEl) nameEl.textContent = type;
-                if (elevEl) elevEl.textContent = "Elev: " + elev + "ft";
-                if (riskEl) {
-                    riskEl.textContent = "Status: " + risk;
-                    if (risk.toLowerCase().includes("risk") || risk.toLowerCase().includes("high")) {
-                        riskEl.style.color = "#f87171";
-                    } else {
-                        riskEl.style.color = "#4ade80";
-                    }
-                }
-                tt.classList.remove("is-hidden");
-            }
+        if (surfaceTiles[row][column] == 0) {
+            if (groundTiles[row][column].type == "parking_lot") type = "Parking Lot";
+            else if (groundTiles[row][column].type == "water") type = "Water";
+            else if (groundTiles[row][column].type == "parks") type = "Park";
+            else type = "Road";
+        } else {
+            type = buildingMetaDict[surfaceTiles[row][column].type]["name"];
         }
 
+        // Always update floating cursor tooltip regardless of panel/tab state
+        var tt = document.getElementById("tile-hover-tooltip");
+        if (tt) {
+            var elev = (groundTiles[row][column] && groundTiles[row][column].elevation)
+                ? groundTiles[row][column].elevation.toFixed(1) : "40.0";
+            var risk = findRiskValue(row, column);
+            var nameEl = document.getElementById("tooltip-tile-name");
+            var elevEl = document.getElementById("tooltip-tile-elev");
+            var riskEl = document.getElementById("tooltip-tile-risk");
+            if (nameEl) nameEl.textContent = type;
+            if (elevEl) elevEl.textContent = "Elev: " + elev + "ft";
+            if (riskEl) {
+                riskEl.textContent = "Status: " + risk;
+                riskEl.style.color = (risk.toLowerCase().includes("risk") || risk.toLowerCase().includes("high"))
+                    ? "#f87171" : "#4ade80";
+            }
+            tt.classList.remove("is-hidden");
+        }
+
+        // Also update left-panel tile-information tab when no tile is selected
+        if (!selectedTile.isSelected) {
+            var values = document.querySelectorAll("#tile-information .has-text-right");
+            if (values && values.length >= 4) {
+                values[0].textContent = type;
+                values[1].textContent = (surfaceTiles[row][column] != 0)
+                    ? surfaceTiles[row][column].peopleOnIt : 0;
+                values[2].textContent = calculateWaterLevel(row, column) + " FT";
+                values[3].textContent = findRiskValue(row, column);
+            }
+        }
     };
 
 
@@ -4408,7 +4395,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function mitigationsActions() {
-        if (!allCheckbox || allCheckbox.length === 0) return;
 
         /*
             This functions bind the actions for 
@@ -4958,7 +4944,10 @@ async function main(opts, list_of_files, game_graphics_opt) {
             }
             else{};
         };
-    }
+    };
+
+};
+
 
 var dictOfDefaultMaps = {
 
@@ -5028,9 +5017,7 @@ function showMapsUI(){
 function startGame(name){
     var loadingOverlay = document.getElementById("sim-loading-overlay");
     if (loadingOverlay) {
-        loadingOverlay.style.display = "flex";
         loadingOverlay.style.opacity = "1";
-        loadingOverlay.style.pointerEvents = "all";
         loadingOverlay.classList.remove("is-hidden");
     }
 
@@ -5066,10 +5053,8 @@ function startGame(name){
     const bottomBtns = document.querySelectorAll(".hud-circle-btn-container");
     bottomBtns.forEach(btn => btn.classList.remove("active-tool"));
 
-    var mapFiles = (dictOfDefaultMaps && dictOfDefaultMaps[mapKey]) ? dictOfDefaultMaps[mapKey] : dictOfDefaultMaps['iowa_city'];
-
     if (name[0] == 0){
-        main(0, mapFiles, name[2]);
+        main(0, dictOfDefaultMaps[name[1]], name[2]);
         clearMapsUI();
     }
     else{
@@ -5077,11 +5062,6 @@ function startGame(name){
         clearMapsUI();
     }
 }
-
-window.startGame = startGame;
-window.main = main;
-window.clearMapsUI = clearMapsUI;
-window.showMapsUI = showMapsUI;
 
 
 async function receiveImageFromGoogleMaps(location){

@@ -1,5 +1,5 @@
 // AI Tutor Background Web Worker
-import { env, pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0';
+import { env, pipeline } from 'https://esm.sh/@huggingface/transformers@3.0.0';
 
 env.allowLocalModels = false;
 
@@ -12,6 +12,7 @@ self.addEventListener('message', async (event) => {
     if (type === 'init') {
         try {
             generator = await pipeline('text-generation', modelName, {
+                dtype: 'q4',
                 progress_callback: (data) => {
                     self.postMessage({ type: 'progress', data });
                 }

@@ -232,17 +232,17 @@ texFilesDict_building["Com"] = [
 ]
 
 texFilesDict_building["Shel1"] = [
-	"models/polyModels/Models/SPW_Urban_Bldg_01.obj",
-	"models/polyModels/Models/SPW_Urban_Bldg_01.mtl",
-	"models/polyModels/Textures/SPW_Urban_Bldg_01_Color02.png"];
+	"models/polyModels/Models/SPW_Urban_Bldg_15.obj",
+	"models/polyModels/Models/SPW_Urban_Bldg_15.mtl",
+	"models/polyModels/Textures/SPW_Urban_Bldg_15.png"];
 texFilesDict_building["Shel2"] = [
-	"models/polyModels/Models/SPW_Urban_Bldg_01.obj",
-	"models/polyModels/Models/SPW_Urban_Bldg_01.mtl",
-	"models/polyModels/Textures/SPW_Urban_Bldg_01_Color02.png"];
+	"models/polyModels/Models/SPB_Court House.obj",
+	"models/polyModels/Models/SPB_Court House.mtl",
+	"models/polyModels/Textures/SPB_Court House.png"];
 texFilesDict_building["Shel3"] = [
-	"models/polyModels/Models/SPW_Urban_Bldg_01.obj",
-	"models/polyModels/Models/SPW_Urban_Bldg_01.mtl",
-	"models/polyModels/Textures/SPW_Urban_Bldg_01_Color02.png"];
+	"models/polyModels/Models/SPB_City Hall.obj",
+	"models/polyModels/Models/SPB_City Hall.mtl",
+	"models/polyModels/Textures/SPB_City Hall.png"];
 
 
 
@@ -487,9 +487,11 @@ function returnInstancedMeshModel(obj, mtl, tex, count, divide, name){
 	var position = [];
 
 	geometry = new THREE.BufferGeometry();
-	material = new THREE.MeshLambertMaterial({
+	material = new THREE.MeshStandardMaterial({
 		map:textureReturn(tex),
-		flatShading: true
+		roughness: 0.75,
+		metalness: 0.05,
+		flatShading: false
 	});
 
 	mtlLoader.load(mtl, function (materials){
@@ -549,7 +551,11 @@ function returnInstancedMeshModel(obj, mtl, tex, count, divide, name){
 
 	mesh = new THREE.InstancedMesh(geometry, material, count);
 	mesh.matrixAutoUpdate = false;
-	mesh.castShadow = true;
+	if (name && (name.startsWith("road") || name === "parking")) {
+		mesh.castShadow = false;
+	} else {
+		mesh.castShadow = true;
+	}
 	mesh.receiveShadow = true;
 	return mesh;
 };

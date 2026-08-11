@@ -1,5 +1,5 @@
 import { createTiles } from "./createWorldData.js";
-import { createMeshes } from "./loadModels.js?v=33";
+import { createMeshes } from "./loadModels.js?v=27";
 import * as THREE from "./../libs/threejs/three.module.js"
 import CameraControls from "./../libs/camera-controls/camera-controls.module.js"
 import * as holdEvent from "./../libs/camera-controls/hold-event.module.js";
@@ -27,7 +27,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
     var meshDict, meshDictIndex, floodMesh;
     var borderSegments;
     var game_graphics_opt = game_graphics_opt;
-    var allMitigationsSelects, allCheckbox, allMitigationsCostTexts, mitigation_opts, tile_info, quick_fact_budget_panel, quick_fact_info_panel, elevateStructureSlider, tileInformationPanelTabButtons;
 
     var frame1, frame2;
 
@@ -78,8 +77,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     var zoom = 2;
-    var activeCars = [];
-    var activeBoats = [];
 
 
     var isFlood = false;
@@ -139,96 +136,68 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
     
 
-    allMitigationsSelects = document.querySelectorAll(".mitigation-option select");
-    allCheckbox = document.querySelectorAll("[type='checkbox']");
-    allMitigationsCostTexts = document.querySelectorAll(".mitigation-option .mitigation-cost");
+    var allMitigationsSelects = document.querySelectorAll(".mitigation-option select");
+    var allCheckbox = document.querySelectorAll("[type='checkbox']");
+    var allMitigationsCostTexts = document.querySelectorAll(".mitigation-option .mitigation-cost");
 
-    mitigation_opts = document.querySelectorAll(".mitigation-option");
-    tile_info = document.querySelector(".tile-info");
-    quick_fact_budget_panel = document.querySelectorAll(".quick-facts .card-content-left .card-content-item-val");
-    quick_fact_info_panel = document.querySelectorAll(".quick-facts .card-content-right .card-content-item-val");
+    var mitigation_opts = document.querySelectorAll(".mitigation-option");
+    var tile_info = document.querySelector(".tile-info");
+    var quick_fact_budget_panel = document.querySelectorAll(".quick-facts .card-content-left .card-content-item-val");
+    var quick_fact_info_panel = document.querySelectorAll(".quick-facts .card-content-right .card-content-item-val");
 
-    elevateStructureSlider = document.querySelectorAll("[type='range']");
+    var elevateStructureSlider = document.querySelectorAll("[type='range']");
 
-    tileInformationPanelTabButtons = document.querySelectorAll(".tabs li");
+    var tileInformationPanelTabButtons = document.querySelectorAll(".tabs li");
 
-    try {
-        if (opts == 0){
-            [groundTiles, surfaceTiles, surfaceTiles_v2, floodTiles, countMap] = await createTiles(list_of_files);
-        }
-        else{
-            [groundTiles, surfaceTiles, surfaceTiles_v2, floodTiles, countMap] = await createAutomaticMapData(list_of_files);
-        }
+    if (opts == 0){
+        
+        [groundTiles, surfaceTiles, surfaceTiles_v2, floodTiles, countMap] = await createTiles(list_of_files);
+    
+    }
+    else{
+        
+        [groundTiles, surfaceTiles, surfaceTiles_v2, floodTiles, countMap] = await createAutomaticMapData(list_of_files);
 
-        // Apply Laplacian smoothing filter for St. Bernard Parish map to soften sharp levee steps
-        if (list_of_files && list_of_files[0] && list_of_files[0].toLowerCase().includes("st_bernard")) {
-            var iterations = 3;
-            for (var iter = 0; iter < iterations; iter++) {
-                var newElevations = [];
-                for (var r = 0; r < numberOfRows; r++) {
-                    newElevations[r] = [];
-                    for (var c = 0; c < numberOfColumns; c++) {
-                        var cell = groundTiles[r][c];
-                        if (cell.type === "water") {
-                            newElevations[r][c] = cell.elevation; // Keep water level flat
-                            continue;
-                        }
-                        var sum = 0;
-                        var count = 0;
-                        for (var dr = -1; dr <= 1; dr++) {
-                            for (var dc = -1; dc <= 1; dc++) {
-                                var nr = r + dr;
-                                var nc = c + dc;
-                                if (nr >= 0 && nr < numberOfRows && nc >= 0 && nc < numberOfColumns) {
-                                    sum += groundTiles[nr][nc].elevation;
-                                    count++;
-                                }
-                            }
-                        }
-                        var avg = sum / count;
-                        newElevations[r][c] = cell.elevation * 0.4 + avg * 0.6;
-                    }
-                }
-                for (var r = 0; r < numberOfRows; r++) {
-                    for (var c = 0; c < numberOfColumns; c++) {
-                        groundTiles[r][c].elevation = newElevations[r][c];
-                    }
-                }
-            }
-        }
+    }
 
-        // Procedurally add parking lots next to civic and commercial buildings in Greenville and St. Bernard
-        if (list_of_files && list_of_files[0]) {
-            var mapPath = list_of_files[0].toLowerCase();
-            if (mapPath.includes("greenville") || mapPath.includes("st_bernard")) {
-                if (!countMap["parking"]) countMap["parking"] = 0;
-                if (!countMap["parking_lot"]) countMap["parking_lot"] = 0;
-                
-                for (var r = 0; r < numberOfRows; r++) {
-                    for (var c = 0; c < numberOfColumns; c++) {
-                        var obj = surfaceTiles[r][c];
-                        if (obj && obj !== 0 && ["Hos", "Pol", "School", "Fire", "Com"].includes(obj.type)) {
-                            var dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-                            var convertedCount = 0;
-                            for (var d = 0; d < dirs.length; d++) {
-                                var nr = r + dirs[d][0];
-                                var nc = c + dirs[d][1];
-                                if (nr >= 0 && nr < numberOfRows && nc >= 0 && nc < numberOfColumns) {
-                                    if (surfaceTiles[nr][nc] === 0 && surfaceTiles_v2[nr][nc] === 0 && groundTiles[nr][nc].type === "parks") {
-                                        groundTiles[nr][nc].type = "parking_lot";
-                                        var rotY = 0;
-                                        if (nr - r === -1) rotY = 0;
-                                        else if (nr - r === 1) rotY = Math.PI;
-                                        else if (nc - c === -1) rotY = -Math.PI / 2;
-                                        else if (nc - c === 1) rotY = Math.PI / 2;
-                                        surfaceTiles_v2[nr][nc] = { "type": "parking", "instanceId": [], "rotY": rotY };
-                                        
-                                        countMap["parking"]++;
-                                        countMap["parking_lot"]++;
-                                        if (countMap["parks"]) countMap["parks"]--;
-                                        
-                                        convertedCount++;
-                                        if (convertedCount >= 2) break;
+    // Procedurally add parking lots next to civic and commercial buildings in Greenville and St. Bernard
+    if (list_of_files && list_of_files[0]) {
+        var mapPath = list_of_files[0].toLowerCase();
+        if (mapPath.includes("greenville") || mapPath.includes("st_bernard")) {
+            if (!countMap["parking"]) countMap["parking"] = 0;
+            if (!countMap["parking_lot"]) countMap["parking_lot"] = 0;
+            
+            for (var r = 0; r < numberOfRows; r++) {
+                for (var c = 0; c < numberOfColumns; c++) {
+                    var obj = surfaceTiles[r][c];
+                    if (obj && obj !== 0 && ["Hos", "Pol", "School", "Fire", "Com"].includes(obj.type)) {
+                        // Find empty neighbors to convert to parking
+                        var dirs = [
+                            [-1, 0], [1, 0], [0, -1], [0, 1]
+                        ];
+                        var convertedCount = 0;
+                        for (var d = 0; d < dirs.length; d++) {
+                            var nr = r + dirs[d][0];
+                            var nc = c + dirs[d][1];
+                            if (nr >= 0 && nr < numberOfRows && nc >= 0 && nc < numberOfColumns) {
+                                if (surfaceTiles[nr][nc] === 0 && surfaceTiles_v2[nr][nc] === 0 && groundTiles[nr][nc].type === "parks") {
+                                    // Convert to parking lot!
+                                    groundTiles[nr][nc].type = "parking_lot";
+                                    var rotY = 0;
+                                    if (nr - r === -1) rotY = Math.PI;
+                                    else if (nr - r === 1) rotY = 0;
+                                    else if (nc - c === -1) rotY = Math.PI / 2;
+                                    else if (nc - c === 1) rotY = -Math.PI / 2;
+                                    surfaceTiles_v2[nr][nc] = { "type": "parking", "instanceId": [], "rotY": rotY };
+                                    
+                                    // Update counts
+                                    countMap["parking"]++;
+                                    countMap["parking_lot"]++;
+                                    if (countMap["parks"]) countMap["parks"]--;
+                                    
+                                    convertedCount++;
+                                    if (convertedCount >= 2) {
+                                        break; // limit to 2 per building
                                     }
                                 }
                             }
@@ -237,25 +206,17 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 }
             }
         }
-
-        [meshDict, meshDictIndex] = createMeshes(countMap);
-
-        if (container) container.innerHTML = "";
-        init();
-        animate();
-    } catch (err) {
-        console.error("Error initializing WebGL simulation:", err);
-    } finally {
-        const overlay = document.getElementById("sim-loading-overlay");
-        if (overlay) {
-            overlay.style.opacity = "0";
-            overlay.style.pointerEvents = "none";
-            setTimeout(() => { 
-                overlay.style.display = "none";
-                overlay.classList.add("is-hidden"); 
-            }, 400);
-        }
     }
+
+    [meshDict, meshDictIndex] = createMeshes(countMap);
+    //console.log(meshDict);
+    //console.log("meshDict is created!!!");
+    
+    
+
+    init();
+    //onWindowResize();
+    animate();
 
     //console.log("Scene polycount:", renderer.info.render.triangles);
     //console.log("Active Drawcalls:", renderer.info.render.calls);
@@ -272,19 +233,28 @@ async function main(opts, list_of_files, game_graphics_opt) {
         scene.background = new THREE.Color("#d2e4f6");
         // Camera set up
         var frustumSize = 1000;
-        var a = (container && container.clientWidth > 0) ? container.clientWidth : window.innerWidth;
-        var b = (container && container.clientHeight > 0) ? container.clientHeight : window.innerHeight;
-        if (!a || a <= 0) a = 1200;
-        if (!b || b <= 0) b = 800;
+        var a = $(container).width();
+        var b = $(container).height();
         var aspect = a / b;
         camera = new THREE.OrthographicCamera(frustumSize * aspect / -2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / -2, 1, 10000);
-        camera.position.set(0, 2000, -2000);
+        camera.position.set(0 * a, a, -2 * a);
         camera.lookAt(scene.position);
         scene.add(camera);
-
+        //var planeGeometry = new THREE.PlaneGeometry(20000, 20000, 1, 1);
+        //var texture = new THREE.TextureLoader().load( '../extras/staticmap_v3.png' );
+        //var planeMaterial = new THREE.MeshLambertMaterial( { map: texture } );
+        //var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+        //var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        //plane.receiveShadow = true;
+        // rotate and position the plane
+        //plane.rotation.x = -0.5 * Math.PI;
+        //plane.position.set(0,0,0);
+        // add the plane to the scene
+        //scene.add(plane);
         // Lights
         var light = new THREE.AmbientLight(0xd5e2f5, 0.55);
         scene.add(light);
+
 
         var dirLight = new THREE.DirectionalLight( 0xfffcf0, 1.15 );
         dirLight.position.set(2000, 3000, 1000);
@@ -301,10 +271,13 @@ async function main(opts, list_of_files, game_graphics_opt) {
         dirLight.shadow.radius = 4;
         scene.add(dirLight);
 
+
+
         // renderer
-        renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+
+        renderer = new THREE.WebGLRenderer({ container });
         renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(a, b);
+        renderer.setSize($(container).width(), $(container).height());
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.shadowMap.autoUpdate = true;
@@ -374,13 +347,13 @@ async function main(opts, list_of_files, game_graphics_opt) {
             for (var dc = -1; dc <= 0; dc++) {
                 var nr = r + dr;
                 var nc = c + dc;
-                var clampR = Math.max(0, Math.min(numberOfRows - 1, nr));
-                var clampC = Math.max(0, Math.min(numberOfColumns - 1, nc));
-                var cell = groundTiles[clampR][clampC];
-                if (cell.type === "road" || cell.type === "building" || cell.type === "parking_lot") {
-                    hasRoadOrBuilding = true;
-                    rbSum += cell.elevation;
-                    rbCount++;
+                if (nr >= 0 && nr < numberOfRows && nc >= 0 && nc < numberOfColumns) {
+                    var cell = groundTiles[nr][nc];
+                    if (cell.type === "road" || cell.type === "building" || cell.type === "parking_lot") {
+                        hasRoadOrBuilding = true;
+                        rbSum += cell.elevation;
+                        rbCount++;
+                    }
                 }
             }
         }
@@ -394,16 +367,17 @@ async function main(opts, list_of_files, game_graphics_opt) {
             for (var dc = -1; dc <= 0; dc++) {
                 var nr = r + dr;
                 var nc = c + dc;
-                var clampR = Math.max(0, Math.min(numberOfRows - 1, nr));
-                var clampC = Math.max(0, Math.min(numberOfColumns - 1, nc));
-                sum += groundTiles[clampR][clampC].elevation;
-                count++;
+                if (nr >= 0 && nr < numberOfRows && nc >= 0 && nc < numberOfColumns) {
+                    sum += groundTiles[nr][nc].elevation;
+                    count++;
+                }
             }
         }
         if (count > 0) return sum / count;
-        var clampR = Math.max(0, Math.min(numberOfRows - 1, r));
-        var clampC = Math.max(0, Math.min(numberOfColumns - 1, c));
-        return groundTiles[clampR][clampC].elevation;
+        if (r >= 0 && r < numberOfRows && c >= 0 && c < numberOfColumns) {
+            return groundTiles[r][c].elevation;
+        }
+        return 0;
     }
 
     function createWorld() {
@@ -453,7 +427,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
         for (var r = 0; r < numberOfRows; r++) {
             for (var c = 0; c < numberOfColumns; c++) {
                 var obj = groundTiles[r][c];
-
                 var [cx, cz] = calculatePosition(r, c);
 
                 var x0 = cx - 50, z0 = cz - 50;
@@ -484,18 +457,10 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
                     waterVertexIndex += 4;
                 } else {
-                    // Set terrain corners under roads and parking lots to be perfectly flat at the cell elevation, preventing Z-fighting and clipping without creating holes!
-                    if (obj.type === "road" || obj.type === "parking_lot") {
-                        y0 = obj.elevation;
-                        y1 = obj.elevation;
-                        y2 = obj.elevation;
-                        y3 = obj.elevation;
-                    } else {
-                        y0 = getCornerElevation(r, c);
-                        y1 = getCornerElevation(r + 1, c);
-                        y2 = getCornerElevation(r, c + 1);
-                        y3 = getCornerElevation(r + 1, c + 1);
-                    }
+                    y0 = getCornerElevation(r, c);
+                    y1 = getCornerElevation(r + 1, c);
+                    y2 = getCornerElevation(r, c + 1);
+                    y3 = getCornerElevation(r + 1, c + 1);
 
                     verticesLand.push(x0, y0, z0);
                     verticesLand.push(x1, y1, z0);
@@ -542,7 +507,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 vertexColors: true,
                 roughness: 0.85,
                 metalness: 0.05,
-                flatShading: true
+                flatShading: false
             });
 
             var landMesh = new THREE.Mesh(geomLand, matLand);
@@ -565,7 +530,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 metalness: 0.65,
                 opacity: 0.88,
                 transparent: true,
-                flatShading: true,
+                flatShading: false,
                 emissive: new THREE.Color("#05223b"),
                 emissiveIntensity: 0.45
             });
@@ -794,13 +759,19 @@ async function main(opts, list_of_files, game_graphics_opt) {
                         dictSurfacePositiontoInstancedId["road_h"][
                             [row, column]] = [];
 
-                        var y0 = groundTiles[row][column].elevation;
-                        var y1 = y0;
-                        var y2 = y0;
-                        var y3 = y0;
+                        var y0 = getCornerElevation(row, column);
+                        var y1 = getCornerElevation(row + 1, column);
+                        var y2 = getCornerElevation(row, column + 1);
+                        var y3 = getCornerElevation(row + 1, column + 1);
+
+                        // Calculate Z-axis slope
+                        var slopeZ = ((y2 + y3) / 2 - (y0 + y1) / 2) / 100;
+                        transform.rotation.set(-Math.atan(slopeZ), 0, 0);
 
                         // Position 1: ox = 0, oz = -25
-                        var roadY1 = y0 + 0.25;
+                        var u1 = 0.5;
+                        var v1 = (-25 + 50) / 100; // 0.25
+                        var roadY1 = y0 * (1 - u1) * (1 - v1) + y1 * u1 * (1 - v1) + y2 * (1 - u1) * v1 + y3 * u1 * v1 + 0.15;
 
                         transform.position.set(
                             x,
@@ -815,7 +786,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
                         ].push(meshDictIndex["road_h"][0] - 1);
 
                         // Position 2: ox = 0, oz = 25
-                        var roadY2 = y0 + 0.25;
+                        var u2 = 0.5;
+                        var v2 = (25 + 50) / 100; // 0.75
+                        var roadY2 = y0 * (1 - u2) * (1 - v2) + y1 * u2 * (1 - v2) + y2 * (1 - u2) * v2 + y3 * u2 * v2 + 0.15;
 
                         transform.position.set(
                             x,
@@ -828,18 +801,26 @@ async function main(opts, list_of_files, game_graphics_opt) {
                         dictSurfacePositiontoInstancedId["road_h"][
                             [row, column]
                         ].push(meshDictIndex["road_h"][0] - 1);
+
+                        transform.rotation.set(0, 0, 0);
                     }
                     else if (obj.type == "road_h"){
                         dictSurfacePositiontoInstancedId["road_v"][
                             [row, column]] = [];
 
-                        var y0 = groundTiles[row][column].elevation;
-                        var y1 = y0;
-                        var y2 = y0;
-                        var y3 = y0;
+                        var y0 = getCornerElevation(row, column);
+                        var y1 = getCornerElevation(row + 1, column);
+                        var y2 = getCornerElevation(row, column + 1);
+                        var y3 = getCornerElevation(row + 1, column + 1);
+
+                        // Calculate X-axis slope
+                        var slopeX = ((y1 + y3) / 2 - (y0 + y2) / 2) / 100;
+                        transform.rotation.set(0, 0, Math.atan(slopeX));
 
                         // Position 1: ox = -25, oz = 0
-                        var roadY1 = y0 + 0.25;
+                        var u1 = (-25 + 50) / 100; // 0.25
+                        var v1 = 0.5;
+                        var roadY1 = y0 * (1 - u1) * (1 - v1) + y1 * u1 * (1 - v1) + y2 * (1 - u1) * v1 + y3 * u1 * v1 + 0.15;
 
                         transform.position.set(
                             x - 25,
@@ -854,7 +835,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
                         ].push(meshDictIndex["road_v"][0] - 1);
 
                         // Position 2: ox = 25, oz = 0
-                        var roadY2 = y0 + 0.25;
+                        var u2 = (25 + 50) / 100; // 0.75
+                        var v2 = 0.5;
+                        var roadY2 = y0 * (1 - u2) * (1 - v2) + y1 * u2 * (1 - v2) + y2 * (1 - u2) * v2 + y3 * u2 * v2 + 0.15;
 
                         transform.position.set(
                             x + 25,
@@ -867,10 +850,19 @@ async function main(opts, list_of_files, game_graphics_opt) {
                         dictSurfacePositiontoInstancedId["road_v"][
                             [row, column]
                         ].push(meshDictIndex["road_v"][0] - 1);
+
+                        transform.rotation.set(0, 0, 0);
                     }
                     else if (obj.type == "road_c"){
-                        var y0 = groundTiles[row][column].elevation;
-                        var roadY = y0 + 0.35;
+                        var y0 = getCornerElevation(row, column);
+                        var y1 = getCornerElevation(row + 1, column);
+                        var y2 = getCornerElevation(row, column + 1);
+                        var y3 = getCornerElevation(row + 1, column + 1);
+                        var roadY = (y0 + y1 + y2 + y3) / 4 + 0.15;
+
+                        var slopeX = ((y1 + y3) / 2 - (y0 + y2) / 2) / 100;
+                        var slopeZ = ((y2 + y3) / 2 - (y0 + y1) / 2) / 100;
+                        transform.rotation.set(-Math.atan(slopeZ), 0, Math.atan(slopeX));
 
                         transform.position.set(
                             x,
@@ -879,12 +871,18 @@ async function main(opts, list_of_files, game_graphics_opt) {
                         transform.updateMatrix();
                         meshDict["road_c"].setMatrixAt(meshDictIndex["road_c"][0]++, transform.matrix);
                         surfaceTiles_v2[row][column].instanceId = meshDictIndex["road_c"][0] - 1;
+                        transform.rotation.set(0, 0, 0);
                     }
                     else if (obj.type == "parking"){
-                        var y0 = groundTiles[row][column].elevation;
-                        var roadY = y0 + 0.35;
+                        var y0 = getCornerElevation(row, column);
+                        var y1 = getCornerElevation(row + 1, column);
+                        var y2 = getCornerElevation(row, column + 1);
+                        var y3 = getCornerElevation(row + 1, column + 1);
+                        var roadY = (y0 + y1 + y2 + y3) / 4 + 0.15;
 
-                        transform.rotation.y = obj.rotY || 0;
+                        var slopeX = ((y1 + y3) / 2 - (y0 + y2) / 2) / 100;
+                        var slopeZ = ((y2 + y3) / 2 - (y0 + y1) / 2) / 100;
+                        transform.rotation.set(-Math.atan(slopeZ), obj.rotY || 0, Math.atan(slopeX));
 
                         transform.position.set(
                             x,
@@ -894,12 +892,18 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
                         meshDict["parking"].setMatrixAt(meshDictIndex["parking"][0]++, transform.matrix);
                         surfaceTiles_v2[row][column].instanceId = meshDictIndex["parking"][0] - 1;
-
                         transform.rotation.set(0, 0, 0);
                     }
                     else{
-                        var y0 = groundTiles[row][column].elevation;
-                        var roadY = y0 + 0.35;
+                        var y0 = getCornerElevation(row, column);
+                        var y1 = getCornerElevation(row + 1, column);
+                        var y2 = getCornerElevation(row, column + 1);
+                        var y3 = getCornerElevation(row + 1, column + 1);
+                        var roadY = (y0 + y1 + y2 + y3) / 4 + 0.15;
+
+                        var slopeX = ((y1 + y3) / 2 - (y0 + y2) / 2) / 100;
+                        var slopeZ = ((y2 + y3) / 2 - (y0 + y1) / 2) / 100;
+                        transform.rotation.set(-Math.atan(slopeZ), 0, Math.atan(slopeX));
 
                         transform.position.set(
                             x,
@@ -909,6 +913,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
                         meshDict[obj.type].setMatrixAt(meshDictIndex[obj.type][0]++, transform.matrix);
                         surfaceTiles_v2[row][column].instanceId = meshDictIndex[obj.type][0] - 1;
+                        transform.rotation.set(0, 0, 0);
                     };
                 };
             };
@@ -937,353 +942,10 @@ async function main(opts, list_of_files, game_graphics_opt) {
             };
         };
 
-        // Spawn low-poly cars and sailboats!
-        spawnCars();
-        spawnBoats();
+
 
     };
 
-    function createLowPolyCar(colorHex) {
-        var car = new THREE.Group();
-        
-        var bodyMat = new THREE.MeshStandardMaterial({
-            color: new THREE.Color(colorHex),
-            roughness: 0.5,
-            metalness: 0.1
-        });
-        
-        var glassMat = new THREE.MeshStandardMaterial({
-            color: new THREE.Color("#1a1a1a"),
-            roughness: 0.1,
-            metalness: 0.8
-        });
-        
-        var wheelMat = new THREE.MeshStandardMaterial({
-            color: new THREE.Color("#111111"),
-            roughness: 0.9,
-            metalness: 0.1
-        });
-        
-        // Body Box
-        var body = new THREE.Mesh(new THREE.BoxGeometry(8, 4.5, 14), bodyMat);
-        body.position.y = 2.25;
-        body.castShadow = true;
-        body.receiveShadow = true;
-        car.add(body);
-        
-        // Cabin Box
-        var cabin = new THREE.Mesh(new THREE.BoxGeometry(6.5, 3.5, 8), glassMat);
-        cabin.position.set(0, 5.5, -1);
-        cabin.castShadow = true;
-        car.add(cabin);
-        
-        // Wheels
-        var wheelGeom = new THREE.BoxGeometry(2, 2.5, 2.5);
-        var wheelOffsets = [
-            [-4.2, 1.25, -3.8],
-            [4.2, 1.25, -3.8],
-            [-4.2, 1.25, 3.8],
-            [4.2, 1.25, 3.8]
-        ];
-        for (var i = 0; i < wheelOffsets.length; i++) {
-            var offset = wheelOffsets[i];
-            var wheel = new THREE.Mesh(wheelGeom, wheelMat);
-            wheel.position.set(offset[0], offset[1], offset[2]);
-            wheel.castShadow = true;
-            car.add(wheel);
-        }
-        
-        // Scale car slightly down to fit on the narrow roads
-        car.scale.set(1.1, 1.1, 1.1);
-        
-        return car;
-    }
-
-    function setCarRotation(carGroup, dir) {
-        if (dir === "N") carGroup.rotation.y = Math.PI / 2;
-        else if (dir === "S") carGroup.rotation.y = -Math.PI / 2;
-        else if (dir === "E") carGroup.rotation.y = 0;
-        else if (dir === "W") carGroup.rotation.y = Math.PI;
-    }
-
-    function spawnCars() {
-        activeCars = [];
-        
-        // Find all road tiles
-        var roadCoords = [];
-        for (var r = 0; r < numberOfRows; r++) {
-            for (var c = 0; c < numberOfColumns; c++) {
-                var cell = surfaceTiles_v2[r][c];
-                if (cell && cell !== 0 && cell.type && cell.type.indexOf("road") === 0) {
-                    roadCoords.push({ r: r, c: c, type: cell.type });
-                }
-            }
-        }
-        
-        // Spawn up to 35 cars
-        var numCars = Math.min(35, Math.floor(roadCoords.length * 0.15));
-        if (numCars === 0) return;
-        
-        roadCoords.sort(function() { return Math.random() - 0.5; });
-        
-        var carColors = ["#d93838", "#e5b51c", "#2c69b4", "#f0f2f5", "#2ca02c"];
-        
-        for (var i = 0; i < numCars; i++) {
-            var start = roadCoords[i];
-            var r = start.r;
-            var c = start.c;
-            
-            var dir = "N";
-            if (start.type === "road_v") {
-                dir = Math.random() < 0.5 ? "N" : "S";
-            } else if (start.type === "road_h") {
-                dir = Math.random() < 0.5 ? "E" : "W";
-            } else {
-                var dirs = ["N", "S", "E", "W"];
-                dir = dirs[Math.floor(Math.random() * dirs.length)];
-            }
-            
-            var carGroup = createLowPolyCar(carColors[Math.floor(Math.random() * carColors.length)]);
-            var pos = calculatePosition(r, c);
-            var x = pos[0];
-            var z = pos[1];
-            var elev = groundTiles[r][c].elevation + 0.35;
-            
-            carGroup.position.set(x, elev, z);
-            setCarRotation(carGroup, dir);
-            scene.add(carGroup);
-            
-            activeCars.push({
-                mesh: carGroup,
-                row: r,
-                col: c,
-                dir: dir,
-                speed: 15 + Math.random() * 15,
-                startX: x,
-                startZ: z,
-                startY: elev,
-                targetX: x,
-                targetZ: z,
-                targetY: elev
-            });
-        }
-    }
-
-    function getNextRoadTile(r, c, dir) {
-        var nr = r, nc = c;
-        if (dir === "N") nr = r - 1;
-        else if (dir === "S") nr = r + 1;
-        else if (dir === "E") nc = c + 1;
-        else if (dir === "W") nc = c - 1;
-        
-        if (nr >= 0 && nr < numberOfRows && nc >= 0 && nc < numberOfColumns) {
-            var cell = surfaceTiles_v2[nr][nc];
-            if (cell && cell !== 0 && cell.type && cell.type.indexOf("road") === 0) {
-                return { r: nr, c: nc, dir: dir };
-            }
-        }
-        return null;
-    }
-
-    function updateCars(deltaTime) {
-        if (!activeCars) return;
-        
-        for (var i = 0; i < activeCars.length; i++) {
-            var car = activeCars[i];
-            
-            var startX = car.startX;
-            var startZ = car.startZ;
-            var startY = car.startY;
-            var targetX = car.targetX;
-            var targetZ = car.targetZ;
-            var targetY = car.targetY;
-            
-            var dx = targetX - car.mesh.position.x;
-            var dz = targetZ - car.mesh.position.z;
-            var distance = Math.sqrt(dx*dx + dz*dz);
-            
-            var step = car.speed * deltaTime;
-            
-            if (distance > step) {
-                var ratio = step / distance;
-                car.mesh.position.x += dx * ratio;
-                car.mesh.position.z += dz * ratio;
-                
-                // Precise elevation tracking using linear interpolation (lerp) based on progress
-                var dxTotal = targetX - startX;
-                var dzTotal = targetZ - startZ;
-                var totalDistance = Math.sqrt(dxTotal*dxTotal + dzTotal*dzTotal);
-                
-                var t = 1.0;
-                if (totalDistance > 0.01) {
-                    var dxMoved = car.mesh.position.x - startX;
-                    var dzMoved = car.mesh.position.z - startZ;
-                    var movedDistance = Math.sqrt(dxMoved*dxMoved + dzMoved*dzMoved);
-                    t = movedDistance / totalDistance;
-                }
-                t = Math.max(0, Math.min(1, t));
-                car.mesh.position.y = startY + (targetY - startY) * t;
-            } else {
-                car.mesh.position.x = targetX;
-                car.mesh.position.z = targetZ;
-                car.mesh.position.y = targetY;
-                
-                // Snap start values to current target
-                car.startX = targetX;
-                car.startZ = targetZ;
-                car.startY = targetY;
-                
-                var nextTile = getNextRoadTile(car.row, car.col, car.dir);
-                if (nextTile) {
-                    car.row = nextTile.r;
-                    car.col = nextTile.c;
-                    car.dir = nextTile.dir;
-                    var nPos = calculatePosition(car.row, car.col);
-                    car.targetX = nPos[0];
-                    car.targetZ = nPos[1];
-                    car.targetY = groundTiles[car.row][car.col].elevation + 0.35;
-                    setCarRotation(car.mesh, car.dir);
-                } else {
-                    var neighbors = [
-                        { r: car.row - 1, c: car.col, dir: "N" },
-                        { r: car.row + 1, c: car.col, dir: "S" },
-                        { r: car.row, c: car.col + 1, dir: "E" },
-                        { r: car.row, c: car.col - 1, dir: "W" }
-                    ];
-                    
-                    var validRoads = [];
-                    for (var j = 0; j < neighbors.length; j++) {
-                        var n = neighbors[j];
-                        if (n.r >= 0 && n.r < numberOfRows && n.c >= 0 && n.c < numberOfColumns) {
-                            var cell = surfaceTiles_v2[n.r][n.c];
-                            if (cell && cell !== 0 && cell.type && cell.type.indexOf("road") === 0) {
-                                validRoads.push(n);
-                            }
-                        }
-                    }
-                    
-                    if (validRoads.length > 0) {
-                        var next = validRoads[Math.floor(Math.random() * validRoads.length)];
-                        car.row = next.r;
-                        car.col = next.c;
-                        car.dir = next.dir;
-                        var nextPos = calculatePosition(car.row, car.col);
-                        car.targetX = nextPos[0];
-                        car.targetZ = nextPos[1];
-                        car.targetY = groundTiles[car.row][car.col].elevation + 0.35;
-                        setCarRotation(car.mesh, car.dir);
-                    } else {
-                        var opposites = { "N": "S", "S": "N", "E": "W", "W": "E" };
-                        car.dir = opposites[car.dir] || "N";
-                        setCarRotation(car.mesh, car.dir);
-                        
-                        car.targetX = targetX;
-                        car.targetZ = targetZ;
-                        car.targetY = targetY;
-                    }
-                }
-            }
-        }
-    }
-
-    function createLowPolyBoat() {
-        var boat = new THREE.Group();
-        
-        var hullMat = new THREE.MeshStandardMaterial({
-            color: new THREE.Color("#d9e2ec"),
-            roughness: 0.4,
-            metalness: 0.1
-        });
-        
-        var deckMat = new THREE.MeshStandardMaterial({
-            color: new THREE.Color("#a16945"),
-            roughness: 0.8,
-            metalness: 0.05
-        });
-        
-        var sailMat = new THREE.MeshStandardMaterial({
-            color: new THREE.Color("#f0f4f8"),
-            roughness: 0.9,
-            metalness: 0.0
-        });
-        
-        var hull = new THREE.Mesh(new THREE.BoxGeometry(6, 3, 14), hullMat);
-        hull.position.y = 1.0;
-        hull.castShadow = true;
-        hull.receiveShadow = true;
-        boat.add(hull);
-        
-        var deck = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.4, 12), deckMat);
-        deck.position.y = 2.4;
-        deck.castShadow = true;
-        boat.add(deck);
-        
-        var mast = new THREE.Mesh(new THREE.BoxGeometry(1, 10, 1), sailMat);
-        mast.position.set(0, 7, 1);
-        mast.castShadow = true;
-        boat.add(mast);
-        
-        var sail = new THREE.Mesh(new THREE.BoxGeometry(0.2, 7, 4.5), sailMat);
-        sail.position.set(0, 7.5, -1.8);
-        sail.castShadow = true;
-        boat.add(sail);
-        
-        boat.scale.set(2.4, 2.4, 2.4);
-        
-        return boat;
-    }
-
-    function spawnBoats() {
-        activeBoats = [];
-        
-        var waterCoords = [];
-        for (var r = 0; r < numberOfRows; r++) {
-            for (var c = 0; c < numberOfColumns; c++) {
-                var cell = groundTiles[r][c];
-                if (cell && cell.type === "water") {
-                    waterCoords.push({ r: r, c: c });
-                }
-            }
-        }
-        
-        var numBoats = Math.min(8, Math.floor(waterCoords.length * 0.05));
-        if (numBoats === 0) return;
-        
-        waterCoords.sort(function() { return Math.random() - 0.5; });
-        
-        for (var i = 0; i < numBoats; i++) {
-            var start = waterCoords[i];
-            var r = start.r;
-            var c = start.c;
-            
-            var boatGroup = createLowPolyBoat();
-            var pos = calculatePosition(r, c);
-            var x = pos[0];
-            var z = pos[1];
-            var elev = groundTiles[r][c].elevation;
-            
-            boatGroup.position.set(x + (Math.random() - 0.5) * 20, elev + 0.5, z + (Math.random() - 0.5) * 20);
-            boatGroup.rotation.y = Math.random() * Math.PI * 2;
-            
-            scene.add(boatGroup);
-            
-            activeBoats.push({
-                mesh: boatGroup,
-                baseY: elev + 0.5,
-                seed: Math.random() * 100
-            });
-        }
-    }
-
-    function updateBoats(elapsedTime) {
-        if (!activeBoats) return;
-        for (var i = 0; i < activeBoats.length; i++) {
-            var boat = activeBoats[i];
-            boat.mesh.position.y = boat.baseY + Math.sin(elapsedTime * 1.8 + boat.seed) * 0.35;
-            boat.mesh.rotation.z = Math.sin(elapsedTime * 1.0 + boat.seed) * 0.04;
-            boat.mesh.rotation.x = Math.cos(elapsedTime * 0.8 + boat.seed) * 0.02;
-        }
-    }
 
     function isNonInstancing(name){
         /*
@@ -1456,19 +1118,12 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function onWindowResize() {
-        var w = (container && container.clientWidth > 0) ? container.clientWidth : window.innerWidth;
-        var h = (container && container.clientHeight > 0) ? container.clientHeight : window.innerHeight;
-        if (!w || w <= 0) w = 1200;
-        if (!h || h <= 0) h = 800;
-        var aspect = w / h;
-        var frustumSize = 1000;
-        camera.left = -frustumSize * aspect / 2;
-        camera.right = frustumSize * aspect / 2;
-        camera.top = frustumSize / 2;
-        camera.bottom = -frustumSize / 2;
+
+        camera.aspect = document.getElementById("webgl-output").clientWidth / document.getElementById("webgl-output").clientHeight;
         camera.updateProjectionMatrix();
 
-        renderer.setSize(w, h);
+        renderer.setSize( document.getElementById("webgl-output").clientWidth, document.getElementById("webgl-output").clientHeight );
+
     };
 
 
@@ -1630,10 +1285,8 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         // Add Building
         allMitigationsSelects[0].onchange = function() {
-            var val = allMitigationsSelects[0].value;
-            var optMeta = mitigationMetaData["add_structure"]["opts_values"][val];
-            var cost = optMeta ? optMeta["cost"] : 10000;
-            allMitigationsCostTexts[0].textContent = "$" + nFormatter(cost, 1);
+            allMitigationsCostTexts[0].textContent = "$" + nFormatter(mitigationMetaData[
+                "add_structure"]["opts_values"][(allMitigationsSelects[0].value)]["cost"], 1);
         };
 
         // Change Tile
@@ -2331,11 +1984,10 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
             floodAction();
         };
-        
-        // Update low-poly cars and boats
-        updateCars(delta);
-        updateBoats(elapsed);
+        // if (Math.floor(Math.random() * 100) == 8 && doFlood == false){
+        //     waterMovement();
 
+        // }
         render();
         stats.update();
 
@@ -2396,9 +2048,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 updateTileInformationPanelOnMouseMove(row, column);
                 moveWireFrame_2(1, row, column);
             }
-        } else {
-            var tt = document.getElementById("tile-hover-tooltip");
-            if (tt) tt.classList.add("is-hidden");
         }
     }
 
@@ -2425,59 +2074,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     case 0: //left
                         wireframe_1.visible = false;
                         wireframe_4.visible = false;
-
-                        // Check for bottom HUD active tools
-                        var activeToolBtn = document.querySelector(".hud-circle-btn-container.active-tool");
-                        var activeTool = activeToolBtn ? activeToolBtn.querySelector(".hud-circle-btn-label").textContent.trim().toLowerCase() : null;
-
-                        if (activeTool && activeTool !== "info" && activeTool !== "settings") {
-                            // Apply the tool directly to the clicked tile!
-                            selectedTile.row = row;
-                            selectedTile.column = column;
-
-                            if (activeTool === "build") {
-                                var selectVal = document.getElementById("buildingOptionsSelect").value;
-                                createBuilding(selectVal, row, column);
-                                expenses += mitigationMetaData["add_structure"]["opts_values"][selectVal]["cost"];
-                                totalAvailableMoney -= mitigationMetaData["add_structure"]["opts_values"][selectVal]["cost"];
-                            } else if (activeTool === "roads") {
-                                createBuilding("road", row, column);
-                                expenses += mitigationMetaData["add_structure"]["opts_values"]["road"]["cost"];
-                                totalAvailableMoney -= mitigationMetaData["add_structure"]["opts_values"]["road"]["cost"];
-                            } else if (activeTool === "zone") {
-                                var selectVal = document.querySelector("#change_tile_mit select").value;
-                                changeTileType(selectVal, row, column);
-                                expenses += mitigationMetaData["change_tile"]["opts_values"][selectVal]["cost"];
-                                totalAvailableMoney -= mitigationMetaData["change_tile"]["opts_values"][selectVal]["cost"];
-                            } else if (activeTool === "parks") {
-                                createBuilding("t1", row, column);
-                                expenses += mitigationMetaData["add_structure"]["opts_values"]["t1"]["cost"];
-                                totalAvailableMoney -= mitigationMetaData["add_structure"]["opts_values"]["t1"]["cost"];
-                            } else if (activeTool === "prevention") {
-                                var selectVal = parseInt(document.querySelector("#flood_wall_mit select").value);
-                                groundTiles[row][column].floodWall = selectVal;
-                                if (surfaceTiles[row][column] != 0){
-                                    expenses += mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * buildingMetaDict[surfaceTiles[row][column]["type"]]["Perimeter"];
-                                    totalAvailableMoney -= mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * buildingMetaDict[surfaceTiles[row][column]["type"]]["Perimeter"];
-                                } else {
-                                    expenses += mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * 500;
-                                    totalAvailableMoney -= mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * 500;
-                                }
-                                updateTileOptions(row, column);
-                            }
-
-                            // Update common UI and HUD stats
-                            updateGameProgressPanel();
-                            updateGoalsPanel();
-                            
-                            // Re-sync budget instantly in bottom bar script
-                            const budgetText = document.querySelectorAll("#critical-facts .has-text-right")[0]?.textContent;
-                            if (budgetText) {
-                                document.querySelector("#budget-progress").textContent = budgetText.split("/")[0].trim();
-                            }
-                            
-                            break; // Done, prevent standard selection panel logic!
-                        }
 
                         if (!selectedTile.isSelected) {
                             showEmptyTileGUI(true);
@@ -2574,30 +2170,40 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function findElevation(row, column) {
-        if (!groundTiles || !groundTiles[row] || !groundTiles[row][column]) {
-            return 40;
-        }
-        if (isFlood && floodTiles && floodTiles[row] && floodTiles[row][column]) {
+
+        if (isFlood) {
             return groundTiles[row][column].elevation + floodTiles[row][column].height;
-        }
+        };
+
         return groundTiles[row][column].elevation;
+
     };
 
 
     function fillSelectedTile(row, column, event) {
-        if (!groundTiles || !groundTiles[row] || !groundTiles[row][column]) return;
+        //console.log(row, column);
         selectedTile.isSelected = true;
         selectedTile.instanceId = groundTiles[row][column].instanceId;
         selectedTile.meshName = groundTiles[row][column].type;
         selectedTile.row = row;
         selectedTile.column = column;
-        [selectedTile.pos_x, selectedTile.pos_z] = calculatePosition(row, column);
-        if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] != 0) {
+        [selectedTile.pos_x, selectedTile.pos_z] = calculatePosition(
+            row, column);
+        selectedTile.elevation = groundTiles[row][column].elevation;
+        guiCostUpdateOnTileChanged();
+        clearMitigationOptions();
+        if (surfaceTiles[row][column] != 0) {
             showEmptyTileGUI(false);
+            fillSelectedBuilding(row, column);
         } else {
             showBuildingTileGUI(false);
             showEmptyTileGUI(true);
-        }
+            if (surfaceTiles_v2[row][column].type != "tree" && surfaceTiles_v2[row][column].type != "tree2"){
+                //console.log("Not tree")
+                showEmptyTileGUI(false);
+                showMitigationOption(mitigationMetaData["flood_wall"]["id"]);
+            };
+        };
 
 
         // if (hasMitigation(row, column)) {
@@ -2832,13 +2438,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
         moveWireFrame_3(2, 0, 0);
         tileInformationPanelTabButtons[0].click();
 
-        // Hide left panel if no active tool is selected
-        var activeToolBtn = document.querySelector(".hud-circle-btn-container.active-tool");
-        if (!activeToolBtn) {
-            var leftPanel = document.querySelector(".left-hud-panel");
-            if (leftPanel) leftPanel.classList.add("is-hidden");
-        }
-    }
+    };
 
 
     function fillSelectedBuilding(row, column) {
@@ -3295,61 +2895,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function changeTileType(type, row, column) {
-        // If zoning to grass, water, or concrete, delete surface tiles first to prevent Z-fighting/glitching
-        if (type !== "building") {
-            var s2 = surfaceTiles_v2[row][column];
-            if (s2 && s2 !== 0) {
-                transform.scale.set(0, 0, 0);
-                transform.position.set(-10, -10, -10);
-                transform.updateMatrix();
-                var meshName = s2.type;
-                if (dictSurfacePositiontoInstancedId[meshName] && dictSurfacePositiontoInstancedId[meshName][[row, column]]) {
-                    var ids = dictSurfacePositiontoInstancedId[meshName][[row, column]];
-                    if (Array.isArray(ids)) {
-                        for (var i = 0; i < ids.length; i++) {
-                            meshDict[meshName].setMatrixAt(ids[i], transform.matrix);
-                            meshDictIndex[meshName][1].push(ids[i]);
-                            delete dictInstancedIdtoSurfacePosition[meshName][ids[i]];
-                        }
-                    } else {
-                        meshDict[meshName].setMatrixAt(ids, transform.matrix);
-                        meshDictIndex[meshName][1].push(ids);
-                        delete dictInstancedIdtoSurfacePosition[meshName][ids];
-                    }
-                    delete dictSurfacePositiontoInstancedId[meshName][[row, column]];
-                } else if (s2.instanceId !== undefined) {
-                    meshDict[meshName].setMatrixAt(s2.instanceId, transform.matrix);
-                    meshDictIndex[meshName][1].push(s2.instanceId);
-                }
-                meshDict[meshName].instanceMatrix.needsUpdate = true;
-                surfaceTiles_v2[row][column] = 0;
-            }
-
-            var s1 = surfaceTiles[row][column];
-            if (s1 && s1 !== 0) {
-                var meshName = s1.type || (Array.isArray(s1) && s1[0] ? s1[0].type : null);
-                if (meshName) {
-                    transform.scale.set(0, 0, 0);
-                    transform.position.set(-10, -10, -10);
-                    transform.updateMatrix();
-                    if (isNonInstancing(meshName)) {
-                        deleteObjectFromScene(row + "_" + column);
-                    } else {
-                        if (Array.isArray(s1)) {
-                            for (var i = 0; i < s1.length; i++) {
-                                meshDict[meshName].setMatrixAt(s1[i].instanceId, transform.matrix);
-                                meshDictIndex[meshName][1].push(s1[i].instanceId);
-                            }
-                        } else if (s1.instanceId !== undefined) {
-                            meshDict[meshName].setMatrixAt(s1.instanceId, transform.matrix);
-                            meshDictIndex[meshName][1].push(s1.instanceId);
-                        }
-                        meshDict[meshName].instanceMatrix.needsUpdate = true;
-                    }
-                }
-                surfaceTiles[row][column] = 0;
-            }
-        }
 
         // Delete tile from meshdict -- function is needed
         transform.scale.set(0, 0, 0);
@@ -3393,68 +2938,60 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function clearTileForBuilding(row, column){
-        // 1. Delete instanced tree / tree2 / parking / road / road_h / road_c / etc. from surfaceTiles_v2
-        var s2 = surfaceTiles_v2[row][column];
-        if (s2 && s2 !== 0) {
-            var meshName = s2.type;
-            if (["tree", "tree2", "t1", "road", "road_h", "road_c", "parking"].includes(meshName)) {
-                transform.scale.set(0, 0, 0);
-                transform.position.set(-10, -10, -10);
-                transform.updateMatrix();
-                
-                // Delete instanced meshes
-                if (dictSurfacePositiontoInstancedId[meshName] && dictSurfacePositiontoInstancedId[meshName][[row, column]]) {
-                    var ids = dictSurfacePositiontoInstancedId[meshName][[row, column]];
-                    if (Array.isArray(ids)) {
-                        for (var i = 0; i < ids.length; i++) {
-                            var id = ids[i];
-                            meshDict[meshName].setMatrixAt(id, transform.matrix);
-                            meshDictIndex[meshName][1].push(id);
-                            delete dictInstancedIdtoSurfacePosition[meshName][id];
-                        }
-                    } else {
-                        var id = ids;
-                        meshDict[meshName].setMatrixAt(id, transform.matrix);
-                        meshDictIndex[meshName][1].push(id);
-                        delete dictInstancedIdtoSurfacePosition[meshName][id];
-                    }
-                    delete dictSurfacePositiontoInstancedId[meshName][[row, column]];
-                } else if (s2.instanceId !== undefined) {
-                    meshDict[meshName].setMatrixAt(s2.instanceId, transform.matrix);
-                    meshDictIndex[meshName][1].push(s2.instanceId);
-                }
-                meshDict[meshName].instanceMatrix.needsUpdate = true;
-            }
-            surfaceTiles_v2[row][column] = 0;
-        }
+        /*
+            This function clears the tile on map to
+            add structure. It deletes trees and change the ground tile
+            type to building.
+            Input: row, column of cleared tile
 
-        // 2. Delete buildings and surface objects from surfaceTiles
-        var s1 = surfaceTiles[row][column];
-        if (s1 && s1 !== 0) {
-            var meshName = s1.type || (Array.isArray(s1) && s1[0] ? s1[0].type : null);
-            if (meshName) {
+        */
+
+        if (surfaceTiles_v2[row][column] != 0){
+            if (surfaceTiles_v2[row][column].type == "tree"){
                 transform.scale.set(0, 0, 0);
                 transform.position.set(-10, -10, -10);
                 transform.updateMatrix();
 
-                if (isNonInstancing(meshName)) {
-                    deleteObjectFromScene(row + "_" + column);
-                } else {
-                    if (Array.isArray(s1)) {
-                        for (var i = 0; i < s1.length; i++) {
-                            var sub = s1[i];
-                            meshDict[meshName].setMatrixAt(sub.instanceId, transform.matrix);
-                            meshDictIndex[meshName][1].push(sub.instanceId);
-                        }
-                    } else if (s1.instanceId !== undefined) {
-                        meshDict[meshName].setMatrixAt(s1.instanceId, transform.matrix);
-                        meshDictIndex[meshName][1].push(s1.instanceId);
-                    }
-                    meshDict[meshName].instanceMatrix.needsUpdate = true;
-                }
+                for (let id of dictSurfacePositiontoInstancedId["tree"][[row, column]]){
+                    meshDict["tree"].setMatrixAt(id, transform.matrix);
+                    meshDictIndex["tree"][1].push(id);
+                    delete dictInstancedIdtoSurfacePosition["tree"][id];
+                };
+                delete dictSurfacePositiontoInstancedId["tree"][[row, column]];
+                meshDict["tree"].instanceMatrix.needsUpdate = true;
+                surfaceTiles_v2[row][column] = 0;
+
             }
-            surfaceTiles[row][column] = 0;
-        }
+            else if (surfaceTiles_v2[row][column].type == "tree2"){
+                transform.scale.set(0, 0, 0);
+                transform.position.set(-10, -10, -10);
+                transform.updateMatrix();
+
+                for (let id of dictSurfacePositiontoInstancedId["tree2"][[row, column]]){
+                    meshDict["tree2"].setMatrixAt(id, transform.matrix);
+                    meshDictIndex["tree2"][1].push(id);
+                    delete dictInstancedIdtoSurfacePosition["tree2"][id];
+                };
+                delete dictSurfacePositiontoInstancedId["tree2"][[row, column]];
+                meshDict["tree2"].instanceMatrix.needsUpdate = true;
+                surfaceTiles_v2[row][column] = 0;
+
+            }
+            else if (surfaceTiles_v2[row][column].type == "parking"){
+                transform.scale.set(0, 0, 0);
+                transform.position.set(-10, -10, -10);
+                transform.updateMatrix();
+                meshDict["parking"].setMatrixAt(surfaceTiles_v2[row][column].instanceId, transform.matrix);
+                meshDictIndex["parking"][1].push(surfaceTiles_v2[row][column].instanceId);
+                meshDict["parking"].instanceMatrix.needsUpdate = true;
+                surfaceTiles_v2[row][column] = 0;
+
+            }
+            else{
+                //console.log("Tile is not parking lot or park")
+            };
+
+        };
 
         if (groundTiles[row][column].type != "building"){
             changeTileType(
@@ -3462,8 +2999,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 row,
                 column
             );
-        }
-    }
+        };
+
+    };
 
 
     function createPark(row, column){
@@ -3732,10 +3270,18 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     async function readExternalJSON(filepath){
-        const response = await fetch(filepath);
-        const data = await response.json();
+        /*
+            This function reads and return the json
+            file at given path.
+        */
+
+        var data;
+
+        await fetch(filepath)
+            .then(response => data = response.json());
         return data;
-    }
+
+    };
 
 
     function createBorderWireframe(size) {
@@ -4125,7 +3671,11 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function uncheckAllMitigationStatus() {
-        if (!mitigation_opts) return;
+        /*
+            It unchecks checkboxes for all mitigation types.
+            It uses uncheckMitigationStatus function.
+        */
+
         for (var i = 0; i < mitigation_opts.length; i++) {
             uncheckMitigationStatus(mitigation_opts[i]);
         };
@@ -4291,9 +3841,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         */
 
-        if (!surfaceTiles || !surfaceTiles[row] || !groundTiles || !groundTiles[row]) return;
-        var values = document.querySelectorAll("#tile-information .has-text-right");
-        var type;
+        if (!selectedTile.isSelected){
+            var values = document.querySelectorAll("#tile-information .has-text-right")
+            var type;
 
             if (surfaceTiles[row][column] == 0) {
                 /* Update #ofPeople */
@@ -4324,28 +3874,8 @@ async function main(opts, list_of_files, game_graphics_opt) {
             
 
             
-            values[3].textContent = findRiskValue(row, column);
-
-            // Update Floating Cursor Tile Info Tooltip
-            var tt = document.getElementById("tile-hover-tooltip");
-            if (tt) {
-                var elev = (groundTiles[row][column] && groundTiles[row][column].elevation) ? groundTiles[row][column].elevation.toFixed(1) : "40.0";
-                var risk = findRiskValue(row, column);
-                var nameEl = document.getElementById("tooltip-tile-name");
-                var elevEl = document.getElementById("tooltip-tile-elev");
-                var riskEl = document.getElementById("tooltip-tile-risk");
-                if (nameEl) nameEl.textContent = type;
-                if (elevEl) elevEl.textContent = "Elev: " + elev + "ft";
-                if (riskEl) {
-                    riskEl.textContent = "Status: " + risk;
-                    if (risk.toLowerCase().includes("risk") || risk.toLowerCase().includes("high")) {
-                        riskEl.style.color = "#f87171";
-                    } else {
-                        riskEl.style.color = "#4ade80";
-                    }
-                }
-                tt.classList.remove("is-hidden");
-            }
+            /* Update Risk Level */
+            values[3].textContent = findRiskValue(row, column); //groundTiles[selectedTile.row][selectedTile.column].type;
         }
 
     };
@@ -4408,7 +3938,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function mitigationsActions() {
-        if (!allCheckbox || allCheckbox.length === 0) return;
 
         /*
             This functions bind the actions for 
@@ -4854,69 +4383,70 @@ async function main(opts, list_of_files, game_graphics_opt) {
             Just add access and option to click.
         */
 
-        var playBtn = document.getElementById("sim-play-btn");
-        var reportBtn = document.getElementById("sim-report-btn");
+        var buttons = document.querySelectorAll(".button");
 
-        if (button_option === 0 && playBtn){
-            playBtn.click();
-        }
-        if (button_option === 2 && reportBtn){
-            reportBtn.click();
-        }
+        // Start Button
+
+        if (button_option == 0){
+            buttons[0].click()
+        };
+        // Show Report Button
+        if (button_option == 2){
+            buttons[2].click()
+        };
+
     };
 
+
     function buttonGUISetUp() {
-        var playBtn = document.getElementById("sim-play-btn");
-        var risksBtn = document.getElementById("sim-risks-btn");
-        var reportBtn = document.getElementById("sim-report-btn");
+        /*
+            This function assigns the corresponding
+            functionality for the buttons on the system.
+            Buttons are selected with class name "gameButton".
+        */
+        var controlSection = document.querySelectorAll(".button");
 
-        if (playBtn) {
-            playBtn.onclick = function() {
-                if (this.value == "start") {
-                    document.getElementById("clockDiv").style.display = "inline-flex";
-                    countdown("clockDiv", 10, 0);
-                    this.value = "finish";
-                    this.innerHTML = "Finish";
-                } 
-                else if (this.value == "finish"){
-                    clickButton(2);
-                    finishGame = 1000000;
-                    this.value = "again";
-                    this.innerHTML = "Start Again";
-                    
-                    // Open Economic & Financial Results Report modal automatically
-                    const modalDetails = document.getElementById("modalDetails");
-                    if (modalDetails) {
-                        modalDetails.classList.add("is-active");
-                    }
-                }
-                else {
-                    window.location.reload();
-                }
+        // Play Button
+        controlSection[0].onclick = function() {
+            // updateFloodInformation_v2();
+            if (this.value == "start") {
+                document.getElementById("clockDiv").style.display = "block";
+                countdown("clockDiv", 10, 0);
+                this.value = "finish";
+                this.innerHTML = "Finish";
+            } 
+            else if (this.value == "finish"){
+                clickButton(2);
+                finishGame = 1000000;
+                this.value = "again";
+                this.innerHTML = "Start Again";
+                            }
+            else {
+                
+                window.location.reload();
             };
         }
-
-        if (risksBtn) {
-            risksBtn.onclick = function() {
-                if (this.value == "true") {
-                    changeColorofRiskyAreas();
-                    this.innerHTML = "Clear Risky Areas";
-                    this.value = "false";
-                } else {
-                    clearColorOfRiskyRegions();
-                    this.innerHTML = "Show Risks";
-                    this.value = "true";
-                }
+        // Show Risk Button
+        controlSection[1].onclick = function() {
+            if (this.value == "true") {
+                changeColorofRiskyAreas();
+                this.innerHTML = "Clear Risky Areas";
+                this.value = false;
+            } else {
+                clearColorOfRiskyRegions();
+                this.innerHTML = "Show Risks";
+                this.value = true;
             };
-        }
+        };
+        // Show Report Button
+        controlSection[2].onclick = function() {
+            updateGameProgressReport()
+        };
 
-        if (reportBtn) {
-            reportBtn.onclick = function() {
-                updateGameProgressReport();
-            };
-        }
+        // Show Info Button
+        controlSection[3].onclick = function() {
 
-
+        };
 
         // Zoom Buttons Setup
 
@@ -4958,7 +4488,10 @@ async function main(opts, list_of_files, game_graphics_opt) {
             }
             else{};
         };
-    }
+    };
+
+};
+
 
 var dictOfDefaultMaps = {
 
@@ -4987,15 +4520,15 @@ var dictOfDefaultMaps = {
         "sources/FloodTiles.json"
     ],
     'greenville': [
-        "sources/maps/greenville/GroundTiles.json?v=5",
-        "sources/maps/greenville/SurfaceTiles.json?v=5",
-        "sources/maps/greenville/SurfaceTiles_v2.json?v=5",
+        "sources/maps/greenville/GroundTiles.json?v=4",
+        "sources/maps/greenville/SurfaceTiles.json?v=4",
+        "sources/maps/greenville/SurfaceTiles_v2.json?v=4",
         "sources/FloodTiles.json"
     ],
     'st_bernard': [
-        "sources/maps/st_bernard/GroundTiles.json?v=5",
-        "sources/maps/st_bernard/SurfaceTiles.json?v=5",
-        "sources/maps/st_bernard/SurfaceTiles_v2.json?v=5",
+        "sources/maps/st_bernard/GroundTiles.json?v=4",
+        "sources/maps/st_bernard/SurfaceTiles.json?v=4",
+        "sources/maps/st_bernard/SurfaceTiles_v2.json?v=4",
         "sources/FloodTiles.json"
     ],
 };
@@ -5006,82 +4539,25 @@ var dictOfDefaultMaps = {
 
 
 function clearMapsUI(){
-    document.getElementById("modal-js-example").classList.remove("is-active");
-    // Show top and bottom HUD bars, but keep left sidebar closed!
-    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar");
-    for (var i = 0; i < hudEls.length; i++) {
-        hudEls[i].classList.remove("is-hidden");
-    }
-    const leftPanel = document.querySelector(".left-hud-panel");
-    if (leftPanel) leftPanel.classList.add("is-hidden");
+    document.getElementById("modal-js-example").classList.add("is-hidden");
 };
 
 function showMapsUI(){
-    document.getElementById("modal-js-example").classList.add("is-active");
-    // Hide all HUD elements
-    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .left-hud-panel");
-    for (var i = 0; i < hudEls.length; i++) {
-        hudEls[i].classList.add("is-hidden");
-    }
+    document.getElementById("modal-js-example").classList.remove("is-hidden");
 };
 
 function startGame(name){
-    var loadingOverlay = document.getElementById("sim-loading-overlay");
-    if (loadingOverlay) {
-        loadingOverlay.style.display = "flex";
-        loadingOverlay.style.opacity = "1";
-        loadingOverlay.style.pointerEvents = "all";
-        loadingOverlay.classList.remove("is-hidden");
-    }
-
-    var mapNames = {
-        'des_moines': 'Des Moines',
-        'davenport': 'Davenport',
-        'greenville': 'Greenville',
-        'st_bernard': 'St. Bernard Parish',
-        'iowa_city': 'Iowa City',
-        'cedar_rapids': 'Cedar Rapids'
-    };
-    var mapKey = name[1];
-    var displayName = mapNames[mapKey] || 'Riverton City';
-    var cityEl = document.getElementById("hud-city-name");
-    if (cityEl) {
-        cityEl.textContent = displayName;
-    }
-
-    // Show top and bottom HUD bars, but keep left sidebar and AI tutor drawer closed!
-    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar");
-    for (var i = 0; i < hudEls.length; i++) {
-        hudEls[i].classList.remove("is-hidden");
-    }
-
-    // Ensure sidebars start closed/hidden
-    const leftPanel = document.querySelector(".left-hud-panel");
-    if (leftPanel) leftPanel.classList.add("is-hidden");
-
-    const aiDrawer = document.getElementById("ai-tutor-drawer");
-    if (aiDrawer) aiDrawer.classList.add("is-collapsed");
-
-    // Remove active tool class from bottom HUD buttons
-    const bottomBtns = document.querySelectorAll(".hud-circle-btn-container");
-    bottomBtns.forEach(btn => btn.classList.remove("active-tool"));
-
-    var mapFiles = (dictOfDefaultMaps && dictOfDefaultMaps[mapKey]) ? dictOfDefaultMaps[mapKey] : dictOfDefaultMaps['iowa_city'];
-
     if (name[0] == 0){
-        main(0, mapFiles, name[2]);
+        main(0, dictOfDefaultMaps[name[1]], name[2]);
         clearMapsUI();
     }
     else{
         main(1, name[1], name[2]);
         clearMapsUI();
+        //createAutomaticMapData(name[1]);
+       //alert("Automatic Map Generation is under development!!!")
     }
-}
-
-window.startGame = startGame;
-window.main = main;
-window.clearMapsUI = clearMapsUI;
-window.showMapsUI = showMapsUI;
+};
 
 
 async function receiveImageFromGoogleMaps(location){
@@ -5094,8 +4570,7 @@ async function receiveImageFromGoogleMaps(location){
     var ctx = c.getContext("2d", {colorSpace: 'srgb'});
     var img = new Image();
     img.setAttribute('crossOrigin', 'anonymous');
-    var apiKey = window.GOOGLE_MAPS_API_KEY || "AIzaSyAi9ZclWNZruhG2e3mmR9GtH3p-V0dXgps";
-    img.src = `https://maps.googleapis.com/maps/api/staticmap?key=${apiKey}&center=${location}&zoom=15&format=png&maptype=roadmap&style=element:labels%7Cvisibility:off&style=feature:administrative.land_parcel%7Cvisibility:off&style=feature:administrative.neighborhood%7Cvisibility:off&style=feature:poi.business%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.business%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.business%7Celement:geometry.stroke%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.medical%7Celement:geometry%7Ccolor:0xf9e8ea%7Cvisibility:on&style=feature:poi.medical%7Celement:geometry.fill%7Ccolor:0xf9e8ea&style=feature:poi.medical%7Celement:geometry.stroke%7Ccolor:0xf9e8ea&style=feature:poi.park%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.park%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.park%7Celement:geometry.stroke%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.school%7Celement:geometry%7Ccolor:0xedf0f3%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry.stroke%7Ccolor:0xbae4b9&style=feature:road%7Celement:geometry.fill%7Ccolor:0xfefefe%7Cvisibility:on&style=feature:road%7Celement:geometry.stroke%7Ccolor:0xffffff%7Cvisibility:on&style=feature:road.arterial%7Celement:labels%7Cvisibility:off&style=feature:road.highway%7Celement:labels%7Cvisibility:off&style=feature:road.local%7Cvisibility:off&style=feature:transit.line%7Celement:geometry.fill%7Cvisibility:off&style=feature:transit.line%7Celement:geometry.stroke%7Cvisibility:off&style=feature:transit.station%7Celement:geometry%7Ccolor:0xedf0f3%7Cvisibility:on&style=feature:water%7Celement:geometry%7Ccolor:0x9bd0fe%7Cvisibility:on&style=feature:water%7Celement:geometry.fill%7Ccolor:0x9bd0fe%7Cvisibility:on&style=feature:water%7Celement:geometry.stroke%7Ccolor:0x9bd0fe%7Cvisibility:on&size=400x400`
+    img.src = `https://maps.googleapis.com/maps/api/staticmap?key=AIzaSyAi9ZclWNZruhG2e3mmR9GtH3p-V0dXgps&center=${location}&zoom=15&format=png&maptype=roadmap&style=element:labels%7Cvisibility:off&style=feature:administrative.land_parcel%7Cvisibility:off&style=feature:administrative.neighborhood%7Cvisibility:off&style=feature:poi.business%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.business%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.business%7Celement:geometry.stroke%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.medical%7Celement:geometry%7Ccolor:0xf9e8ea%7Cvisibility:on&style=feature:poi.medical%7Celement:geometry.fill%7Ccolor:0xf9e8ea&style=feature:poi.medical%7Celement:geometry.stroke%7Ccolor:0xf9e8ea&style=feature:poi.park%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.park%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.park%7Celement:geometry.stroke%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.school%7Celement:geometry%7Ccolor:0xedf0f3%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry.stroke%7Ccolor:0xbae4b9&style=feature:road%7Celement:geometry.fill%7Ccolor:0xfefefe%7Cvisibility:on&style=feature:road%7Celement:geometry.stroke%7Ccolor:0xffffff%7Cvisibility:on&style=feature:road.arterial%7Celement:labels%7Cvisibility:off&style=feature:road.highway%7Celement:labels%7Cvisibility:off&style=feature:road.local%7Cvisibility:off&style=feature:transit.line%7Celement:geometry.fill%7Cvisibility:off&style=feature:transit.line%7Celement:geometry.stroke%7Cvisibility:off&style=feature:transit.station%7Celement:geometry%7Ccolor:0xedf0f3%7Cvisibility:on&style=feature:water%7Celement:geometry%7Ccolor:0x9bd0fe%7Cvisibility:on&style=feature:water%7Celement:geometry.fill%7Ccolor:0x9bd0fe%7Cvisibility:on&style=feature:water%7Celement:geometry.stroke%7Ccolor:0x9bd0fe%7Cvisibility:on&size=400x400`
 
     img.onload = function(){
         ctx.drawImage(img, 0, 0, 400, 380, 0, 0, 50, 50);
@@ -6207,12 +5682,8 @@ function testGoogleImage(location){
 
 
     var img = document.getElementById("google-image");
-    var apiKey = window.GOOGLE_MAPS_API_KEY || "AIzaSyAi9ZclWNZruhG2e3mmR9GtH3p-V0dXgps";
-    img.onerror = function() {
-        this.src = "./css/img/iowa_city_image.png";
-        this.onerror = null;
-    };
-    img.src = `https://maps.googleapis.com/maps/api/staticmap?center=${location}&zoom=${zoomLevel}&size=640x640&key=${apiKey}&style=feature:all|element:labels|visibility:off`;
+    img.src = `https://maps.googleapis.com/maps/api/staticmap?center=${location}&zoom=${zoomLevel}&size=640x640&key=AIzaSyAi9ZclWNZruhG2e3mmR9GtH3p-V0dXgps&style=feature:all|element:labels|visibility:off`
+    //img.src = `https://maps.googleapis.com/maps/api/staticmap?key=AIzaSyAi9ZclWNZruhG2e3mmR9GtH3p-V0dXgps&center=${location}&zoom=15&format=png&maptype=roadmap&style=element:labels%7Cvisibility:off&style=feature:administrative.land_parcel%7Cvisibility:off&style=feature:administrative.neighborhood%7Cvisibility:off&style=feature:poi.business%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.business%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.business%7Celement:geometry.stroke%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.medical%7Celement:geometry%7Ccolor:0xf9e8ea%7Cvisibility:on&style=feature:poi.medical%7Celement:geometry.fill%7Ccolor:0xf9e8ea&style=feature:poi.medical%7Celement:geometry.stroke%7Ccolor:0xf9e8ea&style=feature:poi.park%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.park%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.park%7Celement:geometry.stroke%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.school%7Celement:geometry%7Ccolor:0xedf0f3%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry.stroke%7Ccolor:0xbae4b9&style=feature:road%7Celement:geometry.fill%7Ccolor:0xfefefe%7Cvisibility:on&style=feature:road%7Celement:geometry.stroke%7Ccolor:0xffffff%7Cvisibility:on&style=feature:road.arterial%7Celement:labels%7Cvisibility:off&style=feature:road.highway%7Celement:labels%7Cvisibility:off&style=feature:road.local%7Cvisibility:off&style=feature:transit.line%7Celement:geometry.fill%7Cvisibility:off&style=feature:transit.line%7Celement:geometry.stroke%7Cvisibility:off&style=feature:transit.station%7Celement:geometry%7Ccolor:0xedf0f3%7Cvisibility:on&style=feature:water%7Celement:geometry%7Ccolor:0x9bd0fe%7Cvisibility:on&style=feature:water%7Celement:geometry.fill%7Ccolor:0x9bd0fe%7Cvisibility:on&style=feature:water%7Celement:geometry.stroke%7Ccolor:0x9bd0fe%7Cvisibility:on&size=400x400`
     img.crossOrigin = "Anonymous";
     var canvas = document.createElement("canvas");
     canvas.width = img.width;

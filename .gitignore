@@ -1,0 +1,6 @@
+# Local configuration files containing private API keys
+js/config.js
+
+# OS generated files
+.DS_Store
+Thumbs.db
