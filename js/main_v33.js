@@ -1286,16 +1286,17 @@ async function main(opts, list_of_files, game_graphics_opt) {
             var elev = groundTiles[r][c].elevation;
             
             var angle = Math.random() * Math.PI * 2;
-            boatGroup.position.set(x + (Math.random() - 0.5) * 15, elev + 0.5, z + (Math.random() - 0.5) * 15);
+            var floatY = elev + 5.5; // Elevated base height so hull floats above water surface
+            boatGroup.position.set(x + (Math.random() - 0.5) * 10, floatY, z + (Math.random() - 0.5) * 10);
             boatGroup.rotation.y = angle;
             
             scene.add(boatGroup);
             
             activeBoats.push({
                 mesh: boatGroup,
-                baseY: elev + 0.5,
+                baseY: floatY,
                 seed: Math.random() * 100,
-                speed: 0.08 + Math.random() * 0.06 // Gentle slow sailing speed
+                speed: 0.06 + Math.random() * 0.04 // Gentle slow sailing speed
             });
         }
     }
@@ -1305,21 +1306,37 @@ async function main(opts, list_of_files, game_graphics_opt) {
         for (var i = 0; i < activeBoats.length; i++) {
             var boat = activeBoats[i];
             
-            // Slow forward sailing movement in the water
+            // Calculate projected next position
             var dirX = Math.sin(boat.mesh.rotation.y);
             var dirZ = Math.cos(boat.mesh.rotation.y);
-            boat.mesh.position.x += dirX * boat.speed;
-            boat.mesh.position.z += dirZ * boat.speed;
-            
-            // Gentle wave bobbing & subtle hull rocking
-            boat.mesh.position.y = boat.baseY + Math.sin(elapsedTime * 1.5 + boat.seed) * 0.3;
-            boat.mesh.rotation.z = Math.sin(elapsedTime * 1.0 + boat.seed) * 0.03;
-            boat.mesh.rotation.x = Math.cos(elapsedTime * 0.8 + boat.seed) * 0.02;
+            var nextX = boat.mesh.position.x + dirX * boat.speed;
+            var nextZ = boat.mesh.position.z + dirZ * boat.speed;
 
-            // Smoothly turn around if sailing near map boundaries
-            if (Math.abs(boat.mesh.position.x) > 2300 || Math.abs(boat.mesh.position.z) > 2300) {
-                boat.mesh.rotation.y += Math.PI * 0.9;
+            // Check if projected position is on a valid water tile
+            var isWaterTile = false;
+            var [r, c] = calculateArrayPosition(nextX, nextZ);
+            if (r >= 0 && r < numberOfRows && c >= 0 && c < numberOfColumns) {
+                if (groundTiles && groundTiles[r] && groundTiles[r][c]) {
+                    var tile = groundTiles[r][c];
+                    if (tile.type === 'water') {
+                        isWaterTile = true;
+                        boat.baseY = tile.elevation + 5.5; // Keep hull floating above water surface
+                    }
+                }
             }
+
+            if (isWaterTile) {
+                boat.mesh.position.x = nextX;
+                boat.mesh.position.z = nextZ;
+            } else {
+                // Reached land, road, or map boundary: smoothly turn back into water channel!
+                boat.mesh.rotation.y += Math.PI * 0.85 + (Math.random() - 0.5) * 0.4;
+            }
+            
+            // Gentle wave bobbing (reduced amplitude so hull stays above water surface)
+            boat.mesh.position.y = boat.baseY + Math.sin(elapsedTime * 1.4 + boat.seed) * 0.12;
+            boat.mesh.rotation.z = Math.sin(elapsedTime * 0.8 + boat.seed) * 0.02;
+            boat.mesh.rotation.x = Math.cos(elapsedTime * 0.6 + boat.seed) * 0.015;
         }
     }
 
