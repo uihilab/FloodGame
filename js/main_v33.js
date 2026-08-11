@@ -2557,15 +2557,14 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 wireframe_1.visible = false;
                 wireframe_4.visible = false;
 
+                var eventObj = { clientX: clientX, clientY: clientY };
+                fillSelectedTile(row, column, eventObj);
+
                 // Check for bottom HUD active tools
                 var activeToolBtn = document.querySelector(".hud-circle-btn-container.active-tool");
                 var activeTool = activeToolBtn ? activeToolBtn.querySelector(".hud-circle-btn-label").textContent.trim().toLowerCase() : null;
 
                 if (activeTool && activeTool !== "info" && activeTool !== "settings") {
-                    // Apply the tool directly to the clicked tile!
-                    selectedTile.row = row;
-                    selectedTile.column = column;
-
                     if (activeTool === "build") {
                         var selectVal = document.getElementById("buildingOptionsSelect").value;
                         createBuilding(selectVal, row, column);
@@ -2607,30 +2606,8 @@ async function main(opts, list_of_files, game_graphics_opt) {
                         document.querySelector("#budget-progress").textContent = budgetText.split("/")[0].trim();
                     }
 
-                    // Immediately update sidebar Tile Info panel for this modified/placed tile!
+                    // Re-update sidebar Tile Info panel after structure placement!
                     updateTileInformationPanelForTile(row, column);
-                    
-                    return; // Done!
-                }
-
-                var eventObj = { clientX: clientX, clientY: clientY };
-                if (!selectedTile.isSelected) {
-                    showEmptyTileGUI(true);
-                    showBuildingTileGUI(true);
-                    fillSelectedTile(row, column, eventObj);
-                } else {
-                    if (selectedTile.row == row && selectedTile.column == column) {
-                        showEmptyTileGUI(false);
-                        showBuildingTileGUI(false);
-                        clearSelectedTile();
-                    } else if (selectedBuilding.isMove) {
-                        changePositionBuilding(row, column);
-                    } else {
-                        clearSelectedTile();
-                        showEmptyTileGUI(true);
-                        showBuildingTileGUI(true);
-                        fillSelectedTile(row, column, eventObj);
-                    }
                 }
             }
         }
@@ -4433,10 +4410,20 @@ async function main(opts, list_of_files, game_graphics_opt) {
         var typeName = "Empty Land";
         var peopleCount = 0;
 
+        var st = null;
         if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] != 0) {
-            var st = surfaceTiles[row][column];
-            var typeKey = (typeof st === 'object') ? st.type : st;
-            if (typeof st === 'object' && typeof st.peopleOnIt === 'number') {
+            st = surfaceTiles[row][column];
+        } else if (typeof surfaceTiles_v2 !== 'undefined' && surfaceTiles_v2 && surfaceTiles_v2[row] && surfaceTiles_v2[row][column] && surfaceTiles_v2[row][column] != 0) {
+            st = surfaceTiles_v2[row][column];
+        }
+
+        if (st) {
+            if (Array.isArray(st) && st.length > 0) {
+                st = st[0];
+            }
+            var typeKey = (typeof st === 'object' && st !== null) ? st.type : st;
+
+            if (typeof st === 'object' && st !== null && typeof st.peopleOnIt === 'number') {
                 peopleCount = st.peopleOnIt;
             } else if (buildingMetaDict && buildingMetaDict[typeKey] && typeof buildingMetaDict[typeKey]["Capacity"] === 'number') {
                 peopleCount = buildingMetaDict[typeKey]["Capacity"];
@@ -4448,7 +4435,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 typeName = "Road";
             } else if (typeKey === "t1" || typeKey === "park") {
                 typeName = "Park / Trees";
-            } else {
+            } else if (typeKey) {
                 typeName = "Structure (" + typeKey + ")";
             }
         } else {
@@ -4475,12 +4462,15 @@ async function main(opts, list_of_files, game_graphics_opt) {
         if (groundTiles[row][column].floodWall && groundTiles[row][column].floodWall > 0) {
             mitigations.push("Flood Wall (" + groundTiles[row][column].floodWall + "ft)");
         }
-        if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && typeof surfaceTiles[row][column] === 'object') {
-            var s = surfaceTiles[row][column];
-            if (s.dryFloodproofing) mitigations.push("Dry Floodproof");
-            if (s.wetFloodproofing) mitigations.push("Wet Floodproof");
-            if (s.insurance) mitigations.push("Flood Insurance");
-            if (s.elevation && s.elevation > 0) mitigations.push("Elevated +" + s.elevation + "ft");
+        var targetSt = (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] != 0)
+            ? surfaceTiles[row][column] : null;
+        if (Array.isArray(targetSt) && targetSt.length > 0) targetSt = targetSt[0];
+
+        if (targetSt && typeof targetSt === 'object') {
+            if (targetSt.dryFloodproofing) mitigations.push("Dry Floodproof");
+            if (targetSt.wetFloodproofing) mitigations.push("Wet Floodproof");
+            if (targetSt.insurance) mitigations.push("Flood Insurance");
+            if (targetSt.elevation && targetSt.elevation > 0) mitigations.push("Elevated +" + targetSt.elevation + "ft");
         }
         var mitText = (mitigations.length > 0) ? mitigations.join(", ") : "None";
 
