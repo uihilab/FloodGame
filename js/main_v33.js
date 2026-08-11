@@ -359,7 +359,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
         buttonGUISetUp();
         mitigationsActions();
         guiCostUpdate();
-        totalCostAtTheStart = calculateMaxPotentialDamage();
+        totalCostAtTheStart = calculateTotalDamage();
         [initialBuilding, initialEffectedBuilding] = findNumberOfEffectedBuilding();
         [initialCriticalBuilding, initialEffectedCriticalBuilding] = findCriticalBuildingInformations();
         [initialPeople, initialEffectedPeople] = findNumberofEffectedPeople();
@@ -1764,33 +1764,28 @@ async function main(opts, list_of_files, game_graphics_opt) {
         /*
             This function updates the Game Progress Panel on Main Page.
         */
-        var gameProgressPanel = document.querySelectorAll("#critical-facts .has-text-right");
-        if (!gameProgressPanel || gameProgressPanel.length < 6) return;
 
-        var [totP, affP] = findNumberofEffectedPeople();
-        var [totB, affB] = findNumberOfEffectedBuilding();
-        var currentDamage = calculateTotalDamage();
-        var maxPotentialLoss = (typeof totalCostAtTheStart !== 'undefined' && totalCostAtTheStart > 0) ? totalCostAtTheStart : calculateMaxPotentialDamage();
-        var avoidedLoss = Math.max(0, maxPotentialLoss - currentDamage);
+        var gameProgressPanel = document.querySelectorAll("#critical-facts .has-text-right");
 
         // -- Remaining Budget --
         gameProgressPanel[0].textContent = "$" + nFormatter((totalAvailableMoney).toFixed(0), 2) + "/" + nFormatter(50000000, 1);
 
         // -- Vulnerable Population --
-        gameProgressPanel[1].textContent =  affP + "/" + totP;
+        gameProgressPanel[1].textContent =  findNumberofEffectedPeople()[1] + "/" + findNumberofEffectedPeople()[0];
 
         // -- Avoided Loss --
-        gameProgressPanel[2].textContent = "$" + nFormatter(avoidedLoss, 1);
+        gameProgressPanel[2].textContent = "$" + nFormatter((totalCostAtTheStart - calculateTotalDamage()), 1);
 
         // -- Secured Building --
-        gameProgressPanel[3].textContent = Math.max(0, totB - affB) + "/" + totB;
+        gameProgressPanel[3].textContent = initialEffectedBuilding - findNumberOfEffectedBuilding()[1] + "/" + initialEffectedBuilding;
 
         // -- Shelter Capacity --
         gameProgressPanel[4].textContent = 0;
 
         // -- Secured Critical Buildings --
         var [t1, t2] = findCriticalBuildingInformations();
-        gameProgressPanel[5].textContent = Math.max(0, t1 - t2) + "/" + t1;
+        gameProgressPanel[5].textContent = t2 + "/" + t1;
+
     }
 
     function updateGoalsPanel(){
@@ -1848,117 +1843,136 @@ async function main(opts, list_of_files, game_graphics_opt) {
         /*
             This function updates the Game Report.
         */
+
         var gameReportAllResults = document.querySelectorAll("#modalDetails .game-reports .has-text-right");
-        if (!gameReportAllResults || gameReportAllResults.length < 13) return;
-
         var indexOfResults = 0;
-        var [totP, affP] = findNumberofEffectedPeople();
-        var [totB, affB] = findNumberOfEffectedBuilding();
-        var currentDamage = calculateTotalDamage();
-        var maxPotentialLoss = (typeof totalCostAtTheStart !== 'undefined' && totalCostAtTheStart > 0) ? totalCostAtTheStart : calculateMaxPotentialDamage();
-        var avoidedLoss = Math.max(0, maxPotentialLoss - currentDamage);
-        var moneySpent = Math.max(0, 50000000 - totalAvailableMoney);
-
         // -- Social Vulnerability --
         // Affected People
-        gameReportAllResults[indexOfResults].textContent = affP;
-        gameReportAllResults[indexOfResults].style.color = (affP === 0) ? "green" : "red";
-        indexOfResults++;
+        gameReportAllResults[indexOfResults].textContent = findNumberofEffectedPeople()[1];
+        if (findNumberOfEffectedBuilding()[1] == 0){gameReportAllResults[indexOfResults].style.color = "green";}
+        else{gameReportAllResults[indexOfResults].style.color = "red";}
+        indexOfResults++
 
         // Sheltered Population
-        gameReportAllResults[indexOfResults].textContent = "0";
-        indexOfResults++;
+        gameReportAllResults[indexOfResults].textContent = 0
+        indexOfResults++
         
         // Impacted Residential Buildings
         var [r1, r2] = findGeneralBuildingInformationsBasedOnType(isAResidentialBuilding);
-        gameReportAllResults[indexOfResults].textContent = r2 + " / " + r1;
-        gameReportAllResults[indexOfResults].style.color = (r2 === 0) ? "green" : "red";
-        indexOfResults++;
+        gameReportAllResults[indexOfResults].textContent = r2 + "/" + r1;
+        if (r2 == 0){gameReportAllResults[indexOfResults].style.color = "green";}
+        else{gameReportAllResults[indexOfResults].style.color = "red";}
+        indexOfResults++
         
         // Secured People
-        var safePeople = Math.max(0, totP - affP);
-        gameReportAllResults[indexOfResults].textContent = safePeople + " / " + totP;
-        gameReportAllResults[indexOfResults].style.color = (affP === 0) ? "green" : "red";
-        indexOfResults++;
+        gameReportAllResults[indexOfResults].textContent = initialEffectedPeople - findNumberofEffectedPeople()[1] + "/" + initialEffectedPeople;
+        if (initialEffectedPeople > findNumberofEffectedPeople()[1]){gameReportAllResults[indexOfResults].style.color = "green";}
+        else{gameReportAllResults[indexOfResults].style.color = "red";}
+        indexOfResults++
         
         // Secured Building
-        var safeB = Math.max(0, totB - affB);
-        gameReportAllResults[indexOfResults].textContent = safeB + " / " + totB;
-        gameReportAllResults[indexOfResults].style.color = (affB === 0) ? "green" : "red";
-        indexOfResults++;
+        gameReportAllResults[indexOfResults].textContent = initialEffectedBuilding - findNumberOfEffectedBuilding()[1] + "/" + initialEffectedBuilding;
+        if (initialEffectedBuilding > findNumberOfEffectedBuilding()[1]){gameReportAllResults[indexOfResults].style.color = "green";}
+        else{gameReportAllResults[indexOfResults].style.color = "red";}
+        indexOfResults++
         
         // Impacted Commercial Buildings
         var [c1, c2] = findGeneralBuildingInformationsBasedOnType(isACommercialBuilding);
-        gameReportAllResults[indexOfResults].textContent = c2 + " / " + c1;
-        gameReportAllResults[indexOfResults].style.color = (c2 === 0) ? "green" : "red";
-        indexOfResults++;
+        gameReportAllResults[indexOfResults].textContent = c2 + "/" + c1;
+        if (c2 == 0){gameReportAllResults[indexOfResults].style.color = "green";}
+        else{gameReportAllResults[indexOfResults].style.color = "red";}
+        indexOfResults++
 
+        // // -- Critical Infrastructure Vulnerability --
+        // // Water Treatment Facility
+        // gameReportAllResults[indexOfResults].textContent = 0
+        // indexOfResults++
+        // // Police Station
+        // gameReportAllResults[indexOfResults].textContent = 0
+        // indexOfResults++
+        // // Fire Station
+        // gameReportAllResults[indexOfResults].textContent = 0
+        // indexOfResults++
+        // // Hospital
+        // gameReportAllResults[indexOfResults].textContent = 0
+        // indexOfResults++
+        // // School
+        // gameReportAllResults[indexOfResults].textContent = 0
+        // indexOfResults++
+        // // City Hall
+        // gameReportAllResults[indexOfResults].textContent = 0
+        // indexOfResults++
         // -- Economic Impact --
         // Remaining Budget
-        gameReportAllResults[indexOfResults].textContent = "$" + nFormatter(totalAvailableMoney, 1) + " / $50.0M";
-        indexOfResults++;
-
-        // Total Loss (Direct Damage)
-        gameReportAllResults[indexOfResults].textContent = "$" + nFormatter(currentDamage, 1);
-        gameReportAllResults[indexOfResults].style.color = (currentDamage === 0) ? "green" : "red";
-        indexOfResults++;
-
+        gameReportAllResults[indexOfResults].textContent = "$" + nFormatter((totalAvailableMoney).toFixed(0), 1) + "/" + nFormatter(50000000, 1);
+        indexOfResults++
+        // Total Loss
+        gameReportAllResults[indexOfResults].textContent = "$" + nFormatter(calculateTotalDamage(), 1);
+        indexOfResults++
         // Impacted Industrial Buildings
         var [i1, i2] = findGeneralBuildingInformationsBasedOnType(isAIndustrialBuilding);
-        gameReportAllResults[indexOfResults].textContent = i2 + " / " + i1;
-        gameReportAllResults[indexOfResults].style.color = (i2 === 0) ? "green" : "red";
-        indexOfResults++;
-
-        // Avoided Loss
-        gameReportAllResults[indexOfResults].textContent = "$" + nFormatter(avoidedLoss, 1);
-        gameReportAllResults[indexOfResults].style.color = (avoidedLoss > 0) ? "green" : "red";
-        indexOfResults++;
-
-        // Benefit Cost Ratio (BCR)
-        var bcrPercent = (moneySpent > 0) ? Math.max(0, Math.round((avoidedLoss / moneySpent) * 100)) : 100;
-        gameReportAllResults[indexOfResults].textContent = bcrPercent + "%";
-        gameReportAllResults[indexOfResults].style.color = (bcrPercent >= 100) ? "green" : "red";
-        indexOfResults++;
-
-        // Applied Mitigation
+        gameReportAllResults[indexOfResults].textContent = i2 + "/" + i1;
+        if (i2 == 0){gameReportAllResults[indexOfResults].style.color = "green";}
+        else{gameReportAllResults[indexOfResults].style.color = "red";}
+        indexOfResults++
+        // Avoided Loss:
+        gameReportAllResults[indexOfResults].textContent = "$" + nFormatter((totalCostAtTheStart - calculateTotalDamage()), 1);
+        if (totalCostAtTheStart - calculateTotalDamage() > 0){gameReportAllResults[indexOfResults].style.color = "green";}
+        else{gameReportAllResults[indexOfResults].style.color = "red";}
+        indexOfResults++
+        // Benefit Cost Ratio:
+        gameReportAllResults[indexOfResults].textContent = Math.round(100 * (totalCostAtTheStart - calculateTotalDamage()) / Math.max(1, (budgetGiven - totalAvailableMoney))) + "%";
+        if (totalCostAtTheStart - calculateTotalDamage() > Math.max(1, (budgetGiven - totalAvailableMoney))) {gameReportAllResults[indexOfResults].style.color = "green";}
+        else{gameReportAllResults[indexOfResults].style.color = "red";}
+        indexOfResults++
+        // Applied Mitigation:
         gameReportAllResults[indexOfResults].textContent = findNumberOfMitigatedRegions();
-        indexOfResults++;
+        indexOfResults++
+
 
         // -- Goals --
         // Secure Critical Buildings
         var [t1, t2] = findCriticalBuildingInformations();
-        var safeCrit = Math.max(0, t1 - t2);
-        gameReportAllResults[indexOfResults].textContent = safeCrit + " / " + t1;
-        gameReportAllResults[indexOfResults].style.color = (t2 === 0) ? "green" : "red";
-        indexOfResults++;
+        gameReportAllResults[indexOfResults].textContent = t2 + "/" + t1;
+        if (t1 == t2){gameReportAllResults[indexOfResults].style.color = "green";}
+        else{gameReportAllResults[indexOfResults].style.color = "red";}
+        indexOfResults++
 
-        // Apply FloodWall Goal
+        // Apply FloodWall
         var t = 0;
         for (var i = 0; i < numberOfRows; i++){
             for (var j = 0; j < numberOfColumns; j++){
-                if (groundTiles[i] && groundTiles[i][j] && groundTiles[i][j].floodWall > 0){
-                    t += 1;
-                }
+                
+                    if (groundTiles[i][j].floodWall > 0){
+                        t += 1
+                    }
+                
             }
         };
         if (t > 0){
-            gameReportAllResults[indexOfResults].textContent = "Achieved";
+            gameReportAllResults[indexOfResults].textContent = "Achived";
             gameReportAllResults[indexOfResults].style.color = "green";
-        } else {
+        }
+        else{
             gameReportAllResults[indexOfResults].textContent = "In Progress";
-            gameReportAllResults[indexOfResults].style.color = "red";
+            gameReportAllResults[indexOfResults].style.color = "red"
         };
-        indexOfResults++;
+        indexOfResults++
 
-        // Secured 100 People Goal
-        var safeP = Math.max(0, totP - affP);
-        gameReportAllResults[indexOfResults].textContent = safeP + " / " + totP;
-        gameReportAllResults[indexOfResults].style.color = (affP === 0 || safeP >= 100) ? "green" : "red";
-        indexOfResults++;
+        // Secured 100 People
+        var sc1 = initialEffectedPeople - findNumberofEffectedPeople()[1];
+        if (sc1 > 100){
+            gameReportAllResults[indexOfResults].textContent = sc1 + "/" + 100;
+            gameReportAllResults[indexOfResults].style.color = "green";
+        }else{
+            gameReportAllResults[indexOfResults].textContent = sc1 + "/" + 100;
+            gameReportAllResults[indexOfResults].style.color = "red";
 
-        // Shelter 100 People Goal
-        gameReportAllResults[indexOfResults].textContent = "0 / 100";
-        gameReportAllResults[indexOfResults].style.color = "red";
+        }
+        indexOfResults++
+
+        // Shelter 100 People
+        gameReportAllResults[indexOfResults].textContent = 0 + "/" + 100;
         gameReportAllResults[indexOfResults].style.color = "red";
         indexOfResults++
 
@@ -5005,20 +5019,12 @@ function showMapsUI(){
     }
 };
 
-async function startGame(name){
+function startGame(name){
     var loadingOverlay = document.getElementById("sim-loading-overlay");
     if (loadingOverlay) {
         loadingOverlay.style.opacity = "1";
         loadingOverlay.classList.remove("is-hidden");
     }
-
-    // Safety timeout: ensure loading overlay is force-removed after 4s max
-    var forceHideTimeout = setTimeout(() => {
-        if (loadingOverlay && !loadingOverlay.classList.contains("is-hidden")) {
-            loadingOverlay.style.opacity = "0";
-            setTimeout(() => { loadingOverlay.classList.add("is-hidden"); loadingOverlay.style.opacity = "1"; }, 400);
-        }
-    }, 4000);
 
     var mapNames = {
         'des_moines': 'Des Moines',
@@ -5028,12 +5034,12 @@ async function startGame(name){
         'iowa_city': 'Iowa City',
         'cedar_rapids': 'Cedar Rapids'
     };
-    var mapKey = (name && name[1]) ? name[1] : 'iowa_city';
-    var displayName = mapNames[mapKey] || 'Riverton City';
-    var cityEl = document.getElementById("hud-city-name");
-    if (cityEl) {
-        cityEl.textContent = displayName;
-    }
+    var mapKey = name[1];
+    var displayName = mapNames[mapKey] || 'Iowa City';
+    var cityEls = document.querySelectorAll("#hud-city-name, .hud-city-name-text");
+    cityEls.forEach(function(el) {
+        el.textContent = displayName;
+    });
 
     // Show top and bottom HUD bars, but keep left sidebar and AI tutor drawer closed!
     var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar");
@@ -5052,28 +5058,13 @@ async function startGame(name){
     const bottomBtns = document.querySelectorAll(".hud-circle-btn-container");
     bottomBtns.forEach(btn => btn.classList.remove("active-tool"));
 
-    try {
-        if (name && name[0] == 0){
-            var files = (dictOfDefaultMaps && dictOfDefaultMaps[name[1]]) ? dictOfDefaultMaps[name[1]] : dictOfDefaultMaps['iowa_city'];
-            await main(0, files, name[2]);
-        }
-        else if (name) {
-            await main(1, name[1], name[2]);
-        } else {
-            await main(0, dictOfDefaultMaps['iowa_city'], 1);
-        }
-    } catch(err) {
-        console.error("Error initializing simulation map:", err);
-    } finally {
-        clearTimeout(forceHideTimeout);
+    if (name[0] == 0){
+        main(0, dictOfDefaultMaps[name[1]], name[2]);
         clearMapsUI();
-        if (loadingOverlay) {
-            loadingOverlay.style.opacity = "0";
-            setTimeout(() => {
-                loadingOverlay.classList.add("is-hidden");
-                loadingOverlay.style.opacity = "1";
-            }, 400);
-        }
+    }
+    else{
+        main(1, name[1], name[2]);
+        clearMapsUI();
     }
 }
 

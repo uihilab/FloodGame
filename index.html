@@ -48,8 +48,17 @@
         <span class="hud-large-value" id="hud-city-name">Iowa City</span>
     </div>
 
-    <!-- Top HUD Status Bar (Budget, Safety, Population) -->
+    <!-- Top HUD Status Bar (Location, Budget, Safety, Population) -->
     <div class="top-hud-bar is-hidden">
+        <!-- City Location Badge -->
+        <div class="hud-card-item city-location-badge" style="background: rgba(0, 240, 255, 0.12); border: 1px solid rgba(0, 240, 255, 0.4); border-radius: 12px; padding: 6px 14px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.1rem; color: #00f0ff;">📍</span>
+            <div class="hud-card-text">
+                <div class="hud-card-label" style="font-size: 0.6rem; color: #94a3b8; letter-spacing: 0.5px;">LOCATION:</div>
+                <div class="hud-card-value hud-city-name-text" id="hud-city-name" style="font-size: 0.92rem; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px;">Iowa City</div>
+            </div>
+        </div>
+
         <!-- Budget -->
         <div class="hud-card-item budget">
             <div class="hud-circle-icon green">
