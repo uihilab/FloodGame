@@ -5027,15 +5027,15 @@ function startGame(name){
     }
 
     var mapNames = {
-        'des_moines': 'Des Moines',
-        'davenport': 'Davenport',
-        'greenville': 'Greenville',
-        'st_bernard': 'St. Bernard Parish',
-        'iowa_city': 'Iowa City',
-        'cedar_rapids': 'Cedar Rapids'
+        'des_moines': 'Des Moines, IA',
+        'davenport': 'Davenport, IA',
+        'greenville': 'Greenville, MS',
+        'st_bernard': 'St. Bernard Parish, LA',
+        'iowa_city': 'Iowa City, IA',
+        'cedar_rapids': 'Cedar Rapids, IA'
     };
     var mapKey = name[1];
-    var displayName = mapNames[mapKey] || 'Iowa City';
+    var displayName = mapNames[mapKey] || 'Iowa City, IA';
     var cityEls = document.querySelectorAll("#hud-city-name, .hud-city-name-text");
     cityEls.forEach(function(el) {
         el.textContent = displayName;
