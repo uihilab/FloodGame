@@ -2551,6 +2551,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 wireframe_1.visible = false;
                 wireframe_4.visible = false;
 
+                // Update tile inspector tooltip for mobile touch & desktop click
+                updateTileInformationPanelOnMouseMove(row, column, clientX, clientY);
+
                 // Check for bottom HUD active tools
                 var activeToolBtn = document.querySelector(".hud-circle-btn-container.active-tool");
                 var activeTool = activeToolBtn ? activeToolBtn.querySelector(".hud-circle-btn-label").textContent.trim().toLowerCase() : null;
@@ -4412,7 +4415,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
     };
 
 
-    function updateTileInformationPanelOnMouseMove(row, column) {
+    function updateTileInformationPanelOnMouseMove(row, column, clientX, clientY) {
         if (!surfaceTiles || !surfaceTiles[row] || !groundTiles || !groundTiles[row]) return;
 
         // Determine tile type label
@@ -4442,6 +4445,16 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 riskEl.style.color = (risk.toLowerCase().includes("risk") || risk.toLowerCase().includes("high"))
                     ? "#f87171" : "#4ade80";
             }
+
+            // Position tooltip dynamically for mobile touch tap vs desktop cursor
+            if (window.innerWidth <= 768) {
+                tt.style.left = "16px";
+                tt.style.top = "68px";
+            } else if (clientX !== undefined && clientY !== undefined) {
+                tt.style.left = Math.min(window.innerWidth - 220, clientX + 15) + "px";
+                tt.style.top = Math.min(window.innerHeight - 100, clientY + 15) + "px";
+            }
+
             tt.classList.remove("is-hidden");
         }
 

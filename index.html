@@ -864,12 +864,15 @@
         </div>
     </div>
 
-    <!-- Floating Cursor Tile Info Tooltip -->
-    <div id="tile-hover-tooltip" class="is-hidden" style="position: fixed; pointer-events: none; z-index: 25000; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(0, 240, 255, 0.4); border-radius: 8px; padding: 8px 14px; color: white; font-size: 0.82rem; box-shadow: 0 6px 20px rgba(0,0,0,0.5); transition: opacity 0.15s ease;">
-        <div style="font-weight: 800; color: #00f0ff; margin-bottom: 2px; font-size: 0.88rem;" id="tooltip-tile-name">Tile Inspector</div>
-        <div style="display: flex; gap: 12px; color: #cbd5e1; font-size: 0.78rem;">
+    <!-- Floating Cursor Tile Info Tooltip & Mobile Tile Inspector -->
+    <div id="tile-hover-tooltip" class="is-hidden" style="position: fixed; pointer-events: auto; z-index: 25000; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(0, 240, 255, 0.5); border-radius: 12px; padding: 10px 16px; color: white; font-size: 0.85rem; box-shadow: 0 8px 25px rgba(0,0,0,0.6); transition: opacity 0.15s ease;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px;">
+            <div style="font-weight: 800; color: #00f0ff; font-size: 0.9rem;" id="tooltip-tile-name">Tile Inspector</div>
+            <button style="background: none; border: none; color: #94a3b8; font-size: 0.85rem; cursor: pointer; padding: 0 4px; line-height: 1;" onclick="document.getElementById('tile-hover-tooltip').classList.add('is-hidden')">✕</button>
+        </div>
+        <div style="display: flex; gap: 14px; color: #cbd5e1; font-size: 0.8rem; align-items: center;">
             <span id="tooltip-tile-elev">Elev: --</span>
-            <span id="tooltip-tile-risk">Status: Safe</span>
+            <span id="tooltip-tile-risk" style="font-weight: 700;">Status: Safe</span>
         </div>
     </div>
 
