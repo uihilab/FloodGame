@@ -359,7 +359,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
         buttonGUISetUp();
         mitigationsActions();
         guiCostUpdate();
-        totalCostAtTheStart = calculateTotalDamage();
+        totalCostAtTheStart = calculateMaxPotentialDamage();
         [initialBuilding, initialEffectedBuilding] = findNumberOfEffectedBuilding();
         [initialCriticalBuilding, initialEffectedCriticalBuilding] = findCriticalBuildingInformations();
         [initialPeople, initialEffectedPeople] = findNumberofEffectedPeople();
@@ -1764,28 +1764,33 @@ async function main(opts, list_of_files, game_graphics_opt) {
         /*
             This function updates the Game Progress Panel on Main Page.
         */
-
         var gameProgressPanel = document.querySelectorAll("#critical-facts .has-text-right");
+        if (!gameProgressPanel || gameProgressPanel.length < 6) return;
+
+        var [totP, affP] = findNumberofEffectedPeople();
+        var [totB, affB] = findNumberOfEffectedBuilding();
+        var currentDamage = calculateTotalDamage();
+        var maxPotentialLoss = (typeof totalCostAtTheStart !== 'undefined' && totalCostAtTheStart > 0) ? totalCostAtTheStart : calculateMaxPotentialDamage();
+        var avoidedLoss = Math.max(0, maxPotentialLoss - currentDamage);
 
         // -- Remaining Budget --
         gameProgressPanel[0].textContent = "$" + nFormatter((totalAvailableMoney).toFixed(0), 2) + "/" + nFormatter(50000000, 1);
 
         // -- Vulnerable Population --
-        gameProgressPanel[1].textContent =  findNumberofEffectedPeople()[1] + "/" + findNumberofEffectedPeople()[0];
+        gameProgressPanel[1].textContent =  affP + "/" + totP;
 
         // -- Avoided Loss --
-        gameProgressPanel[2].textContent = "$" + nFormatter((totalCostAtTheStart - calculateTotalDamage()), 1);
+        gameProgressPanel[2].textContent = "$" + nFormatter(avoidedLoss, 1);
 
         // -- Secured Building --
-        gameProgressPanel[3].textContent = initialEffectedBuilding - findNumberOfEffectedBuilding()[1] + "/" + initialEffectedBuilding;
+        gameProgressPanel[3].textContent = Math.max(0, totB - affB) + "/" + totB;
 
         // -- Shelter Capacity --
         gameProgressPanel[4].textContent = 0;
 
         // -- Secured Critical Buildings --
         var [t1, t2] = findCriticalBuildingInformations();
-        gameProgressPanel[5].textContent = t2 + "/" + t1;
-
+        gameProgressPanel[5].textContent = Math.max(0, t1 - t2) + "/" + t1;
     }
 
     function updateGoalsPanel(){
@@ -1843,136 +1848,117 @@ async function main(opts, list_of_files, game_graphics_opt) {
         /*
             This function updates the Game Report.
         */
-
         var gameReportAllResults = document.querySelectorAll("#modalDetails .game-reports .has-text-right");
+        if (!gameReportAllResults || gameReportAllResults.length < 13) return;
+
         var indexOfResults = 0;
+        var [totP, affP] = findNumberofEffectedPeople();
+        var [totB, affB] = findNumberOfEffectedBuilding();
+        var currentDamage = calculateTotalDamage();
+        var maxPotentialLoss = (typeof totalCostAtTheStart !== 'undefined' && totalCostAtTheStart > 0) ? totalCostAtTheStart : calculateMaxPotentialDamage();
+        var avoidedLoss = Math.max(0, maxPotentialLoss - currentDamage);
+        var moneySpent = Math.max(0, 50000000 - totalAvailableMoney);
+
         // -- Social Vulnerability --
         // Affected People
-        gameReportAllResults[indexOfResults].textContent = findNumberofEffectedPeople()[1];
-        if (findNumberOfEffectedBuilding()[1] == 0){gameReportAllResults[indexOfResults].style.color = "green";}
-        else{gameReportAllResults[indexOfResults].style.color = "red";}
-        indexOfResults++
+        gameReportAllResults[indexOfResults].textContent = affP;
+        gameReportAllResults[indexOfResults].style.color = (affP === 0) ? "green" : "red";
+        indexOfResults++;
 
         // Sheltered Population
-        gameReportAllResults[indexOfResults].textContent = 0
-        indexOfResults++
+        gameReportAllResults[indexOfResults].textContent = "0";
+        indexOfResults++;
         
         // Impacted Residential Buildings
         var [r1, r2] = findGeneralBuildingInformationsBasedOnType(isAResidentialBuilding);
-        gameReportAllResults[indexOfResults].textContent = r2 + "/" + r1;
-        if (r2 == 0){gameReportAllResults[indexOfResults].style.color = "green";}
-        else{gameReportAllResults[indexOfResults].style.color = "red";}
-        indexOfResults++
+        gameReportAllResults[indexOfResults].textContent = r2 + " / " + r1;
+        gameReportAllResults[indexOfResults].style.color = (r2 === 0) ? "green" : "red";
+        indexOfResults++;
         
         // Secured People
-        gameReportAllResults[indexOfResults].textContent = initialEffectedPeople - findNumberofEffectedPeople()[1] + "/" + initialEffectedPeople;
-        if (initialEffectedPeople > findNumberofEffectedPeople()[1]){gameReportAllResults[indexOfResults].style.color = "green";}
-        else{gameReportAllResults[indexOfResults].style.color = "red";}
-        indexOfResults++
+        var safePeople = Math.max(0, totP - affP);
+        gameReportAllResults[indexOfResults].textContent = safePeople + " / " + totP;
+        gameReportAllResults[indexOfResults].style.color = (affP === 0) ? "green" : "red";
+        indexOfResults++;
         
         // Secured Building
-        gameReportAllResults[indexOfResults].textContent = initialEffectedBuilding - findNumberOfEffectedBuilding()[1] + "/" + initialEffectedBuilding;
-        if (initialEffectedBuilding > findNumberOfEffectedBuilding()[1]){gameReportAllResults[indexOfResults].style.color = "green";}
-        else{gameReportAllResults[indexOfResults].style.color = "red";}
-        indexOfResults++
+        var safeB = Math.max(0, totB - affB);
+        gameReportAllResults[indexOfResults].textContent = safeB + " / " + totB;
+        gameReportAllResults[indexOfResults].style.color = (affB === 0) ? "green" : "red";
+        indexOfResults++;
         
         // Impacted Commercial Buildings
         var [c1, c2] = findGeneralBuildingInformationsBasedOnType(isACommercialBuilding);
-        gameReportAllResults[indexOfResults].textContent = c2 + "/" + c1;
-        if (c2 == 0){gameReportAllResults[indexOfResults].style.color = "green";}
-        else{gameReportAllResults[indexOfResults].style.color = "red";}
-        indexOfResults++
+        gameReportAllResults[indexOfResults].textContent = c2 + " / " + c1;
+        gameReportAllResults[indexOfResults].style.color = (c2 === 0) ? "green" : "red";
+        indexOfResults++;
 
-        // // -- Critical Infrastructure Vulnerability --
-        // // Water Treatment Facility
-        // gameReportAllResults[indexOfResults].textContent = 0
-        // indexOfResults++
-        // // Police Station
-        // gameReportAllResults[indexOfResults].textContent = 0
-        // indexOfResults++
-        // // Fire Station
-        // gameReportAllResults[indexOfResults].textContent = 0
-        // indexOfResults++
-        // // Hospital
-        // gameReportAllResults[indexOfResults].textContent = 0
-        // indexOfResults++
-        // // School
-        // gameReportAllResults[indexOfResults].textContent = 0
-        // indexOfResults++
-        // // City Hall
-        // gameReportAllResults[indexOfResults].textContent = 0
-        // indexOfResults++
         // -- Economic Impact --
         // Remaining Budget
-        gameReportAllResults[indexOfResults].textContent = "$" + nFormatter((totalAvailableMoney).toFixed(0), 1) + "/" + nFormatter(50000000, 1);
-        indexOfResults++
-        // Total Loss
-        gameReportAllResults[indexOfResults].textContent = "$" + nFormatter(calculateTotalDamage(), 1);
-        indexOfResults++
+        gameReportAllResults[indexOfResults].textContent = "$" + nFormatter(totalAvailableMoney, 1) + " / $50.0M";
+        indexOfResults++;
+
+        // Total Loss (Direct Damage)
+        gameReportAllResults[indexOfResults].textContent = "$" + nFormatter(currentDamage, 1);
+        gameReportAllResults[indexOfResults].style.color = (currentDamage === 0) ? "green" : "red";
+        indexOfResults++;
+
         // Impacted Industrial Buildings
         var [i1, i2] = findGeneralBuildingInformationsBasedOnType(isAIndustrialBuilding);
-        gameReportAllResults[indexOfResults].textContent = i2 + "/" + i1;
-        if (i2 == 0){gameReportAllResults[indexOfResults].style.color = "green";}
-        else{gameReportAllResults[indexOfResults].style.color = "red";}
-        indexOfResults++
-        // Avoided Loss:
-        gameReportAllResults[indexOfResults].textContent = "$" + nFormatter((totalCostAtTheStart - calculateTotalDamage()), 1);
-        if (totalCostAtTheStart - calculateTotalDamage() > 0){gameReportAllResults[indexOfResults].style.color = "green";}
-        else{gameReportAllResults[indexOfResults].style.color = "red";}
-        indexOfResults++
-        // Benefit Cost Ratio:
-        gameReportAllResults[indexOfResults].textContent = Math.round(100 * (totalCostAtTheStart - calculateTotalDamage()) / Math.max(1, (budgetGiven - totalAvailableMoney))) + "%";
-        if (totalCostAtTheStart - calculateTotalDamage() > Math.max(1, (budgetGiven - totalAvailableMoney))) {gameReportAllResults[indexOfResults].style.color = "green";}
-        else{gameReportAllResults[indexOfResults].style.color = "red";}
-        indexOfResults++
-        // Applied Mitigation:
-        gameReportAllResults[indexOfResults].textContent = findNumberOfMitigatedRegions();
-        indexOfResults++
+        gameReportAllResults[indexOfResults].textContent = i2 + " / " + i1;
+        gameReportAllResults[indexOfResults].style.color = (i2 === 0) ? "green" : "red";
+        indexOfResults++;
 
+        // Avoided Loss
+        gameReportAllResults[indexOfResults].textContent = "$" + nFormatter(avoidedLoss, 1);
+        gameReportAllResults[indexOfResults].style.color = (avoidedLoss > 0) ? "green" : "red";
+        indexOfResults++;
+
+        // Benefit Cost Ratio (BCR)
+        var bcrPercent = (moneySpent > 0) ? Math.max(0, Math.round((avoidedLoss / moneySpent) * 100)) : 100;
+        gameReportAllResults[indexOfResults].textContent = bcrPercent + "%";
+        gameReportAllResults[indexOfResults].style.color = (bcrPercent >= 100) ? "green" : "red";
+        indexOfResults++;
+
+        // Applied Mitigation
+        gameReportAllResults[indexOfResults].textContent = findNumberOfMitigatedRegions();
+        indexOfResults++;
 
         // -- Goals --
         // Secure Critical Buildings
         var [t1, t2] = findCriticalBuildingInformations();
-        gameReportAllResults[indexOfResults].textContent = t2 + "/" + t1;
-        if (t1 == t2){gameReportAllResults[indexOfResults].style.color = "green";}
-        else{gameReportAllResults[indexOfResults].style.color = "red";}
-        indexOfResults++
+        var safeCrit = Math.max(0, t1 - t2);
+        gameReportAllResults[indexOfResults].textContent = safeCrit + " / " + t1;
+        gameReportAllResults[indexOfResults].style.color = (t2 === 0) ? "green" : "red";
+        indexOfResults++;
 
-        // Apply FloodWall
+        // Apply FloodWall Goal
         var t = 0;
         for (var i = 0; i < numberOfRows; i++){
             for (var j = 0; j < numberOfColumns; j++){
-                
-                    if (groundTiles[i][j].floodWall > 0){
-                        t += 1
-                    }
-                
+                if (groundTiles[i] && groundTiles[i][j] && groundTiles[i][j].floodWall > 0){
+                    t += 1;
+                }
             }
         };
         if (t > 0){
-            gameReportAllResults[indexOfResults].textContent = "Achived";
+            gameReportAllResults[indexOfResults].textContent = "Achieved";
             gameReportAllResults[indexOfResults].style.color = "green";
-        }
-        else{
+        } else {
             gameReportAllResults[indexOfResults].textContent = "In Progress";
-            gameReportAllResults[indexOfResults].style.color = "red"
-        };
-        indexOfResults++
-
-        // Secured 100 People
-        var sc1 = initialEffectedPeople - findNumberofEffectedPeople()[1];
-        if (sc1 > 100){
-            gameReportAllResults[indexOfResults].textContent = sc1 + "/" + 100;
-            gameReportAllResults[indexOfResults].style.color = "green";
-        }else{
-            gameReportAllResults[indexOfResults].textContent = sc1 + "/" + 100;
             gameReportAllResults[indexOfResults].style.color = "red";
+        };
+        indexOfResults++;
 
-        }
-        indexOfResults++
+        // Secured 100 People Goal
+        var safeP = Math.max(0, totP - affP);
+        gameReportAllResults[indexOfResults].textContent = safeP + " / " + totP;
+        gameReportAllResults[indexOfResults].style.color = (affP === 0 || safeP >= 100) ? "green" : "red";
+        indexOfResults++;
 
-        // Shelter 100 People
-        gameReportAllResults[indexOfResults].textContent = 0 + "/" + 100;
+        // Shelter 100 People Goal
+        gameReportAllResults[indexOfResults].textContent = "0 / 100";
+        gameReportAllResults[indexOfResults].style.color = "red";
         gameReportAllResults[indexOfResults].style.color = "red";
         indexOfResults++
 
