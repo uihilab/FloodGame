@@ -2101,6 +2101,32 @@ function triggerAbilitiesTab() {
     const tabBtns = document.querySelectorAll(".hud-tab-btn");
     if (tabBtns[1]) tabBtns[1].click();
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("click", function(e) {
+        const tabBtn = e.target.closest(".hud-tab-btn");
+        if (tabBtn) {
+            const targetId = tabBtn.getAttribute("data-target");
+            const allTabBtns = document.querySelectorAll(".hud-tab-btn");
+            allTabBtns.forEach(b => b.classList.remove("is-active"));
+            tabBtn.classList.add("is-active");
+
+            const tileInfo = document.getElementById("tile-information");
+            const mitOpts = document.getElementById("mitigation-options");
+
+            if (targetId === "tile-information") {
+                if (tileInfo) tileInfo.classList.remove("is-hidden");
+                if (mitOpts) mitOpts.classList.add("is-hidden");
+                if (typeof updateTileInformationPanel === "function") {
+                    updateTileInformationPanel();
+                }
+            } else {
+                if (tileInfo) tileInfo.classList.add("is-hidden");
+                if (mitOpts) mitOpts.classList.remove("is-hidden");
+            }
+        }
+    });
+});
 </script>
 <style>
 /* Modern styling details for inline elements */

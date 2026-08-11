@@ -2606,6 +2606,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     if (budgetText) {
                         document.querySelector("#budget-progress").textContent = budgetText.split("/")[0].trim();
                     }
+
+                    // Immediately update sidebar Tile Info panel for this modified/placed tile!
+                    updateTileInformationPanelForTile(row, column);
                     
                     return; // Done!
                 }
