@@ -1,14 +1,5 @@
-// AI Tutor v24 — Mobile-Optimized Instant Location Engine & Desktop Web Worker AI
+// AI Tutor v25 — Instant Location & Strategy Engine (Universal 0ms / 0MB RAM)
 (function () {
-    let worker = null;
-    let isWorkerReady = false;
-    let modelInitStarted = false;
-
-    // Detect mobile / touch devices to bypass heavy 350MB WASM memory allocation & tab reloads
-    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-        || ('ontouchstart' in window)
-        || (window.innerWidth < 768);
-
     // ── DOM refs (bubble elements) ─────────────────────────────────────────
     function getInput()      { return document.getElementById("ai-chat-input"); }
     function getScrollArea() { return document.getElementById("ai-chat-scroll"); }
@@ -170,75 +161,19 @@
         }
     }
 
-    // ── Worker bootstrap ───────────────────────────────────────────────────
-    function initModel() {
-        if (modelInitStarted) return;
-        modelInitStarted = true;
-
-        setInputEnabled(true);
-
-        // On mobile devices, bypass heavy 350MB Web Worker WASM allocation to protect mobile RAM
-        if (isMobileDevice) {
-            console.log("Mobile device detected: using instant Local Location & Strategy Engine (0MB RAM).");
-            return;
-        }
-
-        try {
-            worker = new Worker('./js/aiTutorWorker.js?v=21', { type: 'module' });
-
-            worker.addEventListener('message', (event) => {
-                const { type, data, text, error } = event.data;
-
-                if (type === 'ready') {
-                    isWorkerReady = true;
-                } else if (type === 'result') {
-                    removeTypingIndicator();
-                    appendBubbleMsg(text || generateLocalAIResponse("general"), "tutor");
-                } else if (type === 'error') {
-                    console.warn("Worker LLM load warning, using local engine:", error);
-                    removeTypingIndicator();
-                    isWorkerReady = false;
-                    setInputEnabled(true);
-                }
-            });
-
-            worker.postMessage({ type: 'init' });
-
-        } catch (err) {
-            console.warn("Web Worker not supported or blocked, using local rule engine:", err);
-            setInputEnabled(true);
-        }
-    }
-
     // ── Send a message ──────────────────────────────────────────────────────
     function handleSend(text) {
         if (!text) return;
 
         appendBubbleMsg(text, "student");
+        showTypingIndicator();
 
-        if (isWorkerReady && worker && !isMobileDevice) {
-            const cityName  = document.getElementById("hud-city-name")?.textContent || "this city";
-            const remBudget = (typeof window.totalAvailableMoney !== 'undefined')
-                ? "$" + (window.totalAvailableMoney / 1e6).toFixed(1) + "M"
-                : "$50M";
-
-            const prompt = `<|im_start|>system
-You are a friendly flood-management tutor for students playing FloodGame, a simulation set in ${cityName}. The player currently has ${remBudget} remaining. Answer in 2-3 clear sentences. Be educational and specific to flood prevention.<|im_end|>
-<|im_start|>user
-${text}<|im_end|>
-<|im_start|>assistant
-`;
-            showTypingIndicator();
-            worker.postMessage({ type: 'generate', prompt });
-        } else {
-            // Instant response from Local Location Engine (0ms, 0MB RAM)
-            showTypingIndicator();
-            setTimeout(() => {
-                removeTypingIndicator();
-                const response = generateLocalAIResponse(text);
-                appendBubbleMsg(response, "tutor");
-            }, 300);
-        }
+        // Universal Instant Response (0ms delay, 0MB RAM, 100% reliability)
+        setTimeout(() => {
+            removeTypingIndicator();
+            const response = generateLocalAIResponse(text);
+            appendBubbleMsg(response, "tutor");
+        }, 250);
     }
 
     // ── Expose globals ─────────────────────────────────────────────────────
@@ -265,7 +200,7 @@ ${text}<|im_end|>
         if (shouldShow) {
             if (typeof updateAIAdvisorContent === "function") updateAIAdvisorContent();
             bubble.classList.remove("is-hidden");
-            if (!modelInitStarted) initModel();
+            setInputEnabled(true);
         } else {
             bubble.classList.add("is-hidden");
         }
@@ -280,5 +215,6 @@ ${text}<|im_end|>
                 if (e.key === "Enter") window.sendAIChatMessage();
             });
         }
+        setInputEnabled(true);
     });
 })();
