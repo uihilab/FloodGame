@@ -1274,21 +1274,44 @@ async function main(opts, list_of_files, game_graphics_opt) {
         
         waterCoords.sort(function() { return Math.random() - 0.5; });
         
+    function getNextWaterTile(currR, currC, prevR, prevC) {
+        var options = [];
+        var dirs = [[-1,0], [1,0], [0,-1], [0,1]];
+        for (var d = 0; d < dirs.length; d++) {
+            var nr = currR + dirs[d][0];
+            var nc = currC + dirs[d][1];
+            if (nr >= 0 && nr < numberOfRows && nc >= 0 && nc < numberOfColumns) {
+                if (groundTiles && groundTiles[nr] && groundTiles[nr][nc] && groundTiles[nr][nc].type === "water") {
+                    if (nr !== prevR || nc !== prevC) {
+                        options.push({ r: nr, c: nc });
+                    }
+                }
+            }
+        }
+        if (options.length > 0) {
+            return options[Math.floor(Math.random() * options.length)];
+        }
+        return { r: (prevR !== undefined && prevR >= 0) ? prevR : currR, c: (prevC !== undefined && prevC >= 0) ? prevC : currC };
+    }
+
         for (var i = 0; i < numBoats; i++) {
             var start = waterCoords[i];
             var r = start.r;
             var c = start.c;
             
+            var nextTile = getNextWaterTile(r, c, -1, -1);
             var boatGroup = createLowPolyBoat();
             var pos = calculatePosition(r, c);
+            var targetPos = calculatePosition(nextTile.r, nextTile.c);
+            
             var x = pos[0];
             var z = pos[1];
             var elev = groundTiles[r][c].elevation;
-            
-            var angle = Math.random() * Math.PI * 2;
             var floatY = elev + 5.5; // Elevated base height so hull floats above water surface
-            boatGroup.position.set(x + (Math.random() - 0.5) * 10, floatY, z + (Math.random() - 0.5) * 10);
-            boatGroup.rotation.y = angle;
+            
+            var initialAngle = Math.atan2(targetPos[0] - x, targetPos[1] - z);
+            boatGroup.position.set(x, floatY, z);
+            boatGroup.rotation.y = initialAngle;
             
             scene.add(boatGroup);
             
@@ -1296,8 +1319,13 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 mesh: boatGroup,
                 baseY: floatY,
                 seed: Math.random() * 100,
-                speed: 0.06 + Math.random() * 0.04, // Gentle slow sailing speed
-                turnCooldown: 0
+                speed: 0.15 + Math.random() * 0.1, // Smooth cruising speed
+                currR: r,
+                currC: c,
+                targetR: nextTile.r,
+                targetC: nextTile.c,
+                prevR: r,
+                prevC: c
             });
         }
     }
@@ -1307,36 +1335,37 @@ async function main(opts, list_of_files, game_graphics_opt) {
         for (var i = 0; i < activeBoats.length; i++) {
             var boat = activeBoats[i];
             
-            if (boat.turnCooldown > 0) {
-                boat.turnCooldown--;
-            }
+            var targetPos = calculatePosition(boat.targetR, boat.targetC);
+            var dx = targetPos[0] - boat.mesh.position.x;
+            var dz = targetPos[1] - boat.mesh.position.z;
+            var distSq = dx * dx + dz * dz;
 
-            // Calculate projected next position
-            var dirX = Math.sin(boat.mesh.rotation.y);
-            var dirZ = Math.cos(boat.mesh.rotation.y);
-            var nextX = boat.mesh.position.x + dirX * boat.speed;
-            var nextZ = boat.mesh.position.z + dirZ * boat.speed;
+            // Target heading angle
+            var targetAngle = Math.atan2(dx, dz);
 
-            // Check if projected position is on a valid water tile
-            var isWaterTile = false;
-            var [r, c] = calculateArrayPosition(nextX, nextZ);
-            if (r >= 0 && r < numberOfRows && c >= 0 && c < numberOfColumns) {
-                if (groundTiles && groundTiles[r] && groundTiles[r][c]) {
-                    var tile = groundTiles[r][c];
-                    if (tile.type === 'water') {
-                        isWaterTile = true;
-                        boat.baseY = tile.elevation + 5.5; // Keep hull floating above water surface
-                    }
+            // Smoothly interpolate rotation towards target angle (prevents abrupt spinning)
+            var diff = targetAngle - boat.mesh.rotation.y;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            boat.mesh.rotation.y += diff * 0.08;
+
+            // Move forward along current heading
+            boat.mesh.position.x += Math.sin(boat.mesh.rotation.y) * boat.speed;
+            boat.mesh.position.z += Math.cos(boat.mesh.rotation.y) * boat.speed;
+
+            // When reaching target waypoint (within 25 units), pick next connected water tile
+            if (distSq < 625) {
+                var next = getNextWaterTile(boat.targetR, boat.targetC, boat.currR, boat.currC);
+                boat.prevR = boat.currR;
+                boat.prevC = boat.currC;
+                boat.currR = boat.targetR;
+                boat.currC = boat.targetC;
+                boat.targetR = next.r;
+                boat.targetC = next.c;
+
+                if (groundTiles[boat.currR] && groundTiles[boat.currR][boat.currC]) {
+                    boat.baseY = groundTiles[boat.currR][boat.currC].elevation + 5.5;
                 }
-            }
-
-            if (isWaterTile) {
-                boat.mesh.position.x = nextX;
-                boat.mesh.position.z = nextZ;
-            } else if (boat.turnCooldown <= 0) {
-                // Turn boat around into open water and pause turn checks for 35 frames so it sails away smoothly
-                boat.mesh.rotation.y += Math.PI * 0.75 + Math.random() * 0.5;
-                boat.turnCooldown = 35;
             }
             
             // Gentle wave bobbing & subtle hull rocking
