@@ -1242,40 +1242,30 @@ html, body {
 /* 3. Top Center Bar Layout Adjustments */
 .top-hud-bar {
     position: absolute;
-    top: 16px;
+    top: 18px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1040;
     display: flex;
     align-items: center;
-    gap: 14px;
-    max-width: 96vw;
-    width: max-content;
-    background: rgba(15, 23, 42, 0.88) !important;
-    border: 1px solid rgba(0, 240, 255, 0.4) !important;
-    border-radius: 18px !important;
-    padding: 8px 18px !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 240, 255, 0.1) !important;
+    gap: 20px;
+    background: rgba(15, 23, 42, 0.92) !important;
+    border: 1px solid rgba(0, 240, 255, 0.45) !important;
+    border-radius: 20px !important;
+    padding: 10px 32px 10px 20px !important; /* Generous 32px right padding */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 240, 255, 0.15) !important;
     backdrop-filter: blur(12px);
     font-family: var(--font-primary);
-    box-sizing: border-box !important;
+    width: max-content !important;
+    max-width: 95vw !important;
 }
 
-@media (max-width: 850px) {
-    .top-hud-bar {
-        top: 10px !important;
-        max-width: 98vw !important;
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-        -webkit-overflow-scrolling: touch !important;
-        justify-content: flex-start !important;
-        padding: 6px 12px !important;
-        gap: 10px !important;
-        scrollbar-width: none !important;
-    }
-    .top-hud-bar::-webkit-scrollbar {
-        display: none !important;
-    }
+.hud-sim-controls {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-left: 10px !important;
+    flex-shrink: 0 !important;
 }
 .top-hud-bar .hud-card-item {
     display: flex;
