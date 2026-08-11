@@ -2551,9 +2551,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 wireframe_1.visible = false;
                 wireframe_4.visible = false;
 
-                // Update tile inspector tooltip for mobile touch & desktop click
-                updateTileInformationPanelOnMouseMove(row, column, clientX, clientY);
-
                 // Check for bottom HUD active tools
                 var activeToolBtn = document.querySelector(".hud-circle-btn-container.active-tool");
                 var activeTool = activeToolBtn ? activeToolBtn.querySelector(".hud-circle-btn-label").textContent.trim().toLowerCase() : null;
@@ -4415,116 +4412,120 @@ async function main(opts, list_of_files, game_graphics_opt) {
     };
 
 
-    function updateTileInformationPanelOnMouseMove(row, column, clientX, clientY) {
-        if (!surfaceTiles || !surfaceTiles[row] || !groundTiles || !groundTiles[row]) return;
+    function updateTileInformationPanelForTile(row, column) {
+        if (row < 0 || row >= 50 || column < 0 || column >= 50) return;
+        if (!groundTiles || !groundTiles[row] || !groundTiles[row][column]) return;
 
-        // Determine tile type label
-        var type;
-        if (surfaceTiles[row][column] == 0) {
-            if (groundTiles[row][column].type == "parking_lot") type = "Parking Lot";
-            else if (groundTiles[row][column].type == "water") type = "Water";
-            else if (groundTiles[row][column].type == "parks") type = "Park";
-            else type = "Road";
+        // 1. Determine Tile Type Name & People Count
+        var typeName = "Empty Land";
+        var peopleCount = 0;
+
+        if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] != 0) {
+            var st = surfaceTiles[row][column];
+            var typeKey = (typeof st === 'object') ? st.type : st;
+            if (typeof st === 'object' && typeof st.peopleOnIt === 'number') {
+                peopleCount = st.peopleOnIt;
+            } else if (buildingMetaDict && buildingMetaDict[typeKey] && typeof buildingMetaDict[typeKey]["Capacity"] === 'number') {
+                peopleCount = buildingMetaDict[typeKey]["Capacity"];
+            }
+
+            if (buildingMetaDict && buildingMetaDict[typeKey] && buildingMetaDict[typeKey]["name"]) {
+                typeName = buildingMetaDict[typeKey]["name"];
+            } else if (typeKey === "road" || typeKey === "Road") {
+                typeName = "Road";
+            } else if (typeKey === "t1" || typeKey === "park") {
+                typeName = "Park / Trees";
+            } else {
+                typeName = "Structure (" + typeKey + ")";
+            }
         } else {
-            type = buildingMetaDict[surfaceTiles[row][column].type]["name"];
+            // Ground tile
+            var gtType = groundTiles[row][column].type || "";
+            var lower = gtType.toLowerCase();
+            if (lower === "water" || lower.includes("water")) typeName = "River / Water";
+            else if (lower === "parking_lot" || lower.includes("parking")) typeName = "Parking Lot";
+            else if (lower === "parks" || lower === "park") typeName = "Park / Open Space";
+            else if (lower === "road" || lower.includes("road")) typeName = "Road";
+            else if (lower === "sand") typeName = "Sand / Beach";
+            else typeName = "Open Land";
         }
 
-        // Always update floating cursor tooltip regardless of panel/tab state
+        // 2. Determine Elevation & Water Level & Risk
+        var elevVal = (groundTiles[row][column] && typeof groundTiles[row][column].elevation === 'number')
+            ? groundTiles[row][column].elevation.toFixed(1) + " FT" : "40.0 FT";
+
+        var waterLevel = calculateWaterLevel(row, column) + " FT";
+        var riskVal = findRiskValue(row, column);
+
+        // 3. Determine Mitigations
+        var mitigations = [];
+        if (groundTiles[row][column].floodWall && groundTiles[row][column].floodWall > 0) {
+            mitigations.push("Flood Wall (" + groundTiles[row][column].floodWall + "ft)");
+        }
+        if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && typeof surfaceTiles[row][column] === 'object') {
+            var s = surfaceTiles[row][column];
+            if (s.dryFloodproofing) mitigations.push("Dry Floodproof");
+            if (s.wetFloodproofing) mitigations.push("Wet Floodproof");
+            if (s.insurance) mitigations.push("Flood Insurance");
+            if (s.elevation && s.elevation > 0) mitigations.push("Elevated +" + s.elevation + "ft");
+        }
+        var mitText = (mitigations.length > 0) ? mitigations.join(", ") : "None";
+
+        // 4. Populate DOM Elements
+        var values = document.querySelectorAll("#tile-information .has-text-right");
+        if (values && values.length >= 4) {
+            values[0].textContent = typeName;
+            values[1].textContent = peopleCount;
+            values[2].textContent = waterLevel;
+            values[3].textContent = riskVal;
+            if (values.length >= 5) values[4].textContent = elevVal;
+            if (values.length >= 6) values[5].textContent = mitText;
+        }
+
+        const elType = document.getElementById("tile-info-type");
+        const elPeople = document.getElementById("tile-info-people");
+        const elWater = document.getElementById("tile-info-water");
+        const elRisk = document.getElementById("tile-info-risk");
+        const elElev = document.getElementById("tile-info-elev");
+        const elMit = document.getElementById("tile-info-mit");
+
+        if (elType) elType.textContent = typeName;
+        if (elPeople) elPeople.textContent = peopleCount;
+        if (elWater) elWater.textContent = waterLevel;
+        if (elRisk) elRisk.textContent = riskVal;
+        if (elElev) elElev.textContent = elevVal;
+        if (elMit) elMit.textContent = mitText;
+    }
+
+    function updateTileInformationPanelOnMouseMove(row, column) {
+        if (!surfaceTiles || !surfaceTiles[row] || !groundTiles || !groundTiles[row]) return;
+
+        updateTileInformationPanelForTile(row, column);
+
         var tt = document.getElementById("tile-hover-tooltip");
         if (tt) {
             var elev = (groundTiles[row][column] && groundTiles[row][column].elevation)
                 ? groundTiles[row][column].elevation.toFixed(1) : "40.0";
             var risk = findRiskValue(row, column);
+            var typeName = (document.getElementById("tile-info-type")) ? document.getElementById("tile-info-type").textContent : "Tile";
             var nameEl = document.getElementById("tooltip-tile-name");
             var elevEl = document.getElementById("tooltip-tile-elev");
             var riskEl = document.getElementById("tooltip-tile-risk");
-            if (nameEl) nameEl.textContent = type;
+            if (nameEl) nameEl.textContent = typeName;
             if (elevEl) elevEl.textContent = "Elev: " + elev + "ft";
             if (riskEl) {
                 riskEl.textContent = "Status: " + risk;
                 riskEl.style.color = (risk.toLowerCase().includes("risk") || risk.toLowerCase().includes("high"))
                     ? "#f87171" : "#4ade80";
             }
-
-            // Position tooltip dynamically for mobile touch tap vs desktop cursor
-            if (window.innerWidth <= 768) {
-                tt.style.left = "16px";
-                tt.style.top = "68px";
-            } else if (clientX !== undefined && clientY !== undefined) {
-                tt.style.left = Math.min(window.innerWidth - 220, clientX + 15) + "px";
-                tt.style.top = Math.min(window.innerHeight - 100, clientY + 15) + "px";
-            }
-
             tt.classList.remove("is-hidden");
-        }
-
-        // Also update left-panel tile-information tab when no tile is selected
-        if (!selectedTile.isSelected) {
-            var values = document.querySelectorAll("#tile-information .has-text-right");
-            if (values && values.length >= 4) {
-                values[0].textContent = type;
-                values[1].textContent = (surfaceTiles[row][column] != 0)
-                    ? surfaceTiles[row][column].peopleOnIt : 0;
-                values[2].textContent = calculateWaterLevel(row, column) + " FT";
-                values[3].textContent = findRiskValue(row, column);
-            }
         }
     };
 
-
     function updateTileInformationPanel() {
-        /*
-            This function updates tile information panel 
-            on the game menu. Panel contains information
-            about selected tile's type, water level, number of people
-            on the tile and risk level. 
-
-        */
-
-        // /* tile_info_right = Tile's type + water level */
-        // var tile_info_left = tile_info.querySelectorAll(
-        //     ".card-content-left .card-content-item");
-        // /* tile_info_right = Tile's people + risk level */
-        // var tile_info_right = tile_info.querySelectorAll(
-        //     ".card-content-right .card-content-item");
-
-        var values = document.querySelectorAll("#tile-information .has-text-right")
-        var type;
-
-        /* Update Tile Type */
-        // tile_info_left[0].querySelector(
-            // ".card-content-item-val").innerHTML = groundTiles[selectedTile.row][selectedTile.column].type;
-        if (selectedBuilding.meshName == "None") {
-            if (groundTiles[selectedTile.row][selectedTile.column].type == "parking_lot"){
-                type = "Parking Lot";
-            }
-            else if (groundTiles[selectedTile.row][selectedTile.column].type == "water"){
-                type = "Water";
-            }
-            else if (groundTiles[selectedTile.row][selectedTile.column].type == "parks"){
-                type = "Park";
-            }
-            else{
-                type = "Road";
-            }
+        if (selectedTile && selectedTile.row !== undefined && selectedTile.column !== undefined) {
+            updateTileInformationPanelForTile(selectedTile.row, selectedTile.column);
         }
-        else {
-            type = buildingMetaDict[selectedBuilding.meshName]["name"];
-        };
-        //tile_info_left[0].querySelector(".card-content-item-val").innerHTML = type;
-        values[0].textContent = type;
-        /* Update Water Level */
-        // tile_info_left[1].querySelector(
-        //     ".card-content-item-val").innerHTML 
-        values[2].textContent = calculateWaterLevel(selectedTile.row, selectedTile.column) + " FT"; //groundTiles[selectedTile.row][selectedTile.column].type;
-        /* Update #ofPeople */
-        // tile_info_right[0].querySelector(
-        //     ".card-content-item-val").innerHTML
-        values[1].textContent = selectedBuilding.peopleOnIt;
-        /* Update Risk Level */
-        // tile_info_right[1].querySelector(
-        //     ".card-content-item-val").innerHTML
-        values[3].textContent = findRiskValue(selectedTile.row, selectedTile.column); //groundTiles[selectedTile.row][selectedTile.column].type;
     };
 
 
