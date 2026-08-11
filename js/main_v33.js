@@ -1256,24 +1256,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
         return boat;
     }
 
-    function spawnBoats() {
-        activeBoats = [];
-        
-        var waterCoords = [];
-        for (var r = 0; r < numberOfRows; r++) {
-            for (var c = 0; c < numberOfColumns; c++) {
-                var cell = groundTiles[r][c];
-                if (cell && cell.type === "water") {
-                    waterCoords.push({ r: r, c: c });
-                }
-            }
-        }
-        
-        var numBoats = Math.min(8, Math.floor(waterCoords.length * 0.05));
-        if (numBoats === 0) return;
-        
-        waterCoords.sort(function() { return Math.random() - 0.5; });
-        
     function getNextWaterTile(currR, currC, prevR, prevC) {
         var options = [];
         var dirs = [[-1,0], [1,0], [0,-1], [0,1]];
@@ -1294,6 +1276,24 @@ async function main(opts, list_of_files, game_graphics_opt) {
         return { r: (prevR !== undefined && prevR >= 0) ? prevR : currR, c: (prevC !== undefined && prevC >= 0) ? prevC : currC };
     }
 
+    function spawnBoats() {
+        activeBoats = [];
+        
+        var waterCoords = [];
+        for (var r = 0; r < numberOfRows; r++) {
+            for (var c = 0; c < numberOfColumns; c++) {
+                var cell = groundTiles[r][c];
+                if (cell && cell.type === "water") {
+                    waterCoords.push({ r: r, c: c });
+                }
+            }
+        }
+        
+        var numBoats = Math.min(8, Math.floor(waterCoords.length * 0.05));
+        if (numBoats === 0) return;
+        
+        waterCoords.sort(function() { return Math.random() - 0.5; });
+        
         for (var i = 0; i < numBoats; i++) {
             var start = waterCoords[i];
             var r = start.r;
@@ -1331,47 +1331,52 @@ async function main(opts, list_of_files, game_graphics_opt) {
     }
 
     function updateBoats(elapsedTime) {
-        if (!activeBoats) return;
-        for (var i = 0; i < activeBoats.length; i++) {
-            var boat = activeBoats[i];
-            
-            var targetPos = calculatePosition(boat.targetR, boat.targetC);
-            var dx = targetPos[0] - boat.mesh.position.x;
-            var dz = targetPos[1] - boat.mesh.position.z;
-            var distSq = dx * dx + dz * dz;
+        if (!activeBoats || activeBoats.length === 0) return;
+        try {
+            for (var i = 0; i < activeBoats.length; i++) {
+                var boat = activeBoats[i];
+                if (!boat || !boat.mesh) continue;
+                
+                var targetPos = calculatePosition(boat.targetR, boat.targetC);
+                var dx = targetPos[0] - boat.mesh.position.x;
+                var dz = targetPos[1] - boat.mesh.position.z;
+                var distSq = dx * dx + dz * dz;
 
-            // Target heading angle
-            var targetAngle = Math.atan2(dx, dz);
+                // Target heading angle
+                var targetAngle = Math.atan2(dx, dz);
 
-            // Smoothly interpolate rotation towards target angle (prevents abrupt spinning)
-            var diff = targetAngle - boat.mesh.rotation.y;
-            while (diff < -Math.PI) diff += Math.PI * 2;
-            while (diff > Math.PI) diff -= Math.PI * 2;
-            boat.mesh.rotation.y += diff * 0.08;
+                // Smoothly interpolate rotation towards target angle (prevents abrupt spinning)
+                var diff = targetAngle - boat.mesh.rotation.y;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                boat.mesh.rotation.y += diff * 0.08;
 
-            // Move forward along current heading
-            boat.mesh.position.x += Math.sin(boat.mesh.rotation.y) * boat.speed;
-            boat.mesh.position.z += Math.cos(boat.mesh.rotation.y) * boat.speed;
+                // Move forward along current heading
+                boat.mesh.position.x += Math.sin(boat.mesh.rotation.y) * boat.speed;
+                boat.mesh.position.z += Math.cos(boat.mesh.rotation.y) * boat.speed;
 
-            // When reaching target waypoint (within 25 units), pick next connected water tile
-            if (distSq < 625) {
-                var next = getNextWaterTile(boat.targetR, boat.targetC, boat.currR, boat.currC);
-                boat.prevR = boat.currR;
-                boat.prevC = boat.currC;
-                boat.currR = boat.targetR;
-                boat.currC = boat.targetC;
-                boat.targetR = next.r;
-                boat.targetC = next.c;
+                // When reaching target waypoint (within 25 units), pick next connected water tile
+                if (distSq < 625) {
+                    var next = getNextWaterTile(boat.targetR, boat.targetC, boat.currR, boat.currC);
+                    boat.prevR = boat.currR;
+                    boat.prevC = boat.currC;
+                    boat.currR = boat.targetR;
+                    boat.currC = boat.targetC;
+                    boat.targetR = next.r;
+                    boat.targetC = next.c;
 
-                if (groundTiles[boat.currR] && groundTiles[boat.currR][boat.currC]) {
-                    boat.baseY = groundTiles[boat.currR][boat.currC].elevation + 5.5;
+                    if (groundTiles[boat.currR] && groundTiles[boat.currR][boat.currC]) {
+                        boat.baseY = groundTiles[boat.currR][boat.currC].elevation + 5.5;
+                    }
                 }
+                
+                // Gentle wave bobbing & subtle hull rocking
+                boat.mesh.position.y = boat.baseY + Math.sin(elapsedTime * 1.4 + boat.seed) * 0.12;
+                boat.mesh.rotation.z = Math.sin(elapsedTime * 0.8 + boat.seed) * 0.02;
+                boat.mesh.rotation.x = Math.cos(elapsedTime * 0.6 + boat.seed) * 0.015;
             }
-            
-            // Gentle wave bobbing & subtle hull rocking
-            boat.mesh.position.y = boat.baseY + Math.sin(elapsedTime * 1.4 + boat.seed) * 0.12;
-            boat.mesh.rotation.z = Math.sin(elapsedTime * 0.8 + boat.seed) * 0.02;
-            boat.mesh.rotation.x = Math.cos(elapsedTime * 0.6 + boat.seed) * 0.015;
+        } catch (e) {
+            console.warn("Boat animation frame update error:", e);
         }
     }
 
