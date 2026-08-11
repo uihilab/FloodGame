@@ -1928,3 +1928,46 @@ html, body {
     -webkit-overflow-scrolling: touch !important;
     touch-action: pan-y !important;
 }
+
+/* Mobile Responsive Menu Container & Launch Simulation Scroll Fix */
+#modal-js-example,
+#starterInfo {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+}
+
+@media (max-width: 768px) {
+    #modal-js-example {
+        justify-content: flex-start !important;
+        padding-top: 15px !important;
+        padding-bottom: 90px !important; /* Generous bottom clearance above mobile browser bars */
+    }
+
+    .menu-container {
+        margin-top: 10px !important;
+        margin-bottom: 50px !important;
+        gap: 12px !important;
+    }
+
+    .menu-title-section h1 {
+        font-size: 2.6rem !important;
+        letter-spacing: 3px !important;
+    }
+
+    .menu-title-badge {
+        font-size: 0.7rem !important;
+        padding: 4px 12px !important;
+    }
+
+    .map-selection-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    .launch-button {
+        padding: 14px 28px !important;
+        font-size: 1.05rem !important;
+        margin-bottom: 40px !important; /* Ensure launch button is 100% reachable */
+    }
+}
