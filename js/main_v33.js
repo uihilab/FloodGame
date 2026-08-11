@@ -2721,25 +2721,29 @@ async function main(opts, list_of_files, game_graphics_opt) {
         selectedTile.row = row;
         selectedTile.column = column;
         [selectedTile.pos_x, selectedTile.pos_z] = calculatePosition(row, column);
-        if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] != 0) {
-            showEmptyTileGUI(false);
-        } else {
-            showBuildingTileGUI(false);
-            showEmptyTileGUI(true);
-        }
 
-
-        // if (hasMitigation(row, column)) {
-        //     moveWireFrame_3(1, row, column);
-        //     wireframe_2.visible = false
-        // } else {
-        //     wireframe_3.visible = false;
-        //     moveWireFrame_2(1, row, column);
-        // };
         moveWireFrame_3(1, row, column);
         updateTileOptions(row, column);
-        updateTileInformationPanel();
-        tileInformationPanelTabButtons[1].click();
+        
+        // 1. Update tile information panel for this exact clicked tile
+        updateTileInformationPanelForTile(row, column);
+
+        // 2. Open left HUD sidebar panel
+        const leftPanel = document.querySelector(".left-hud-panel");
+        if (leftPanel) {
+            leftPanel.classList.remove("is-hidden");
+        }
+
+        // 3. Switch to 'Tile Info' tab and make it visible
+        const infoTab = document.querySelector(".hud-tab-btn[data-target='tile-information']");
+        const abilitiesTab = document.querySelector(".hud-tab-btn[data-target='mitigation-options']");
+        if (infoTab) infoTab.classList.add("is-active");
+        if (abilitiesTab) abilitiesTab.classList.remove("is-active");
+
+        const tileInfo = document.getElementById("tile-information");
+        const mitOpts = document.getElementById("mitigation-options");
+        if (tileInfo) tileInfo.classList.remove("is-hidden");
+        if (mitOpts) mitOpts.classList.add("is-hidden");
     };
 
     function convertFloodWallHeighttoSelectedIndex(value) {
