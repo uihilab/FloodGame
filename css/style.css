@@ -1793,31 +1793,42 @@ html, body {
 /* Mobile Responsive Bottom HUD Bar & Touch Scroll */
 @media (max-width: 768px) {
     .bottom-hud-bar {
-        bottom: 12px !important;
+        bottom: 10px !important;
+        left: 2.5vw !important;
+        right: 2.5vw !important;
+        transform: none !important;
         width: 95vw !important;
         max-width: 95vw !important;
-        overflow-x: auto !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: scroll !important;
         overflow-y: hidden !important;
         -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-x !important;
         justify-content: flex-start !important;
-        padding: 8px 14px !important;
-        gap: 12px !important;
-        border-radius: 16px !important;
+        padding: 8px 12px !important;
+        gap: 14px !important;
+        border-radius: 18px !important;
+        box-sizing: border-box !important;
         scrollbar-width: none !important;
     }
     .bottom-hud-bar::-webkit-scrollbar {
         display: none !important;
     }
     .hud-circle-btn-container {
+        flex: 0 0 auto !important;
         flex-shrink: 0 !important;
+        touch-action: pan-x !important;
     }
     .hud-circle-btn {
-        width: 40px !important;
-        height: 40px !important;
-        font-size: 1rem !important;
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 0.95rem !important;
+        touch-action: pan-x !important;
     }
     .hud-circle-btn-label {
-        font-size: 0.64rem !important;
+        font-size: 0.6rem !important;
         white-space: nowrap !important;
+        touch-action: pan-x !important;
     }
 }
