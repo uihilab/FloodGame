@@ -1160,43 +1160,33 @@ html, body {
 
 /* Redesigned HUD Banners (Top Left, Top Center, Top Right, and Bottom Bar) */
 
-/* 1. Top Left Panel (City Badge in Top Left Corner) */
+/* 1. Top Left Panel (Tile Identifier in Top Left Corner) */
 .top-left-hud-panel {
-    position: absolute;
-    top: 18px;
-    left: 18px;
-    z-index: 1045;
-    background: rgba(15, 23, 42, 0.88);
-    border: 1px solid rgba(0, 240, 255, 0.45);
-    border-radius: 12px;
-    padding: 8px 16px;
-    color: white;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 240, 255, 0.15);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    backdrop-filter: blur(10px);
-    font-family: var(--font-primary);
-    transition: all 0.3s ease;
-}
-
-.top-left-hud-panel .hud-large-value {
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: #ffffff;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    position: fixed !important;
+    top: 18px !important;
+    left: 18px !important;
+    z-index: 1045 !important;
+    background: rgba(15, 23, 42, 0.92) !important;
+    border: 1px solid rgba(0, 240, 255, 0.45) !important;
+    border-radius: 14px !important;
+    padding: 8px 16px !important;
+    color: white !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 240, 255, 0.15) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    backdrop-filter: blur(12px) !important;
+    font-family: var(--font-primary) !important;
+    pointer-events: none !important;
+    transition: opacity 0.2s ease !important;
 }
 
 @media (max-width: 768px) {
     .top-left-hud-panel {
-        top: 10px;
-        left: 10px;
-        padding: 5px 12px;
-        border-radius: 10px;
-    }
-    .top-left-hud-panel .hud-large-value {
-        font-size: 0.82rem;
+        top: 10px !important;
+        left: 10px !important;
+        padding: 5px 12px !important;
+        border-radius: 10px !important;
     }
 }
 

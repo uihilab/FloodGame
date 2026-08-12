@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="./css/aiTutor.css?v=19">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script defer src="./js/aiTutor_v22.js"></script>
-    <script type="module" src="./js/main_v33.js?v=cars_v40"></script>
+    <script type="module" src="./js/main_v33.js?v=tile_hover_v99"></script>
     <script src="./js/config.js"></script>
     <script src="./js/location_ai_knowledge.js"></script>
     <!-- playground-hide -->
@@ -42,10 +42,18 @@
         <button id="sim-report-btn">Show Report</button>
     </div>
 
-    <!-- Top Left HUD Panel (City Name in Top Left Corner) -->
-    <div class="top-left-hud-panel is-hidden" id="city-name-badge">
-        <span style="font-size: 1.1rem; color: #00f0ff;">📍</span>
-        <span class="hud-large-value" id="hud-city-name">Iowa City, IA</span>
+    <!-- Top Left HUD Panel (Tile Identifier in Top Left Corner) -->
+    <div class="top-left-hud-panel is-hidden" id="tile-hover-tooltip">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.1rem; color: #00f0ff;">📍</span>
+            <div>
+                <div style="font-weight: 800; color: #ffffff; font-size: 0.88rem; letter-spacing: 0.5px;" id="tooltip-tile-name">Tile Inspector</div>
+                <div style="display: flex; gap: 10px; color: #cbd5e1; font-size: 0.76rem; font-weight: 600;">
+                    <span id="tooltip-tile-elev">Elev: 40.0 FT</span>
+                    <span id="tooltip-tile-risk" style="color: #4ade80;">Status: Safe</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Top HUD Status Bar (Location, Budget, Safety, Population) -->

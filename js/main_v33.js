@@ -1500,52 +1500,37 @@ async function main(opts, list_of_files, game_graphics_opt) {
         wireframe_1.transparent = true;
         scene.add(wireframe_1);
         */
-        var wireMate = new LineMaterial({vertexColors: true, linewidth: 4});
+        var wireMate = new LineMaterial({vertexColors: true, linewidth: 4, depthTest: false, transparent: true});
         wireMate.resolution.set(window.innerWidth, window.innerHeight);
 
         var wireGeo1 = new LineSegmentsGeometry();
-        wireGeo1.setPositions(borderPosition(0, 0, findElevation(0, 0) + 2, 50).flat(1));
+        wireGeo1.setPositions(borderPosition(0, 0, findElevation(0, 0) + 4, 50).flat(1));
         wireGeo1.setColors([0, 0, 0, 0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0]);
 
         wireframe_1 = new LineSegments2(wireGeo1, wireMate);
         wireframe_1.name = "wireframe_1";
         wireframe_1.visible = false;
+        wireframe_1.renderOrder = 9999;
         scene.add(wireframe_1);
 
-        /*
-        var wireframemat_2 = new THREE.LineBasicMaterial({ color: "#cc0000", linewidth: 4 });
-        wireframe_2 = new THREE.LineSegments(wireframegeo, wireframemat_2);
-        wireframe_2.name = "wireframe_2";
-        wireframe_2.visible = false;
-        //wireframe_2.renderOrder = 10;
-        scene.add(wireframe_2);
-        */
         var wireGeo2 = new LineSegmentsGeometry();
-        wireGeo2.setPositions(borderPosition(0, 0, findElevation(0, 0) + 2, 50).flat(1));
+        wireGeo2.setPositions(borderPosition(0, 0, findElevation(0, 0) + 4, 50).flat(1));
         wireGeo2.setColors([1, 0, 0, 1, 0, 0,1, 0, 0,1, 0, 0,1, 0, 0,1, 0, 0,1, 0, 0,1, 0, 0]);
-
 
         wireframe_2 = new LineSegments2(wireGeo2, wireMate);
         wireframe_2.name = "wireframe_2";
         wireframe_2.visible = false;
+        wireframe_2.renderOrder = 9999;
         scene.add(wireframe_2);
 
-        
-        var wireframemat_3 = new THREE.LineBasicMaterial({ color: "#800080", linewidth: 4 });
-        /*
-        wireframe_3 = new THREE.LineSegments(wireframegeo, wireframemat_3);
-        wireframe_3.name = "wireframe_3";
-        wireframe_3.visible = false;
-        //wireframe_2.renderOrder = 10;
-        scene.add(wireframe_3);
-        */
         var wireGeo3 = new LineSegmentsGeometry();
-        wireGeo3.setPositions(borderPosition(0, 0, findElevation(0, 0) + 2, 50).flat(1));
+        wireGeo3.setPositions(borderPosition(0, 0, findElevation(0, 0) + 4, 50).flat(1));
         wireGeo3.setColors([1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1]);
 
         wireframe_3 = new LineSegments2(wireGeo3, wireMate);
         wireframe_3.name = "wireframe_3";
         wireframe_3.visible = false;
+        wireframe_3.renderOrder = 9999;
         scene.add(wireframe_3);
 
 
@@ -2482,29 +2467,54 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
     function resolveRowColumn(intersection) {
         if (!intersection || intersection.length === 0) return null;
-        
-        var obj = intersection[0].object;
-        while (obj && obj !== scene) {
-            if (obj.externalID) {
-                var parts = obj.externalID.split("_");
-                return [parseInt(parts[0]), parseInt(parts[1]), 1];
+
+        for (var i = 0; i < intersection.length; i++) {
+            var hit = intersection[i];
+            if (!hit || !hit.object) continue;
+
+            var obj = hit.object;
+            var meshName = obj.name || "";
+
+            // Skip wireframe outlines and selection borders
+            if (isWireFrame(meshName)) continue;
+
+            // Check externalID on parent chain
+            var curr = obj;
+            while (curr && curr !== scene) {
+                if (curr.externalID) {
+                    var parts = curr.externalID.split("_");
+                    if (parts.length >= 2) {
+                        return [parseInt(parts[0]), parseInt(parts[1]), 1];
+                    }
+                }
+                curr = curr.parent;
             }
-            obj = obj.parent;
-        }
 
-        var meshName = intersection[0].object.name;
-        var instanceId = intersection[0].instanceId;
+            // Check smooth terrain
+            if (meshName === "smoothTerrain" && hit.point) {
+                var [r, c] = calculateArrayPosition(hit.point.x, hit.point.z);
+                if (r >= 0 && r < 50 && c >= 0 && c < 50) {
+                    return [r, c, 1];
+                }
+            }
 
-        if (meshName === "smoothTerrain") {
-            var [r, c] = calculateArrayPosition(intersection[0].point.x, intersection[0].point.z);
-            return [r, c, 1];
-        }
+            // Check instanced meshes
+            var instanceId = hit.instanceId;
+            if (instanceId !== undefined && instanceId !== -1) {
+                try {
+                    var pos = findPosition(instanceId, meshName);
+                    if (pos && pos.length >= 2) return pos;
+                } catch (e) {
+                    // try next intersection
+                }
+            }
 
-        if (instanceId !== undefined && instanceId !== -1 && !isWireFrame(meshName)) {
-            try {
-                return findPosition(instanceId, meshName);
-            } catch (e) {
-                // silent catch
+            // Check 3D world position calculation fallback if point is valid
+            if (hit.point) {
+                var [rFallback, cFallback] = calculateArrayPosition(hit.point.x, hit.point.z);
+                if (rFallback >= 0 && rFallback < 50 && cFallback >= 0 && cFallback < 50) {
+                    return [rFallback, cFallback, 1];
+                }
             }
         }
 
@@ -2530,9 +2540,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 updateTileInformationPanelOnMouseMove(row, column, clientX, clientY);
                 moveWireFrame_2(1, row, column);
             }
-        } else {
-            var tt = document.getElementById("tile-hover-tooltip");
-            if (tt) tt.classList.add("is-hidden");
         }
     }
 
@@ -2658,33 +2665,27 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function calculateArrayPosition(pos_x, pos_z, tileSize = 100, offset_x = 3900, offset_z = 5000) {
+        var roww = ((pos_x - (tileSize / 2)) + tileSize * (numberOfRows / 2)) / tileSize;
+        var columnn = -((pos_z + (tileSize / 2)) - (tileSize * (numberOfColumns / 2))) / tileSize;
 
-        var m, n, row, column, pos_xx, pos_zz;
-        var roww, columnn;
+        var row = Math.round(numberOfRows - 1 - roww);
+        var column = Math.round(numberOfColumns - 1 - columnn);
 
-        roww = ((pos_x - (tileSize / 2)) + tileSize * (numberOfRows / 2)) / tileSize;
-
-        columnn = -((pos_z + (tileSize / 2)) - (tileSize * (numberOfColumns / 2))) / tileSize;
-
-        row = numberOfRows - roww - 1;
-        column = numberOfColumns - columnn - 1;
-        if (column == 0) {
-            column = 0;
-        }
+        row = Math.max(0, Math.min(numberOfRows - 1, row));
+        column = Math.max(0, Math.min(numberOfColumns - 1, column));
 
         return [row, column];
-
     };
 
 
     function findPosition(instanceId, meshName) {
         var row, column, size;
 
-        if (meshName == "road_v" || meshName == "tree" || meshName == "road_h" || meshName == "tree2") {
+        if (dictInstancedIdtoSurfacePosition && dictInstancedIdtoSurfacePosition[meshName] && dictInstancedIdtoSurfacePosition[meshName][instanceId]) {
             row = dictInstancedIdtoSurfacePosition[meshName][instanceId][0];
             column = dictInstancedIdtoSurfacePosition[meshName][instanceId][1];
             size = 6;
-        } else {
+        } else if (meshDict && meshDict[meshName] && typeof meshDict[meshName].getMatrixAt === 'function') {
             var instanceMatrix_ = new THREE.Matrix4();
             var vector3Scale_ = new THREE.Vector3(1, 1, 1);
             var vector3Position_ = new THREE.Vector3(1, 1, 1);
@@ -2693,11 +2694,11 @@ async function main(opts, list_of_files, game_graphics_opt) {
             vector3Scale_.setFromMatrixScale(instanceMatrix_);
             [row, column] = calculateArrayPosition(vector3Position_.x, vector3Position_.z);
             size = findSize(vector3Scale_.x);
+        } else {
+            return null;
         }
 
-
         return [row, column, size];
-
     };
 
 
@@ -3054,7 +3055,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             groundTiles[row][column].elevation + floodHeight + 4,
             selectedTile.pos_z);
             */
-        wireframe_2.geometry.setPositions(borderPosition(row, column, findElevation(row, column) + 2, 50).flat(1));
+        wireframe_2.geometry.setPositions(borderPosition(row, column, findElevation(row, column) + 4.5, 50).flat(1));
         var c = whichColor(row, column);
         wireframe_2.geometry.setColors([c, c, c, c, c, c, c, c].flat(1));
 
@@ -3073,7 +3074,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             floodHeight = floodTiles[row][column].height;
         };
         wireframe_3.geometry.setPositions(
-            borderPosition(row, column, findElevation(row, column) + 2, 50).flat(1));
+            borderPosition(row, column, findElevation(row, column) + 4.5, 50).flat(1));
         var c = whichColor(row, column);
         wireframe_3.geometry.setColors([c, c, c, c, c, c, c, c].flat(1));
         if (type == 1) { wireframe_3.visible = true; } else { wireframe_3.visible = false; };
@@ -3091,7 +3092,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             floodHeight = floodTiles[row][column].height;
         };
         wireframe_4.geometry.setPositions(
-            borderPosition(row, column, findElevation(row, column) + 2, 50).flat(1));
+            borderPosition(row, column, findElevation(row, column) + 4.5, 50).flat(1));
         if (type == 1) { wireframe_4.visible = true; } else { wireframe_4.visible = false; };
 
         wireframe_4.updateMatrix();
@@ -4423,17 +4424,21 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function updateTileInformationPanelForTile(row, column) {
+        row = Math.floor(row);
+        column = Math.floor(column);
         if (row < 0 || row >= 50 || column < 0 || column >= 50) return;
         if (!groundTiles || !groundTiles[row] || !groundTiles[row][column]) return;
 
-        // 1. Determine Tile Type Name & People Count
-        var typeName = "Empty Land";
+        // 1. Extract surface object (handles Arrays, Objects, or Primitive keys)
+        var typeName = "Open Land";
         var peopleCount = 0;
 
         if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] != 0) {
-            var st = surfaceTiles[row][column];
-            var typeKey = (typeof st === 'object') ? st.type : st;
-            if (typeof st === 'object' && typeof st.peopleOnIt === 'number') {
+            var rawSt = surfaceTiles[row][column];
+            var st = Array.isArray(rawSt) ? rawSt[0] : rawSt;
+            var typeKey = (st && typeof st === 'object') ? st.type : st;
+
+            if (st && typeof st === 'object' && typeof st.peopleOnIt === 'number') {
                 peopleCount = st.peopleOnIt;
             } else if (buildingMetaDict && buildingMetaDict[typeKey] && typeof buildingMetaDict[typeKey]["Capacity"] === 'number') {
                 peopleCount = buildingMetaDict[typeKey]["Capacity"];
@@ -4441,22 +4446,22 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
             if (buildingMetaDict && buildingMetaDict[typeKey] && buildingMetaDict[typeKey]["name"]) {
                 typeName = buildingMetaDict[typeKey]["name"];
-            } else if (typeKey === "road" || typeKey === "Road") {
+            } else if (typeKey === "road" || typeKey === "Road" || (typeof typeKey === 'string' && typeKey.startsWith("road"))) {
                 typeName = "Road";
-            } else if (typeKey === "t1" || typeKey === "park") {
+            } else if (typeKey === "t1" || typeKey === "park" || typeKey === "tree" || typeKey === "tree2") {
                 typeName = "Park / Trees";
-            } else {
+            } else if (typeKey) {
                 typeName = "Structure (" + typeKey + ")";
             }
         } else {
-            // Ground tile
-            var gtType = groundTiles[row][column].type || "";
-            var lower = gtType.toLowerCase();
-            if (lower === "water" || lower.includes("water")) typeName = "River / Water";
-            else if (lower === "parking_lot" || lower.includes("parking")) typeName = "Parking Lot";
-            else if (lower === "parks" || lower === "park") typeName = "Park / Open Space";
-            else if (lower === "road" || lower.includes("road")) typeName = "Road";
-            else if (lower === "sand") typeName = "Sand / Beach";
+            // Ground tile checks
+            var gt = groundTiles[row][column];
+            var gtType = (gt && gt.type) ? String(gt.type).toLowerCase() : "";
+            if (gtType === "water" || gtType.includes("water")) typeName = "River / Water";
+            else if (gtType === "parking_lot" || gtType.includes("parking")) typeName = "Parking Lot";
+            else if (gtType === "parks" || gtType === "park") typeName = "Park";
+            else if (gtType === "road" || gtType.includes("road")) typeName = "Road";
+            else if (gtType === "sand") typeName = "Sand / Beach";
             else typeName = "Open Land";
         }
 
@@ -4472,16 +4477,19 @@ async function main(opts, list_of_files, game_graphics_opt) {
         if (groundTiles[row][column].floodWall && groundTiles[row][column].floodWall > 0) {
             mitigations.push("Flood Wall (" + groundTiles[row][column].floodWall + "ft)");
         }
-        if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && typeof surfaceTiles[row][column] === 'object') {
-            var s = surfaceTiles[row][column];
-            if (s.dryFloodproofing) mitigations.push("Dry Floodproof");
-            if (s.wetFloodproofing) mitigations.push("Wet Floodproof");
-            if (s.insurance) mitigations.push("Flood Insurance");
-            if (s.elevation && s.elevation > 0) mitigations.push("Elevated +" + s.elevation + "ft");
+        if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] != 0) {
+            var rawS = surfaceTiles[row][column];
+            var sObj = Array.isArray(rawS) ? rawS[0] : rawS;
+            if (typeof sObj === 'object') {
+                if (sObj.dryFloodproofing) mitigations.push("Dry Floodproof");
+                if (sObj.wetFloodproofing) mitigations.push("Wet Floodproof");
+                if (sObj.insurance) mitigations.push("Flood Insurance");
+                if (sObj.elevation && sObj.elevation > 0) mitigations.push("Elevated +" + sObj.elevation + "ft");
+            }
         }
         var mitText = (mitigations.length > 0) ? mitigations.join(", ") : "None";
 
-        // 4. Populate DOM Elements
+        // 4. Populate Sidebar DOM Elements
         var values = document.querySelectorAll("#tile-information .has-text-right");
         if (values && values.length >= 4) {
             values[0].textContent = typeName;
@@ -4505,68 +4513,29 @@ async function main(opts, list_of_files, game_graphics_opt) {
         if (elRisk) elRisk.textContent = riskVal;
         if (elElev) elElev.textContent = elevVal;
         if (elMit) elMit.textContent = mitText;
+
+        // 5. Populate Top-Left Hover Badge
+        const tooltipName = document.getElementById("tooltip-tile-name");
+        const tooltipElev = document.getElementById("tooltip-tile-elev");
+        const tooltipRisk = document.getElementById("tooltip-tile-risk");
+
+        if (tooltipName) tooltipName.textContent = typeName + " [" + row + ", " + column + "]";
+        if (tooltipElev) tooltipElev.textContent = "Elev: " + elevVal;
+        if (tooltipRisk) {
+            tooltipRisk.textContent = "Status: " + riskVal;
+            tooltipRisk.style.color = (riskVal.toLowerCase().includes("risk") || riskVal.toLowerCase().includes("high"))
+                ? "#f87171" : "#4ade80";
+        }
     }
 
-    function updateTileInformationPanelOnMouseMove(row, column, clientX, clientY) {
+    function updateTileInformationPanelOnMouseMove(row, column) {
         if (!surfaceTiles || !surfaceTiles[row] || !groundTiles || !groundTiles[row]) return;
 
-        // Hover tooltip updates floating tooltip over mouse - does NOT overwrite clicked tile panel!
+        // Update tile data for the hovered block!
+        updateTileInformationPanelForTile(row, column);
+
         var tt = document.getElementById("tile-hover-tooltip");
         if (tt) {
-            var typeName = "Empty Land";
-            if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] != 0) {
-                var st = surfaceTiles[row][column];
-                var typeKey = (typeof st === 'object') ? st.type : st;
-                if (buildingMetaDict && buildingMetaDict[typeKey] && buildingMetaDict[typeKey]["name"]) {
-                    typeName = buildingMetaDict[typeKey]["name"];
-                } else {
-                    typeName = "Structure";
-                }
-            } else {
-                var gtType = (groundTiles[row][column] && groundTiles[row][column].type) ? groundTiles[row][column].type.toLowerCase() : "";
-                if (gtType === "water" || gtType.includes("water")) typeName = "River / Water";
-                else if (gtType === "parking_lot" || gtType.includes("parking")) typeName = "Parking Lot";
-                else if (gtType === "parks" || gtType === "park") typeName = "Park";
-                else if (gtType === "road" || gtType.includes("road")) typeName = "Road";
-                else typeName = "Open Land";
-            }
-
-            var elev = (groundTiles[row][column] && groundTiles[row][column].elevation)
-                ? groundTiles[row][column].elevation.toFixed(1) : "40.0";
-            var risk = findRiskValue(row, column);
-            var nameEl = document.getElementById("tooltip-tile-name");
-            var elevEl = document.getElementById("tooltip-tile-elev");
-            var riskEl = document.getElementById("tooltip-tile-risk");
-            if (nameEl) nameEl.textContent = typeName;
-            if (elevEl) elevEl.textContent = "Elev: " + elev + "ft";
-            if (riskEl) {
-                riskEl.textContent = "Status: " + risk;
-                riskEl.style.color = (risk.toLowerCase().includes("risk") || risk.toLowerCase().includes("high"))
-                    ? "#f87171" : "#4ade80";
-            }
-
-            // Position tooltip smoothly at cursor position, avoiding top HUD bar overlap!
-            if (typeof clientX === 'number' && typeof clientY === 'number') {
-                var tooltipWidth = 180;
-                var tooltipHeight = 55;
-                var posX = clientX + 16;
-                var posY = clientY + 16;
-
-                if (posX + tooltipWidth > window.innerWidth) {
-                    posX = clientX - tooltipWidth - 10;
-                }
-                if (posY + tooltipHeight > window.innerHeight) {
-                    posY = clientY - tooltipHeight - 10;
-                }
-                // Avoid pushing underneath top HUD bar (top < 85px)
-                if (posY < 85) {
-                    posY = 85;
-                }
-
-                tt.style.left = posX + "px";
-                tt.style.top = posY + "px";
-            }
-
             tt.classList.remove("is-hidden");
         }
     };
@@ -5221,7 +5190,7 @@ function startGame(name){
     });
 
     // Show top and bottom HUD bars, but keep left sidebar and AI tutor drawer closed!
-    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .top-hud-toggle-btn");
+    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .top-hud-toggle-btn, #tile-hover-tooltip");
     for (var i = 0; i < hudEls.length; i++) {
         hudEls[i].classList.remove("is-hidden");
     }
