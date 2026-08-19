@@ -2024,6 +2024,29 @@ function updateAIAdvisorContent() {
  else if (lowerCity.includes("baton rouge")) mapKey = "baton_rouge";
  else if (lowerCity.includes("st. bernard") || lowerCity.includes("bernard")) mapKey = "st_bernard";
  else if (lowerCity.includes("iowa")) mapKey = "iowa_city";
+ else {
+      // It's a self-generated city! Expose dynamic Strategy Briefings for the AI panel
+      mapKey = "custom";
+      if (window.LOCATION_AI_KNOWLEDGE) {
+          window.LOCATION_AI_KNOWLEDGE["custom"] = {
+              "cityName": currentCityName,
+              "description": "Procedural sandbox model for " + currentCityName + " built dynamically from real-world OpenStreetMap GIS database and USGS elevation maps.",
+              "floodHistory": "This is a custom sandbox model. Historic flood events are estimated dynamically from local topography profiles.",
+              "priorityBuildings": [
+                  " Hospitals (Hos) & Medical Assets",
+                  " Police (Pol) & Fire Stations",
+                  " Water Treatment Utilities (Wat)",
+                  " High-Density Residential sectors (Res3)"
+              ],
+              "keyRisks": "Low-elevation flood plains and coastal lines vulnerable to flood waves.",
+              "strategies": {
+                  "highBudget": "Construct continuous Flood Walls ($1.2M) along primary riverfront segments, and safeguard Hospitals (Hos) with secondary perimeters.",
+                  "mediumBudget": "Elevate local homes (Res) and use Dry Floodproofing on commercial storefronts (Com) to mitigate damages.",
+                  "lowBudget": "Focus sandbag defenses ($150k) strictly around vital public assets like Hospitals (Hos) and Water Works (Wat) to keep basic services online."
+              }
+          };
+      }
+  }
  
  // Read live budget from window.totalAvailableMoney
  const remainingBudget = typeof window.totalAvailableMoney !== 'undefined' ? window.totalAvailableMoney : 50000000;

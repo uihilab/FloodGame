@@ -379,7 +379,16 @@ def main():
 
     print("\n[Step 5] Detecting water bodies...")
     water_cells = detect_water_tiles(elements, rotate_fn, lat_min, lat_max, lon_min, lon_max)
-    flood_edge = detect_flood_edge(water_cells)
+    
+    # If no natural water bodies are detected (landlocked city), inject a procedural flood source edge
+    if not water_cells:
+        print("   No natural water bodies detected. Procedurally injecting water source along the South boundary...")
+        water_cells = set()
+        for c in range(COLS):
+            water_cells.add((ROWS - 1, c))
+        flood_edge = "SOUTH"
+    else:
+        flood_edge = detect_flood_edge(water_cells)
 
     print("\n[Step 6] Classifying grid tiles...")
     grid_class = [["parks"]*COLS for _ in range(ROWS)]
