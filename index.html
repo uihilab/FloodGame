@@ -1137,7 +1137,24 @@
  <h1>FloodGame</h1>
  <div class="menu-title-badge">Hydrological Simulation &amp; Mitigation Sandbox</div>
  </div>
- 
+ <!-- Map Selection Tabs -->
+ <div class="tabs is-toggle is-fullwidth" style="margin-bottom: 20px; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+   <ul style="border: none;">
+     <li id="tab-predefined" class="is-active" onclick="switchMapSelectTab('predefined')" style="margin: 0;">
+       <a style="border-radius: 10px 0 0 10px; background: rgba(30,41,59,0.6); color: #cbd5e1; border: 1px solid rgba(160,174,192,0.3); font-weight: 700; transition: all 0.2s;">
+         <i class="fas fa-map" style="margin-right: 8px;"></i>
+         <span>Predefined Scenarios</span>
+       </a>
+     </li>
+     <li id="tab-custom" onclick="switchMapSelectTab('custom')" style="margin: 0;">
+       <a style="border-radius: 0 10px 10px 0; background: rgba(30,41,59,0.6); color: #cbd5e1; border: 1px solid rgba(160,174,192,0.3); border-left: none; font-weight: 700; transition: all 0.2s;">
+         <i class="fas fa-tools" style="margin-right: 8px;"></i>
+         <span>Custom City Sandbox</span>
+       </a>
+     </li>
+   </ul>
+ </div>
+
  <div class="map-selection-grid" id="test2">
  <div id="iowa_city" class="map-card map-option" onclick="changeColorOfPredefinedMaps(this)">
  <img src="./css/img/iowa_city_image.png" alt="Iowa City">
@@ -1165,7 +1182,7 @@
  </div>
 
  <!-- Premium Custom City Generator Section -->
- <div id="custom_city_section" style="margin-top: 24px; padding: 22px; background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.95) 100%); border: 2px solid rgba(160, 174, 192, 0.25); border-radius: 18px; box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45); display: flex; flex-direction: column; gap: 14px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); width: 100%; position: relative; overflow: visible; text-align: left;">
+ <div id="custom_city_section" style="margin-top: 24px; padding: 22px; background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.95) 100%); border: 2px solid rgba(160, 174, 192, 0.25); border-radius: 18px; box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45); display: none; flex-direction: column; gap: 14px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); width: 100%; position: relative; overflow: visible; text-align: left;">
    <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
      <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(96, 165, 250, 0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(96, 165, 250, 0.35);">
        <i class="fas fa-map-marked-alt" style="font-size: 1.45rem; color: #60a5fa;"></i>
@@ -1178,7 +1195,7 @@
 
    <div class="custom-city-controls" style="display: flex; gap: 12px; width: 100%; position: relative; overflow: visible; align-items: center; flex-wrap: wrap;">
      <div style="position: relative; flex: 1; min-width: 260px; overflow: visible;">
-       <input id="custom-city-input" type="text" placeholder="Enter a US city (e.g. Syracuse, NY or Cedar Falls, IA)" autocomplete="off"
+       <input id="custom-city-input" type="text" placeholder="Enter a US city (e.g. New Orleans, LA or Seattle, WA)" autocomplete="off"
          style="width: 100%; padding: 11px 16px; border-radius: 12px; border: 1.5px solid rgba(160, 174, 192, 0.3); background: rgba(10, 15, 26, 0.95); color: #fff; font-size: 0.88rem; outline: none; transition: border-color 0.25s, box-shadow 0.25s;"
          onfocus="this.style.borderColor='#60a5fa'; this.style.boxShadow='0 0 10px rgba(96,165,250,0.2)';"
          onblur="this.style.borderColor='rgba(160,174,192,0.3)'; this.style.boxShadow='none';"
@@ -1194,6 +1211,28 @@
    </div>
    <span id="custom-city-status" style="font-size: 0.74rem; color: #60a5fa; min-height: 16px; font-weight: 700;"></span>
  </div>
+ 
+ <script>
+ // Global tab switching logic for map selector modal
+ function switchMapSelectTab(mode) {
+     const predefinedTab = document.getElementById("tab-predefined");
+     const customTab = document.getElementById("tab-custom");
+     const grid = document.getElementById("test2");
+     const sandbox = document.getElementById("custom_city_section");
+     
+     if (mode === "predefined") {
+         if (predefinedTab) predefinedTab.classList.add("is-active");
+         if (customTab) customTab.classList.remove("is-active");
+         if (grid) grid.style.display = "grid";
+         if (sandbox) sandbox.style.display = "none";
+     } else {
+         if (predefinedTab) predefinedTab.classList.remove("is-active");
+         if (customTab) customTab.classList.add("is-active");
+         if (grid) grid.style.display = "none";
+         if (sandbox) sandbox.style.display = "flex";
+     }
+ }
+ </script>
 
  </div>
 
