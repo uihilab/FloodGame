@@ -1456,7 +1456,7 @@ function debouncedCitySearch(query) {
 
     // 2. Query Nominatim with email header to bypass strict rate limit blocks
     citySearchTimeout = setTimeout(() => {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&featuretype=city&email=campbell.endries@tulane.edu`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&featuretype=city&email=campbell.endries@gmail.com`;
         fetch(url)
             .then(r => r.json())
             .then(data => {
