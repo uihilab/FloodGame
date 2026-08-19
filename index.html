@@ -26,7 +26,7 @@
 <body>
  <!-- Full-Screen Simulation Loading Overlay -->
  <div id="sim-loading-overlay" class="is-hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99999; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; transition: opacity 0.4s ease;">
- <div style="font-size: 3rem; margin-bottom: 1rem; color: #A0AEC0;">
+ <div style="font-size: 3rem; margin-bottom: 1rem; color: #60a5fa;">
  <i class="fas fa-water fa-spin"></i>
  </div>
  <h2 style="font-size: 1.8rem; font-weight: 800; color: #ffffff; margin-bottom: 0.5rem; letter-spacing: 0.5px;">Loading Flood Simulation</h2>
@@ -1159,15 +1159,30 @@
  <img src="./css/img/greenville_image.png" alt="Greenville">
  <strong>Greenville</strong>
  </div>
- <div id="baton_rouge" class="map-card map-option" onclick="changeColorOfPredefinedMaps(this)">
- <img src="https://maps.googleapis.com/maps/api/staticmap?center=30.4494,-91.1870&zoom=13&size=300x200&maptype=terrain&key=AIzaSyAu_w256B0ocPN9ViKAX8pAt0RljLVSJnU" alt="Baton Rouge">
- <strong>Baton Rouge</strong>
- </div>
  <div id="st_bernard" class="map-card map-option" onclick="changeColorOfPredefinedMaps(this)">
  <img src="https://maps.googleapis.com/maps/api/staticmap?center=29.931000,-89.990200&zoom=14&size=300x200&key=AIzaSyAu_w256B0ocPN9ViKAX8pAt0RljLVSJnU&maptype=terrain&style=element:labels%7Cvisibility:off&style=feature:administrative.land_parcel%7Cvisibility:off&style=feature:administrative.neighborhood%7Cvisibility:off&style=feature:poi.business%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.business%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.business%7Celement:geometry.stroke%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.medical%7Celement:geometry%7Ccolor:0xf9e8ea%7Cvisibility:on&style=feature:poi.medical%7Celement:geometry.fill%7Ccolor:0xf9e8ea%7Cvisibility:on&style=feature:poi.medical%7Celement:geometry.stroke%7Ccolor:0xf9e8ea%7Cvisibility:on&style=feature:poi.park%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.park%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.park%7Celement:geometry.stroke%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.school%7Celement:geometry%7Ccolor:0xedf0f3%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry.stroke%7Ccolor:0xbae4b9&style=feature:road%7Celement:geometry.fill%7Ccolor:0xfefefe%7Cvisibility:on&style=feature:road%7Celement:geometry.stroke%7Ccolor:0xffffff%7Cvisibility:on&style=feature:road.arterial%7Celement:labels%7Cvisibility:off&style=feature:road.highway%7Celement:labels%7Cvisibility:off&style=feature:road.local%7Cvisibility:off&style=feature:transit.line%7Celement:geometry.fill%7Cvisibility:off&style=feature:transit.line%7Celement:geometry.stroke%7Cvisibility:off&style=feature:transit.station%7Celement:geometry%7Ccolor:0xedf0f3%7Cvisibility:on&style=feature:water%7Celement:geometry%7Ccolor:0x9bd0fe%7Cvisibility:on&style=feature:water%7Celement:geometry.fill%7Ccolor:0x9bd0fe%7Cvisibility:on&style=feature:water%7Celement:geometry.stroke%7Ccolor:0x9bd0fe%7Cvisibility:on" alt="St. Bernard Parish">
  <strong>St. Bernard Parish</strong>
  </div>
+
+ <!-- Custom City Generator Card -->
+ <div id="custom_city_card" class="map-card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:14px; cursor:default; min-height:140px; position:relative; overflow:visible;">
+   <i class="fas fa-map-marked-alt" style="font-size:2rem; color:#60a5fa;"></i>
+   <strong style="font-size:0.85rem;">Generate Any City</strong>
+   <div style="position:relative; width:100%; overflow:visible;">
+     <input id="custom-city-input" type="text" placeholder="e.g. New Orleans, LA" autocomplete="off"
+       style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid rgba(160,174,192,0.4); background:rgba(15,23,42,0.8); color:#fff; font-size:0.8rem; text-align:center; outline:none;"
+       oninput="debouncedCitySearch(this.value)"
+       onkeydown="if(event.key==='Enter') generateCustomMap()">
+     <div id="city-suggestions" style="position:absolute; top:100%; left:0; width:100%; background:#1a233a; border:1px solid rgba(160,174,192,0.4); border-radius:8px; display:none; flex-direction:column; z-index:10000; max-height:150px; overflow-y:auto; margin-top:4px; box-shadow:0 10px 25px rgba(0,0,0,0.6);"></div>
+   </div>
+   <button onclick="generateCustomMap()" style="width:100%; padding:6px; border-radius:8px; border:none; background:linear-gradient(135deg,#2b6cb0,#3b82f6); color:#fff; font-weight:800; font-size:0.8rem; cursor:pointer;">
+     <i class="fas fa-cog"></i> Generate
+   </button>
+   <span id="custom-city-status" style="font-size:0.7rem; color:#94a3b8; min-height:14px;"></span>
  </div>
+
+ </div>
+
 
  <div class="menu-settings-row">
  <span class="settings-label">Graphics Quality:</span>
@@ -1373,8 +1388,71 @@ function initMap() {
  console.log(b.substring(1, b.length - 1));
 
  });
+
+ // Initialize Places Autocomplete for the city generator input
 }
 </script>
+
+<script>
+// Custom Keyless City Autocomplete using OpenStreetMap Nominatim
+let citySearchTimeout = null;
+
+function debouncedCitySearch(query) {
+    clearTimeout(citySearchTimeout);
+    const container = document.getElementById("city-suggestions");
+    if (!query || query.length < 3) {
+        if (container) container.style.display = "none";
+        return;
+    }
+
+    citySearchTimeout = setTimeout(() => {
+        fetch(`http://localhost:3005/suggest-cities?q=${encodeURIComponent(query)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (!container) return;
+                container.innerHTML = "";
+                if (data.length === 0) {
+                    container.style.display = "none";
+                    return;
+                }
+                data.forEach(item => {
+                    const div = document.createElement("div");
+                    div.style.padding = "8px 12px";
+                    div.style.color = "#cbd5e1";
+                    div.style.fontSize = "0.75rem";
+                    div.style.cursor = "pointer";
+                    div.style.borderBottom = "1px solid rgba(160, 174, 192, 0.1)";
+                    div.style.textAlign = "left";
+                    div.textContent = item.display_name;
+
+                    // Hover styles
+                    div.onmouseover = () => { div.style.backgroundColor = "rgba(160, 174, 192, 0.15)"; };
+                    div.onmouseout = () => { div.style.backgroundColor = "transparent"; };
+
+                    div.onclick = () => {
+                        document.getElementById("custom-city-input").value = item.display_name;
+                        container.style.display = "none";
+                    };
+                    container.appendChild(div);
+                });
+                container.style.display = "flex";
+            })
+            .catch(() => {
+                if (container) container.style.display = "none";
+            });
+    }, 400);
+}
+
+// Close suggestion box when clicking away
+document.addEventListener("click", (e) => {
+    const container = document.getElementById("city-suggestions");
+    const input = document.getElementById("custom-city-input");
+    if (container && e.target !== input && !container.contains(e.target)) {
+        container.style.display = "none";
+    }
+});
+</script>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
  // Functions to open and close a modal
@@ -2229,7 +2307,7 @@ option:hover {
 <script>
  (function() {
  var script = document.createElement("script");
- script.src = `https://maps.googleapis.com/maps/api/js?key=${window.GOOGLE_MAPS_API_KEY || "AIzaSyAi9ZclWNZruhG2e3mmR9GtH3p-V0dXgps"}&callback=initMap&v=weekly`;
+ script.src = `https://maps.googleapis.com/maps/api/js?key=${window.GOOGLE_MAPS_API_KEY || "AIzaSyAu_w256B0ocPN9ViKAX8pAt0RljLVSJnU"}&callback=initMap&v=weekly`;
  script.defer = true;
  document.head.appendChild(script);
  })();

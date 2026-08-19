@@ -13,27 +13,27 @@
     src: url(fonts/bignoodletoo.woff);
 }
 
-/* CSS Variables for Hybrid HUD Style */
+/* CSS Variables — Tactical Navy Palette */
 :root {
     --font-primary: 'overwatch', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    --bg-hud: rgba(20, 26, 40, 0.88);
-    --bg-hud-light: rgba(30, 38, 56, 0.95);
-    --border-hud: rgba(0, 240, 255, 0.3);
-    --border-hud-hover: rgba(0, 240, 255, 0.7);
-    --text-color: #f0f4f8;
-    --text-muted: #a0aec0;
-    
+    --bg-hud: rgba(15, 22, 38, 0.92);
+    --bg-hud-light: rgba(26, 35, 58, 0.97);
+    --border-hud: rgba(160, 174, 192, 0.25);
+    --border-hud-hover: rgba(160, 174, 192, 0.55);
+    --text-color: #e2e8f0;
+    --text-muted: #718096;
+
     /* Game State Colors */
-    --color-budget: #48bb78;
-    --color-safety: #3182ce;
-    --color-risk: #dd6b20;
-    --color-danger: #e53e3e;
-    
-    /* Neon Glows */
-    --glow-cyan: 0 0 15px rgba(0, 240, 255, 0.25);
-    --glow-green: 0 0 15px rgba(72, 187, 120, 0.25);
-    --glow-blue: 0 0 15px rgba(49, 130, 206, 0.25);
-    --glow-orange: 0 0 15px rgba(221, 107, 32, 0.25);
+    --color-budget: #38a169;
+    --color-safety: #2b6cb0;
+    --color-risk: #c05621;
+    --color-danger: #9b2c2c;
+
+    /* Subtle Shadows (no neon bloom) */
+    --glow-cyan: 0 2px 12px rgba(0, 0, 0, 0.5);
+    --glow-green: 0 2px 12px rgba(0, 0, 0, 0.4);
+    --glow-blue:  0 2px 12px rgba(0, 0, 0, 0.4);
+    --glow-orange: 0 2px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Resets & Main Viewport Layout */
@@ -567,7 +567,7 @@ html, body {
 }
 
 .hud-btn:hover {
-    background: rgba(0, 240, 255, 0.15);
+    background: rgba(160, 174, 192, 0.15);
     border-color: var(--border-hud-hover);
 }
 
@@ -606,13 +606,13 @@ html, body {
 }
 
 .hud-panel-header {
-    background: rgba(0, 240, 255, 0.08);
-    border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+    background: rgba(160, 174, 192, 0.08);
+    border-bottom: 1px solid rgba(160, 174, 192, 0.15);
     padding: 12px 15px;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #00f0ff;
+    color: #A0AEC0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -643,8 +643,8 @@ html, body {
 }
 
 .hud-tab-btn.is-active {
-    color: #00f0ff;
-    border-bottom-color: #00f0ff;
+    color: #A0AEC0;
+    border-bottom-color: #A0AEC0;
     font-weight: bold;
 }
 
@@ -698,7 +698,7 @@ html, body {
 }
 
 .hud-ability-card:hover {
-    border-color: rgba(0, 240, 255, 0.3);
+    border-color: rgba(160, 174, 192, 0.3);
 }
 
 .hud-ability-header {
@@ -732,7 +732,7 @@ html, body {
 }
 
 .hud-checkbox {
-    accent-color: #00f0ff;
+    accent-color: #A0AEC0;
     width: 18px;
     height: 18px;
     cursor: pointer;
@@ -783,20 +783,20 @@ html, body {
     height: 64px;
     border-radius: 50%;
     background: var(--bg-hud-light);
-    border: 3px solid #00f0ff;
-    box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), inset 0 0 10px rgba(0, 240, 255, 0.2);
+    border: 3px solid #A0AEC0;
+    box-shadow: 0 0 20px rgba(160, 174, 192, 0.4), inset 0 0 10px rgba(160, 174, 192, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #00f0ff;
+    color: #A0AEC0;
     font-size: 1.85rem;
     transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .tutor-trigger-btn:hover {
     transform: scale(1.12);
-    box-shadow: 0 0 28px rgba(0, 240, 255, 0.65), inset 0 0 14px rgba(0, 240, 255, 0.35);
+    box-shadow: 0 0 28px rgba(160, 174, 192, 0.65), inset 0 0 14px rgba(160, 174, 192, 0.35);
     border-color: #ffffff;
     color: #ffffff;
 }
@@ -933,19 +933,19 @@ html, body {
 
 .quick-prompt-btn {
     font-family: inherit;
-    background: rgba(0, 240, 255, 0.05);
-    border: 1px solid rgba(0, 240, 255, 0.2);
+    background: rgba(160, 174, 192, 0.05);
+    border: 1px solid rgba(160, 174, 192, 0.2);
     border-radius: 20px;
     padding: 4px 12px;
-    color: #00f0ff;
+    color: #A0AEC0;
     font-size: 0.75rem;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .quick-prompt-btn:hover {
-    background: rgba(0, 240, 255, 0.15);
-    border-color: #00f0ff;
+    background: rgba(160, 174, 192, 0.15);
+    border-color: #A0AEC0;
 }
 
 /* Avatar layout for Chat log header */
@@ -959,9 +959,9 @@ html, body {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: rgba(0, 240, 255, 0.1);
-    border: 1px solid #00f0ff;
-    color: #00f0ff;
+    background: rgba(160, 174, 192, 0.1);
+    border: 1px solid #A0AEC0;
+    color: #A0AEC0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1109,11 +1109,11 @@ html, body {
 }
 
 .game-modal-header {
-    background: rgba(0, 240, 255, 0.08);
-    border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+    background: rgba(160, 174, 192, 0.08);
+    border-bottom: 1px solid rgba(160, 174, 192, 0.15);
     padding: 15px 20px;
     font-weight: bold;
-    color: #00f0ff;
+    color: #A0AEC0;
     font-size: 1.2rem;
     display: flex;
     justify-content: space-between;
@@ -1160,33 +1160,43 @@ html, body {
 
 /* Redesigned HUD Banners (Top Left, Top Center, Top Right, and Bottom Bar) */
 
-/* 1. Top Left Panel (Tile Identifier in Top Left Corner) */
+/* 1. Top Left Panel (City Badge in Top Left Corner) */
 .top-left-hud-panel {
-    position: fixed !important;
-    top: 18px !important;
-    left: 18px !important;
-    z-index: 1045 !important;
-    background: rgba(15, 23, 42, 0.92) !important;
-    border: 1px solid rgba(0, 240, 255, 0.45) !important;
-    border-radius: 14px !important;
-    padding: 8px 16px !important;
-    color: white !important;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 240, 255, 0.15) !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    backdrop-filter: blur(12px) !important;
-    font-family: var(--font-primary) !important;
-    pointer-events: none !important;
-    transition: opacity 0.2s ease !important;
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    z-index: 1045;
+    background: rgba(15, 23, 42, 0.88);
+    border: 1px solid rgba(160, 174, 192, 0.45);
+    border-radius: 12px;
+    padding: 8px 16px;
+    color: white;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 12px rgba(160, 174, 192, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(10px);
+    font-family: var(--font-primary);
+    transition: all 0.3s ease;
+}
+
+.top-left-hud-panel .hud-large-value {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 @media (max-width: 768px) {
     .top-left-hud-panel {
-        top: 10px !important;
-        left: 10px !important;
-        padding: 5px 12px !important;
-        border-radius: 10px !important;
+        top: 10px;
+        left: 10px;
+        padding: 5px 12px;
+        border-radius: 10px;
+    }
+    .top-left-hud-panel .hud-large-value {
+        font-size: 0.82rem;
     }
 }
 
@@ -1250,10 +1260,10 @@ html, body {
     flex-direction: column !important;
     align-items: center !important;
     background: rgba(15, 23, 42, 0.92) !important;
-    border: 1px solid rgba(0, 240, 255, 0.45) !important;
+    border: 1px solid rgba(160, 174, 192, 0.45) !important;
     border-radius: 20px !important;
     padding: 0 !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 240, 255, 0.15) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(160, 174, 192, 0.15) !important;
     backdrop-filter: blur(12px);
     font-family: var(--font-primary);
     width: max-content !important;
@@ -1280,10 +1290,10 @@ html, body {
     left: 50% !important;
     transform: translateX(-50%) !important;
     background: rgba(15, 23, 42, 0.95) !important;
-    border: 1px solid rgba(0, 240, 255, 0.5) !important;
+    border: 1px solid rgba(160, 174, 192, 0.5) !important;
     border-top: none !important;
     border-radius: 0 0 12px 12px !important;
-    color: #00f0ff !important;
+    color: #A0AEC0 !important;
     padding: 2px 16px !important;
     font-size: 0.7rem !important;
     font-weight: 800 !important;
@@ -1302,7 +1312,7 @@ html, body {
 
 .top-hud-edge-tab:hover,
 .top-hud-toggle-btn:hover {
-    background: rgba(0, 240, 255, 0.25) !important;
+    background: rgba(160, 174, 192, 0.25) !important;
     color: #ffffff !important;
 }
 
@@ -1314,13 +1324,13 @@ html, body {
 .top-hud-bar.hud-collapsed .top-hud-edge-tab,
 .top-hud-bar.hud-collapsed .top-hud-toggle-btn {
     bottom: -28px !important;
-    border-top: 1px solid rgba(0, 240, 255, 0.5) !important;
+    border-top: 1px solid rgba(160, 174, 192, 0.5) !important;
     border-radius: 0 0 14px 14px !important;
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%) !important;
-    color: #00f0ff !important;
+    color: #A0AEC0 !important;
     padding: 4px 18px !important;
     font-size: 0.75rem !important;
-    box-shadow: 0 4px 15px rgba(0, 240, 255, 0.35) !important;
+    box-shadow: 0 4px 15px rgba(160, 174, 192, 0.35) !important;
 }
 
 .hud-sim-controls {
@@ -1513,7 +1523,7 @@ html, body {
     margin-top: -36px;
     margin-left: -25px;
     border-radius: 50%;
-    border: 3px solid #00f0ff;
+    border: 3px solid #A0AEC0;
     pointer-events: none;
     animation: btnPulseRing 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
     z-index: 100;
@@ -1523,12 +1533,12 @@ html, body {
     0% {
         transform: scale(0.6);
         opacity: 1;
-        box-shadow: 0 0 10px #00f0ff, inset 0 0 10px #00f0ff;
+        box-shadow: 0 0 10px #A0AEC0, inset 0 0 10px #A0AEC0;
     }
     100% {
         transform: scale(2.2);
         opacity: 0;
-        box-shadow: 0 0 25px rgba(0, 240, 255, 0), inset 0 0 20px rgba(0, 240, 255, 0);
+        box-shadow: 0 0 25px rgba(160, 174, 192, 0), inset 0 0 20px rgba(160, 174, 192, 0);
     }
 }
 
@@ -1539,11 +1549,11 @@ html, body {
 
 @keyframes sidebarBeaconSweep {
     0% {
-        box-shadow: -10px 0 35px rgba(0, 240, 255, 0.9), 0 0 20px rgba(0, 240, 255, 0.6) inset;
-        border-color: #00f0ff;
+        box-shadow: -10px 0 35px rgba(160, 174, 192, 0.9), 0 0 20px rgba(160, 174, 192, 0.6) inset;
+        border-color: #A0AEC0;
     }
     50% {
-        box-shadow: 0 0 45px rgba(0, 240, 255, 0.8), 0 0 30px rgba(0, 240, 255, 0.5) inset;
+        box-shadow: 0 0 45px rgba(160, 174, 192, 0.8), 0 0 30px rgba(160, 174, 192, 0.5) inset;
         border-color: #f5d060;
     }
     100% {
@@ -1861,17 +1871,17 @@ html, body {
 /* Timer Badge in Top HUD Bar */
 .hud-timer-badge {
     background: rgba(15, 23, 42, 0.8) !important;
-    border: 1px solid rgba(0, 240, 255, 0.4) !important;
+    border: 1px solid rgba(160, 174, 192, 0.4) !important;
     border-radius: 20px !important;
     padding: 5px 14px !important;
-    color: #00f0ff !important;
+    color: #A0AEC0 !important;
     font-weight: 800 !important;
     font-size: 0.95rem !important;
     letter-spacing: 0.5px !important;
     display: inline-flex !important;
     align-items: center !important;
     font-family: 'Courier New', Courier, monospace !important;
-    box-shadow: 0 2px 10px rgba(0, 240, 255, 0.15) !important;
+    box-shadow: 0 2px 10px rgba(160, 174, 192, 0.15) !important;
 }
 
 /* Mobile Responsive Bottom HUD Bar & Touch Scroll */
@@ -1938,8 +1948,8 @@ html, body {
     justify-content: center !important;
     margin-left: 8px !important;
     margin-right: 4px !important;
-    background: linear-gradient(135deg, rgba(0, 240, 255, 0.25) 0%, rgba(59, 130, 246, 0.35) 100%) !important;
-    border: 1px solid rgba(0, 240, 255, 0.5) !important;
+    background: linear-gradient(135deg, rgba(160, 174, 192, 0.25) 0%, rgba(59, 130, 246, 0.35) 100%) !important;
+    border: 1px solid rgba(160, 174, 192, 0.5) !important;
     border-radius: 20px !important;
     color: #ffffff !important;
     font-weight: 800 !important;
@@ -1950,7 +1960,7 @@ html, body {
     display: inline-flex !important;
     align-items: center !important;
     gap: 6px !important;
-    box-shadow: 0 2px 10px rgba(0, 240, 255, 0.2) !important;
+    box-shadow: 0 2px 10px rgba(160, 174, 192, 0.2) !important;
     transition: all 0.2s ease !important;
     font-family: var(--font-primary) !important;
     height: auto !important;
@@ -1958,8 +1968,8 @@ html, body {
 }
 
 #sim-play-btn:hover {
-    background: linear-gradient(135deg, rgba(0, 240, 255, 0.4) 0%, rgba(59, 130, 246, 0.55) 100%) !important;
-    box-shadow: 0 4px 15px rgba(0, 240, 255, 0.4) !important;
+    background: linear-gradient(135deg, rgba(160, 174, 192, 0.4) 0%, rgba(59, 130, 246, 0.55) 100%) !important;
+    box-shadow: 0 4px 15px rgba(160, 174, 192, 0.4) !important;
     transform: translateY(-1px) !important;
 }
 
@@ -2094,4 +2104,111 @@ html, body {
     .top-hud-bar .hud-sim-controls {
         flex-shrink: 0 !important;
     }
+}
+
+/* ── Mobile Economy Report Modal ───────────────────────────── */
+@media (max-width: 768px) {
+    /* Make modal fill the screen properly */
+    #modalDetails .modal-card {
+        width: 96vw !important;
+        max-width: 96vw !important;
+        max-height: 90vh !important;
+        margin: auto !important;
+        border-radius: 14px !important;
+        overflow: hidden !important;
+    }
+
+    /* Scrollable body */
+    #modalDetails .modal-card-body {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 14px 12px !important;
+        max-height: calc(90vh - 120px) !important;
+    }
+
+    /* Stack grid to single column */
+    #modalDetails .game-reports > div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+    }
+
+    /* Readable row text */
+    #modalDetails .game-progress-info {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 5px 0 !important;
+        border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+        font-size: 0.82rem !important;
+        gap: 8px !important;
+    }
+
+    #modalDetails .game-progress-info .has-text-right {
+        text-align: right !important;
+        white-space: nowrap !important;
+        font-weight: 600 !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Section headers */
+    #modalDetails .game-reports h2 {
+        font-size: 1rem !important;
+        margin-top: 14px !important;
+        margin-bottom: 4px !important;
+    }
+
+    /* Header & footer */
+    #modalDetails .modal-card-head,
+    #modalDetails .modal-card-foot {
+        padding: 12px 16px !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+
+    #modalDetails .modal-card-title {
+        font-size: 0.95rem !important;
+    }
+
+    /* Buttons - easier to tap */
+    #modalDetails .report-export-btn,
+    #modalDetails .report-close-btn-footer {
+        padding: 10px 18px !important;
+        font-size: 0.85rem !important;
+        border-radius: 8px !important;
+        flex: 1 !important;
+        text-align: center !important;
+    }
+}
+
+/* Google Maps Autocomplete Dropdown Styling */
+.pac-container {
+    z-index: 99999 !important;
+    background-color: #1a233a !important;
+    border: 1px solid rgba(160, 174, 192, 0.4) !important;
+    border-radius: 8px !important;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6) !important;
+    margin-top: 4px !important;
+}
+.pac-item {
+    border-top: 1px solid rgba(160, 174, 192, 0.1) !important;
+    color: #cbd5e1 !important;
+    font-size: 0.8rem !important;
+    padding: 8px 12px !important;
+    cursor: pointer !important;
+}
+.pac-item:hover {
+    background-color: rgba(160, 174, 192, 0.15) !important;
+}
+.pac-item-query {
+    color: #ffffff !important;
+    font-size: 0.85rem !important;
+}
+.pac-matched {
+    color: #60a5fa !important;
+}
+.pac-icon {
+    display: none !important;
 }

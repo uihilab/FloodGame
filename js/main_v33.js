@@ -2540,6 +2540,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 updateTileInformationPanelOnMouseMove(row, column, clientX, clientY);
                 moveWireFrame_2(1, row, column);
             }
+        } else {
+            var tt = document.getElementById("tile-hover-tooltip");
+            if (tt) tt.classList.add("is-hidden");
         }
     }
 
@@ -2575,32 +2578,41 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
                     if (activeTool === "build") {
                         var selectVal = document.getElementById("buildingOptionsSelect").value;
+                        var cost = mitigationMetaData["add_structure"]["opts_values"][selectVal]["cost"];
+                        if (totalAvailableMoney < cost) { alert("Not enough budget!"); return; }
                         createBuilding(selectVal, row, column);
-                        expenses += mitigationMetaData["add_structure"]["opts_values"][selectVal]["cost"];
-                        totalAvailableMoney -= mitigationMetaData["add_structure"]["opts_values"][selectVal]["cost"];
+                        expenses += cost;
+                        totalAvailableMoney -= cost;
+                        // Update population baseline so new building counts toward safe %
+                        [initialPeople, initialEffectedPeople] = findNumberofEffectedPeople();
                     } else if (activeTool === "roads") {
+                        var cost = mitigationMetaData["add_structure"]["opts_values"]["road"]["cost"];
+                        if (totalAvailableMoney < cost) { alert("Not enough budget!"); return; }
                         createBuilding("road", row, column);
-                        expenses += mitigationMetaData["add_structure"]["opts_values"]["road"]["cost"];
-                        totalAvailableMoney -= mitigationMetaData["add_structure"]["opts_values"]["road"]["cost"];
+                        expenses += cost;
+                        totalAvailableMoney -= cost;
                     } else if (activeTool === "zone") {
                         var selectVal = document.querySelector("#change_tile_mit select").value;
+                        var cost = mitigationMetaData["change_tile"]["opts_values"][selectVal]["cost"];
+                        if (totalAvailableMoney < cost) { alert("Not enough budget!"); return; }
                         changeTileType(selectVal, row, column);
-                        expenses += mitigationMetaData["change_tile"]["opts_values"][selectVal]["cost"];
-                        totalAvailableMoney -= mitigationMetaData["change_tile"]["opts_values"][selectVal]["cost"];
+                        expenses += cost;
+                        totalAvailableMoney -= cost;
                     } else if (activeTool === "parks") {
+                        var cost = mitigationMetaData["add_structure"]["opts_values"]["t1"]["cost"];
+                        if (totalAvailableMoney < cost) { alert("Not enough budget!"); return; }
                         createBuilding("t1", row, column);
-                        expenses += mitigationMetaData["add_structure"]["opts_values"]["t1"]["cost"];
-                        totalAvailableMoney -= mitigationMetaData["add_structure"]["opts_values"]["t1"]["cost"];
+                        expenses += cost;
+                        totalAvailableMoney -= cost;
                     } else if (activeTool === "prevention") {
                         var selectVal = parseInt(document.querySelector("#flood_wall_mit select").value);
+                        var cost = (surfaceTiles[row][column] != 0)
+                            ? mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * buildingMetaDict[surfaceTiles[row][column]["type"]]["Perimeter"]
+                            : mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * 500;
+                        if (totalAvailableMoney < cost) { alert("Not enough budget!"); return; }
                         groundTiles[row][column].floodWall = selectVal;
-                        if (surfaceTiles[row][column] != 0){
-                            expenses += mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * buildingMetaDict[surfaceTiles[row][column]["type"]]["Perimeter"];
-                            totalAvailableMoney -= mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * buildingMetaDict[surfaceTiles[row][column]["type"]]["Perimeter"];
-                        } else {
-                            expenses += mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * 500;
-                            totalAvailableMoney -= mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * 500;
-                        }
+                        expenses += cost;
+                        totalAvailableMoney -= cost;
                         updateTileOptions(row, column);
                     }
 
@@ -2665,27 +2677,33 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function calculateArrayPosition(pos_x, pos_z, tileSize = 100, offset_x = 3900, offset_z = 5000) {
-        var roww = ((pos_x - (tileSize / 2)) + tileSize * (numberOfRows / 2)) / tileSize;
-        var columnn = -((pos_z + (tileSize / 2)) - (tileSize * (numberOfColumns / 2))) / tileSize;
 
-        var row = Math.round(numberOfRows - 1 - roww);
-        var column = Math.round(numberOfColumns - 1 - columnn);
+        var m, n, row, column, pos_xx, pos_zz;
+        var roww, columnn;
 
-        row = Math.max(0, Math.min(numberOfRows - 1, row));
-        column = Math.max(0, Math.min(numberOfColumns - 1, column));
+        roww = ((pos_x - (tileSize / 2)) + tileSize * (numberOfRows / 2)) / tileSize;
+
+        columnn = -((pos_z + (tileSize / 2)) - (tileSize * (numberOfColumns / 2))) / tileSize;
+
+        row = numberOfRows - roww - 1;
+        column = numberOfColumns - columnn - 1;
+        if (column == 0) {
+            column = 0;
+        }
 
         return [row, column];
+
     };
 
 
     function findPosition(instanceId, meshName) {
         var row, column, size;
 
-        if (dictInstancedIdtoSurfacePosition && dictInstancedIdtoSurfacePosition[meshName] && dictInstancedIdtoSurfacePosition[meshName][instanceId]) {
+        if (meshName == "road_v" || meshName == "tree" || meshName == "road_h" || meshName == "tree2") {
             row = dictInstancedIdtoSurfacePosition[meshName][instanceId][0];
             column = dictInstancedIdtoSurfacePosition[meshName][instanceId][1];
             size = 6;
-        } else if (meshDict && meshDict[meshName] && typeof meshDict[meshName].getMatrixAt === 'function') {
+        } else {
             var instanceMatrix_ = new THREE.Matrix4();
             var vector3Scale_ = new THREE.Vector3(1, 1, 1);
             var vector3Position_ = new THREE.Vector3(1, 1, 1);
@@ -2694,11 +2712,11 @@ async function main(opts, list_of_files, game_graphics_opt) {
             vector3Scale_.setFromMatrixScale(instanceMatrix_);
             [row, column] = calculateArrayPosition(vector3Position_.x, vector3Position_.z);
             size = findSize(vector3Scale_.x);
-        } else {
-            return null;
         }
 
+
         return [row, column, size];
+
     };
 
 
@@ -4424,21 +4442,17 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function updateTileInformationPanelForTile(row, column) {
-        row = Math.floor(row);
-        column = Math.floor(column);
         if (row < 0 || row >= 50 || column < 0 || column >= 50) return;
         if (!groundTiles || !groundTiles[row] || !groundTiles[row][column]) return;
 
-        // 1. Extract surface object (handles Arrays, Objects, or Primitive keys)
-        var typeName = "Open Land";
+        // 1. Determine Tile Type Name & People Count
+        var typeName = "Empty Land";
         var peopleCount = 0;
 
         if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] != 0) {
-            var rawSt = surfaceTiles[row][column];
-            var st = Array.isArray(rawSt) ? rawSt[0] : rawSt;
-            var typeKey = (st && typeof st === 'object') ? st.type : st;
-
-            if (st && typeof st === 'object' && typeof st.peopleOnIt === 'number') {
+            var st = surfaceTiles[row][column];
+            var typeKey = (typeof st === 'object') ? st.type : st;
+            if (typeof st === 'object' && typeof st.peopleOnIt === 'number') {
                 peopleCount = st.peopleOnIt;
             } else if (buildingMetaDict && buildingMetaDict[typeKey] && typeof buildingMetaDict[typeKey]["Capacity"] === 'number') {
                 peopleCount = buildingMetaDict[typeKey]["Capacity"];
@@ -4446,22 +4460,22 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
             if (buildingMetaDict && buildingMetaDict[typeKey] && buildingMetaDict[typeKey]["name"]) {
                 typeName = buildingMetaDict[typeKey]["name"];
-            } else if (typeKey === "road" || typeKey === "Road" || (typeof typeKey === 'string' && typeKey.startsWith("road"))) {
+            } else if (typeKey === "road" || typeKey === "Road") {
                 typeName = "Road";
-            } else if (typeKey === "t1" || typeKey === "park" || typeKey === "tree" || typeKey === "tree2") {
+            } else if (typeKey === "t1" || typeKey === "park") {
                 typeName = "Park / Trees";
-            } else if (typeKey) {
+            } else {
                 typeName = "Structure (" + typeKey + ")";
             }
         } else {
-            // Ground tile checks
-            var gt = groundTiles[row][column];
-            var gtType = (gt && gt.type) ? String(gt.type).toLowerCase() : "";
-            if (gtType === "water" || gtType.includes("water")) typeName = "River / Water";
-            else if (gtType === "parking_lot" || gtType.includes("parking")) typeName = "Parking Lot";
-            else if (gtType === "parks" || gtType === "park") typeName = "Park";
-            else if (gtType === "road" || gtType.includes("road")) typeName = "Road";
-            else if (gtType === "sand") typeName = "Sand / Beach";
+            // Ground tile
+            var gtType = groundTiles[row][column].type || "";
+            var lower = gtType.toLowerCase();
+            if (lower === "water" || lower.includes("water")) typeName = "River / Water";
+            else if (lower === "parking_lot" || lower.includes("parking")) typeName = "Parking Lot";
+            else if (lower === "parks" || lower === "park") typeName = "Park / Open Space";
+            else if (lower === "road" || lower.includes("road")) typeName = "Road";
+            else if (lower === "sand") typeName = "Sand / Beach";
             else typeName = "Open Land";
         }
 
@@ -4477,19 +4491,19 @@ async function main(opts, list_of_files, game_graphics_opt) {
         if (groundTiles[row][column].floodWall && groundTiles[row][column].floodWall > 0) {
             mitigations.push("Flood Wall (" + groundTiles[row][column].floodWall + "ft)");
         }
-        if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] != 0) {
-            var rawS = surfaceTiles[row][column];
-            var sObj = Array.isArray(rawS) ? rawS[0] : rawS;
-            if (typeof sObj === 'object') {
-                if (sObj.dryFloodproofing) mitigations.push("Dry Floodproof");
-                if (sObj.wetFloodproofing) mitigations.push("Wet Floodproof");
-                if (sObj.insurance) mitigations.push("Flood Insurance");
-                if (sObj.elevation && sObj.elevation > 0) mitigations.push("Elevated +" + sObj.elevation + "ft");
-            }
+        if (groundTiles[row][column].sandbag && groundTiles[row][column].sandbag > 0) {
+            mitigations.push("Sandbags (" + groundTiles[row][column].sandbag + "ft)");
+        }
+        if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && typeof surfaceTiles[row][column] === 'object') {
+            var s = surfaceTiles[row][column];
+            if (s.Dryfloodproofing && s.Dryfloodproofing != 0) mitigations.push("Dry Floodproof (" + s.Dryfloodproofing + "ft)");
+            if (s.Wetfloodproofing && s.Wetfloodproofing != 0) mitigations.push("Wet Floodproof (" + s.Wetfloodproofing + "ft)");
+            if (s.insurance) mitigations.push("Flood Insurance");
+            if (s.elevateStructure && s.elevateStructure > 0) mitigations.push("Elevated +" + s.elevateStructure + "ft");
         }
         var mitText = (mitigations.length > 0) ? mitigations.join(", ") : "None";
 
-        // 4. Populate Sidebar DOM Elements
+        // 4. Populate DOM Elements
         var values = document.querySelectorAll("#tile-information .has-text-right");
         if (values && values.length >= 4) {
             values[0].textContent = typeName;
@@ -4513,29 +4527,49 @@ async function main(opts, list_of_files, game_graphics_opt) {
         if (elRisk) elRisk.textContent = riskVal;
         if (elElev) elElev.textContent = elevVal;
         if (elMit) elMit.textContent = mitText;
-
-        // 5. Populate Top-Left Hover Badge
-        const tooltipName = document.getElementById("tooltip-tile-name");
-        const tooltipElev = document.getElementById("tooltip-tile-elev");
-        const tooltipRisk = document.getElementById("tooltip-tile-risk");
-
-        if (tooltipName) tooltipName.textContent = typeName + " [" + row + ", " + column + "]";
-        if (tooltipElev) tooltipElev.textContent = "Elev: " + elevVal;
-        if (tooltipRisk) {
-            tooltipRisk.textContent = "Status: " + riskVal;
-            tooltipRisk.style.color = (riskVal.toLowerCase().includes("risk") || riskVal.toLowerCase().includes("high"))
-                ? "#f87171" : "#4ade80";
-        }
     }
 
-    function updateTileInformationPanelOnMouseMove(row, column) {
+    function updateTileInformationPanelOnMouseMove(row, column, clientX, clientY) {
         if (!surfaceTiles || !surfaceTiles[row] || !groundTiles || !groundTiles[row]) return;
 
-        // Update tile data for the hovered block!
+        // Update the full tile inspector panel fields on hover (same data as tooltip pill)
         updateTileInformationPanelForTile(row, column);
 
+        // Update the floating tooltip pill
         var tt = document.getElementById("tile-hover-tooltip");
         if (tt) {
+            var typeName = "Empty Land";
+            if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] != 0) {
+                var st = surfaceTiles[row][column];
+                var typeKey = (typeof st === 'object') ? st.type : st;
+                if (buildingMetaDict && buildingMetaDict[typeKey] && buildingMetaDict[typeKey]["name"]) {
+                    typeName = buildingMetaDict[typeKey]["name"];
+                } else {
+                    typeName = "Structure";
+                }
+            } else {
+                var gtType = (groundTiles[row][column] && groundTiles[row][column].type) ? groundTiles[row][column].type.toLowerCase() : "";
+                if (gtType === "water" || gtType.includes("water")) typeName = "River / Water";
+                else if (gtType === "parking_lot" || gtType.includes("parking")) typeName = "Parking Lot";
+                else if (gtType === "parks" || gtType === "park") typeName = "Park";
+                else if (gtType === "road" || gtType.includes("road")) typeName = "Road";
+                else typeName = "Open Land";
+            }
+
+            var elev = (groundTiles[row][column] && groundTiles[row][column].elevation)
+                ? groundTiles[row][column].elevation.toFixed(1) : "40.0";
+            var risk = findRiskValue(row, column);
+            var nameEl = document.getElementById("tooltip-tile-name");
+            var elevEl = document.getElementById("tooltip-tile-elev");
+            var riskEl = document.getElementById("tooltip-tile-risk");
+            if (nameEl) nameEl.textContent = typeName;
+            if (elevEl) elevEl.textContent = "Elev: " + elev + "ft";
+            if (riskEl) {
+                riskEl.textContent = "Status: " + risk;
+                riskEl.style.color = (risk.toLowerCase().includes("risk") || risk.toLowerCase().includes("high"))
+                    ? "#f87171" : "#4ade80";
+            }
+
             tt.classList.remove("is-hidden");
         }
     };
@@ -5140,11 +5174,63 @@ var dictOfDefaultMaps = {
         "sources/maps/st_bernard/SurfaceTiles_v2.json?v=5",
         "sources/FloodTiles.json"
     ],
+    'baton_rouge': [
+        "sources/maps/baton_rouge/GroundTiles.json",
+        "sources/maps/baton_rouge/SurfaceTiles.json",
+        "sources/maps/baton_rouge/SurfaceTiles_v2.json",
+        "sources/FloodTiles.json"
+    ],
 };
 
 
 //main();
 
+// ── Custom City Map Generator ────────────────────────────────────────────────
+function generateCustomMap() {
+    const input = document.getElementById("custom-city-input");
+    const status = document.getElementById("custom-city-status");
+    const location = input ? input.value.trim() : "";
+    if (!location) {
+        if (status) status.textContent = "Please enter a city name.";
+        return;
+    }
+
+    if (status) status.textContent = "Generating... (~60 sec)";
+    const btn = document.querySelector("#custom_city_card button");
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...'; }
+
+    fetch("http://localhost:3005/generate-map", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ location })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) throw new Error(data.error || "Generation failed");
+
+        // Inject map data directly into game state
+        groundTiles = data.ground;
+        surfaceTiles = data.surface;
+        surfaceTilesV2 = data.surface2;
+
+        // Set city name in HUD
+        const cityName = data.meta.location_query || location;
+        document.querySelectorAll("#hud-city-name, .hud-city-name-text").forEach(el => {
+            el.textContent = cityName;
+        });
+
+        if (status) status.textContent = "Done! Starting game...";
+        setTimeout(() => {
+            clearMapsUI();
+            main();
+        }, 500);
+    })
+    .catch(err => {
+        if (status) status.textContent = "Error: " + err.message;
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-cog"></i> Generate'; }
+    });
+}
+window.generateCustomMap = generateCustomMap;
 
 
 function clearMapsUI(){
@@ -5180,7 +5266,8 @@ function startGame(name){
         'greenville': 'Greenville, MS',
         'st_bernard': 'St. Bernard Parish, LA',
         'iowa_city': 'Iowa City, IA',
-        'cedar_rapids': 'Cedar Rapids, IA'
+        'cedar_rapids': 'Cedar Rapids, IA',
+        'baton_rouge': 'Baton Rouge, LA'
     };
     var mapKey = name[1];
     var displayName = mapNames[mapKey] || 'Iowa City, IA';
@@ -5190,7 +5277,7 @@ function startGame(name){
     });
 
     // Show top and bottom HUD bars, but keep left sidebar and AI tutor drawer closed!
-    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .top-hud-toggle-btn, #tile-hover-tooltip");
+    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .top-hud-toggle-btn");
     for (var i = 0; i < hudEls.length; i++) {
         hudEls[i].classList.remove("is-hidden");
     }
