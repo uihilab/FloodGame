@@ -46,6 +46,17 @@ app.post("/log", async (req, res) => {
     }
 });
 
+// GET /logs — retrieve the 100 most recent chat logs
+app.get("/logs", async (req, res) => {
+    try {
+        const result = await pool.query("SELECT * FROM ai_chat_logs ORDER BY timestamp DESC LIMIT 100");
+        res.json(result.rows);
+    } catch (err) {
+        console.error("DB select error:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 const PORT = process.env.PORT || 3005;
 const GAME_DIR = path.join(__dirname);
 
