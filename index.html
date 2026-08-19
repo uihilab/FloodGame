@@ -1454,21 +1454,31 @@ function debouncedCitySearch(query) {
         renderSuggestions(localMatches);
     }
 
-    // 2. Query Nominatim with email header to bypass strict rate limit blocks
+    // 2. Query Nominatim (with email header) and filter in JS to support small towns/villages
     citySearchTimeout = setTimeout(() => {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&featuretype=city&email=campbell.endries@gmail.com`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&email=campbell.endries@gmail.com`;
         fetch(url)
             .then(r => r.json())
             .then(data => {
-                // Collect remote city display names
-                const remoteCities = data.map(item => item.display_name);
+                // Filter to keep cities, towns, villages, hamlets, suburbs, and administrative boundaries (excluding street addresses / shops)
+                const allowedTypes = ["city", "town", "village", "hamlet", "suburb", "municipality", "administrative"];
+                const filtered = data.filter(item => {
+                    const cls = item.class;
+                    const type = item.type;
+                    const addresstype = item.addresstype;
+                    return (cls === "boundary" && type === "administrative") ||
+                           (cls === "place" && allowedTypes.includes(type)) ||
+                           allowedTypes.includes(addresstype);
+                });
+
+                // Collect display names
+                const remoteCities = filtered.map(item => item.display_name);
                 
                 // Merge local and remote, removing duplicates
                 const merged = Array.from(new Set([...localMatches, ...remoteCities])).slice(0, 5);
                 renderSuggestions(merged);
             })
             .catch(() => {
-                // Fallback completely to local matches if network/Nominatim is blocked
                 if (localMatches.length > 0) {
                     renderSuggestions(localMatches);
                 } else if (container) {
