@@ -208,6 +208,32 @@ def detect_water_tiles(elements, rotate_fn, lat_min, lat_max, lon_min, lon_max):
                     if 0 <= nr < ROWS and 0 <= nc < COLS:
                         extra.add((nr, nc))
             water_cells.update(extra)
+
+    # Filter out small isolated water cells (like private pools or fountains) that create holes in the terrain mesh
+    if water_cells:
+        visited = set()
+        filtered_water_cells = set()
+        for cell in list(water_cells):
+            if cell in visited:
+                continue
+            component = []
+            queue = [cell]
+            visited.add(cell)
+            while queue:
+                curr = queue.pop(0)
+                component.append(curr)
+                cr, cc = curr
+                for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
+                    nr, nc = cr+dr, cc+dc
+                    neighbor = (nr, nc)
+                    if neighbor in water_cells and neighbor not in visited:
+                        visited.add(neighbor)
+                        queue.append(neighbor)
+            # Only retain water bodies that span at least 6 cells (about 100 meters long)
+            if len(component) >= 6:
+                filtered_water_cells.update(component)
+        water_cells = filtered_water_cells
+
     print(f"   Detected {len(water_cells)} water grid cells.")
     return water_cells
 
