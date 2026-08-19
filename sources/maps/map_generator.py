@@ -363,28 +363,52 @@ def main():
     for (r, c) in water_cells:
         grid_class[r][c] = "water"
 
-    ROAD_TYPES = {
-        "motorway", "trunk", "primary", "secondary", "tertiary",
-        "residential", "motorway_link", "trunk_link", "primary_link",
-        "secondary_link", "tertiary_link", "unclassified"
-    }
+    ROAD_TYPES = {"primary", "secondary", "tertiary", "residential", "trunk"}
 
+    # Count road points per row/col to find dominant grid lines
+    row_counts = [0] * ROWS
+    col_counts = [0] * COLS
     for el in elements:
         tags = el.get("tags", {})
-        hw = tags.get("highway", "")
-        if hw not in ROAD_TYPES:
+        if tags.get("highway") not in ROAD_TYPES:
             continue
         geom = el.get("geometry", [])
-        pts = [get_grid_coord(pt["lat"], pt["lon"], rotate_fn, lat_min, lat_max, lon_min, lon_max) for pt in geom]
-        # Draw connected lines between consecutive road points
-        for i in range(len(pts)):
-            r, c = pts[i]
+        for pt in geom:
+            r, c = get_grid_coord(pt["lat"], pt["lon"], rotate_fn, lat_min, lat_max, lon_min, lon_max)
+            row_counts[r] += 1
+            col_counts[c] += 1
+
+    # Find dominant grid-aligned rows and columns, keeping them spaced out
+    def find_grid_streets(counts, min_spacing=6, threshold=5):
+        streets = []
+        for i in range(len(counts)):
+            if counts[i] >= threshold:
+                is_max = True
+                for neighbor in range(max(0, i - min_spacing), min(len(counts), i + min_spacing + 1)):
+                    if counts[neighbor] > counts[i]:
+                        is_max = False
+                        break
+                if is_max and i not in streets:
+                    if not any(abs(i - s) < min_spacing for s in streets):
+                        streets.append(i)
+        return streets
+
+    selected_rows = find_grid_streets(row_counts, min_spacing=6, threshold=5)
+    selected_cols = find_grid_streets(col_counts, min_spacing=6, threshold=5)
+
+    # Fallback to standard backup grid if too few roads are found
+    if len(selected_rows) < 2: selected_rows = [12, 24, 36, 44]
+    if len(selected_cols) < 2: selected_cols = [12, 24, 36, 44]
+
+    # Draw continuous grid streets
+    for r in selected_rows:
+        for c in range(COLS):
             if grid_class[r][c] not in ("water",):
                 grid_class[r][c] = "road"
-            if i > 0:
-                for lr, lc in bresenham_line(pts[i-1][0], pts[i-1][1], r, c):
-                    if 0 <= lr < ROWS and 0 <= lc < COLS and grid_class[lr][lc] not in ("water",):
-                        grid_class[lr][lc] = "road"
+    for c in selected_cols:
+        for r in range(ROWS):
+            if grid_class[r][c] not in ("water",):
+                grid_class[r][c] = "road"
 
     for el in elements:
         tags = el.get("tags", {})
@@ -424,6 +448,34 @@ def main():
                 grid_class[r][c] = "building"
                 building_types[r][c] = s_type
                 building_counts[s_type] = building_counts.get(s_type, 0) + 1
+
+    # Apply terrain smoothing and river slope blending
+    print("\n[Step 8.5] Smoothing terrain mesh and blending river slopes...")
+    for _ in range(3):
+        smoothed = [0] * len(elevations)
+        for r in range(ROWS):
+            for c in range(COLS):
+                val_sum, val_count = 0, 0
+                for dr in (-1, 0, 1):
+                    for dc in (-1, 0, 1):
+                        nr, nc = r + dr, c + dc
+                        if 0 <= nr < ROWS and 0 <= nc < COLS:
+                            val_sum += elevations[nr * COLS + nc]
+                            val_count += 1
+                smoothed[r * COLS + c] = val_sum / val_count
+        elevations = smoothed
+
+    if water_cells:
+        emin_raw = min(elevations)
+        for r in range(ROWS):
+            for c in range(COLS):
+                idx = r * COLS + c
+                min_dist = min(abs(r - wr) + abs(c - wc) for wr, wc in water_cells)
+                if min_dist > 0 and min_dist <= 6:
+                    factor = min_dist / 6.0
+                    elevations[idx] = emin_raw + (elevations[idx] - emin_raw) * factor
+
+    emin, emax = min(elevations), max(elevations)
 
     print(f"   Buildings: {building_counts}")
 
