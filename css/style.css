@@ -2212,3 +2212,10 @@ html, body {
 .pac-icon {
     display: none !important;
 }
+
+/* Premium Custom City Generator Hover Effects */
+#custom_city_section:hover {
+    border-color: rgba(96, 165, 250, 0.45) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 18px rgba(96, 165, 250, 0.15) !important;
+    transform: translateY(-2px);
+}
