@@ -163,7 +163,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
     }
 
     // Apply Laplacian smoothing filter for St. Bernard Parish map to soften sharp levee steps
-    if (list_of_files && list_of_files[0] && list_of_files[0].toLowerCase().includes("st_bernard")) {
+    if (list_of_files && typeof list_of_files[0] === "string" && list_of_files[0].toLowerCase().includes("st_bernard")) {
         var iterations = 3;
         for (var iter = 0; iter < iterations; iter++) {
             var newElevations = [];
@@ -200,7 +200,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
     }
 
     // Procedurally add parking lots next to civic and commercial buildings in Greenville and St. Bernard
-    if (list_of_files && list_of_files[0]) {
+    if (list_of_files && typeof list_of_files[0] === "string") {
         var mapPath = list_of_files[0].toLowerCase();
         if (mapPath.includes("greenville") || mapPath.includes("st_bernard")) {
             if (!countMap["parking"]) countMap["parking"] = 0;
@@ -771,7 +771,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 obj = surfaceTiles_v2[row][column];
                 // Procedurally populate empty grass cells with trees ONLY for St. Bernard and Greenville maps
                 var isGreenvilleOrStBernard = false;
-                if (typeof list_of_files !== "undefined" && list_of_files && list_of_files[0]) {
+                if (typeof list_of_files !== "undefined" && list_of_files && typeof list_of_files[0] === "string") {
                     var path = list_of_files[0].toLowerCase();
                     if (path.includes("greenville") || path.includes("st_bernard")) {
                         isGreenvilleOrStBernard = true;
@@ -5214,9 +5214,9 @@ function generateCustomMap() {
 
         // Register custom map files dynamically in game loader dictionary
         dictOfDefaultMaps['custom'] = [
-            "sources/maps/custom/GroundTiles.json",
-            "sources/maps/custom/SurfaceTiles.json",
-            "sources/maps/custom/SurfaceTiles_v2.json",
+            data.ground,
+            data.surface,
+            data.surface2,
             "sources/FloodTiles.json"
         ];
 
