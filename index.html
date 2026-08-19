@@ -1406,7 +1406,7 @@ function debouncedCitySearch(query) {
     }
 
     citySearchTimeout = setTimeout(() => {
-        fetch(`http://localhost:3005/suggest-cities?q=${encodeURIComponent(query)}`)
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
             .then(r => r.json())
             .then(data => {
                 if (!container) return;

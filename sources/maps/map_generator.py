@@ -212,6 +212,36 @@ def detect_water_tiles(elements, rotate_fn, lat_min, lat_max, lon_min, lon_max):
     return water_cells
 
 
+def bresenham_line(r0, c0, r1, c1):
+    """Yield all grid cells on the line from (r0,c0) to (r1,c1)."""
+    cells = []
+    dr = abs(r1 - r0)
+    dc = abs(c1 - c0)
+    r, c = r0, c0
+    sr = 1 if r1 > r0 else -1
+    sc = 1 if c1 > c0 else -1
+    if dc > dr:
+        err = dc / 2
+        while c != c1:
+            cells.append((r, c))
+            err -= dr
+            if err < 0:
+                r += sr
+                err += dc
+            c += sc
+    else:
+        err = dr / 2
+        while r != r1:
+            cells.append((r, c))
+            err -= dc
+            if err < 0:
+                c += sc
+                err += dr
+            r += sr
+    cells.append((r1, c1))
+    return cells
+
+
 def detect_flood_edge(water_cells):
     if not water_cells:
         return "west"
@@ -333,14 +363,28 @@ def main():
     for (r, c) in water_cells:
         grid_class[r][c] = "water"
 
+    ROAD_TYPES = {
+        "motorway", "trunk", "primary", "secondary", "tertiary",
+        "residential", "motorway_link", "trunk_link", "primary_link",
+        "secondary_link", "tertiary_link", "unclassified"
+    }
+
     for el in elements:
         tags = el.get("tags", {})
-        if not tags.get("highway"):
+        hw = tags.get("highway", "")
+        if hw not in ROAD_TYPES:
             continue
-        for pt in el.get("geometry", []):
-            r, c = get_grid_coord(pt["lat"], pt["lon"], rotate_fn, lat_min, lat_max, lon_min, lon_max)
+        geom = el.get("geometry", [])
+        pts = [get_grid_coord(pt["lat"], pt["lon"], rotate_fn, lat_min, lat_max, lon_min, lon_max) for pt in geom]
+        # Draw connected lines between consecutive road points
+        for i in range(len(pts)):
+            r, c = pts[i]
             if grid_class[r][c] not in ("water",):
                 grid_class[r][c] = "road"
+            if i > 0:
+                for lr, lc in bresenham_line(pts[i-1][0], pts[i-1][1], r, c):
+                    if 0 <= lr < ROWS and 0 <= lc < COLS and grid_class[lr][lc] not in ("water",):
+                        grid_class[lr][lc] = "road"
 
     for el in elements:
         tags = el.get("tags", {})

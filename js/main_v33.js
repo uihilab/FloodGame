@@ -5208,21 +5208,34 @@ function generateCustomMap() {
     .then(data => {
         if (!data.success) throw new Error(data.error || "Generation failed");
 
-        // Inject map data directly into game state
-        groundTiles = data.ground;
-        surfaceTiles = data.surface;
-        surfaceTilesV2 = data.surface2;
+        // Register custom map files dynamically in game loader dictionary
+        dictOfDefaultMaps['custom'] = [
+            "sources/maps/custom/GroundTiles.json",
+            "sources/maps/custom/SurfaceTiles.json",
+            "sources/maps/custom/SurfaceTiles_v2.json",
+            "sources/FloodTiles.json"
+        ];
 
-        // Set city name in HUD
-        const cityName = data.meta.location_query || location;
-        document.querySelectorAll("#hud-city-name, .hud-city-name-text").forEach(el => {
-            el.textContent = cityName;
-        });
+        // Store custom city name globally for HUD display
+        window.customCityName = data.meta.location_query || location;
 
         if (status) status.textContent = "Done! Starting game...";
+
+        // Read graphics selection from DOM options
+        let graphics = 1;
+        for (let radiobtn of document.querySelectorAll('input[name="game-graphics"]')){
+            if (radiobtn.checked){
+                graphics = parseInt(radiobtn.value);
+            }
+        }
+
         setTimeout(() => {
-            clearMapsUI();
-            main();
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-cog"></i> Generate'; }
+            if (status) status.textContent = "";
+            input.value = "";
+            
+            // Kick off game load via the official pipeline
+            startGame([0, 'custom', graphics]);
         }, 500);
     })
     .catch(err => {
@@ -5270,7 +5283,7 @@ function startGame(name){
         'baton_rouge': 'Baton Rouge, LA'
     };
     var mapKey = name[1];
-    var displayName = mapNames[mapKey] || 'Iowa City, IA';
+    var displayName = (mapKey === 'custom' && window.customCityName) ? window.customCityName : (mapNames[mapKey] || 'Iowa City, IA');
     var cityEls = document.querySelectorAll("#hud-city-name, .hud-city-name-text");
     cityEls.forEach(function(el) {
         el.textContent = displayName;

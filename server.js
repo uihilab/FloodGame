@@ -4,7 +4,6 @@ const cors = require("cors");
 const { exec } = require("child_process");
 const path = require("path");
 const fs = require("fs");
-const https = require("https");
 
 const app = express();
 app.use(express.json());
@@ -21,36 +20,6 @@ const pool = new Pool({
 
 app.get("/health", (req, res) => {
     res.json({ status: "ok" });
-});
-
-// GET /suggest-cities — queries OpenStreetMap Nominatim for suggestions with custom headers
-app.get("/suggest-cities", (req, res) => {
-    const query = req.query.q;
-    if (!query) return res.json([]);
-
-    const options = {
-        hostname: "nominatim.openstreetmap.org",
-        path: `/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
-        headers: {
-            "User-Agent": "FloodGameMapGenerator/2.0 (campbell.endries@tulane.edu)",
-            "Referer": "https://github.com/uihilab/FloodGame"
-        }
-    };
-
-    https.get(options, (apiRes) => {
-        let data = "";
-        apiRes.on("data", (chunk) => { data += chunk; });
-        apiRes.on("end", () => {
-            try {
-                res.json(JSON.parse(data));
-            } catch (e) {
-                res.json([]);
-            }
-        });
-    }).on("error", (err) => {
-        console.error("Nominatim proxy error:", err);
-        res.json([]);
-    });
 });
 
 // POST /log — body: { session_id, location, role, message }
