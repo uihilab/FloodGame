@@ -1394,7 +1394,17 @@ function initMap() {
 </script>
 
 <script>
-// Custom Keyless City Autocomplete using OpenStreetMap Nominatim
+// Custom Keyless City Autocomplete using OpenStreetMap Nominatim and a local popular fallback list
+const POPULAR_CITIES = [
+    "New Orleans, LA", "Baton Rouge, LA", "Lafayette, LA", "Shreveport, LA", "Monroe, LA", "Lake Charles, LA",
+    "Iowa City, IA", "Cedar Rapids, IA", "Des Moines, IA", "Davenport, IA", "Ames, IA", "Dubuque, IA",
+    "Nashville, TN", "Memphis, TN", "Knoxville, TN", "Chattanooga, TN",
+    "Houston, TX", "Austin, TX", "Dallas, TX", "San Antonio, TX", "El Paso, TX",
+    "Miami, FL", "Tampa, FL", "Orlando, FL", "Jacksonville, FL", "Tallahassee, FL",
+    "Atlanta, GA", "Savannah, GA", "Chicago, IL", "St. Louis, MO", "Kansas City, MO",
+    "New York, NY", "Los Angeles, CA", "Seattle, WA", "Denver, CO", "Boston, MA", "Philadelphia, PA"
+];
+
 let citySearchTimeout = null;
 
 function debouncedCitySearch(query) {
@@ -1405,42 +1415,67 @@ function debouncedCitySearch(query) {
         return;
     }
 
+    // 1. Show local matches instantly (no API delay, rate-limit proof)
+    const localMatches = POPULAR_CITIES.filter(city => 
+        city.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 3);
+
+    function renderSuggestions(suggestionsList) {
+        if (!container) return;
+        container.innerHTML = "";
+        if (suggestionsList.length === 0) {
+            container.style.display = "none";
+            return;
+        }
+        suggestionsList.forEach(item => {
+            const div = document.createElement("div");
+            div.style.padding = "8px 12px";
+            div.style.color = "#cbd5e1";
+            div.style.fontSize = "0.75rem";
+            div.style.cursor = "pointer";
+            div.style.borderBottom = "1px solid rgba(160, 174, 192, 0.1)";
+            div.style.textAlign = "left";
+            div.textContent = item;
+
+            div.onmouseover = () => { div.style.backgroundColor = "rgba(160, 174, 192, 0.15)"; };
+            div.onmouseout = () => { div.style.backgroundColor = "transparent"; };
+
+            div.onclick = () => {
+                document.getElementById("custom-city-input").value = item;
+                container.style.display = "none";
+            };
+            container.appendChild(div);
+        });
+        container.style.display = "flex";
+    }
+
+    // Pre-render local matches
+    if (localMatches.length > 0) {
+        renderSuggestions(localMatches);
+    }
+
+    // 2. Query Nominatim with email header to bypass strict rate limit blocks
     citySearchTimeout = setTimeout(() => {
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&featuretype=city`)
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&featuretype=city&email=campbell.endries@tulane.edu`;
+        fetch(url)
             .then(r => r.json())
             .then(data => {
-                if (!container) return;
-                container.innerHTML = "";
-                if (data.length === 0) {
-                    container.style.display = "none";
-                    return;
-                }
-                data.forEach(item => {
-                    const div = document.createElement("div");
-                    div.style.padding = "8px 12px";
-                    div.style.color = "#cbd5e1";
-                    div.style.fontSize = "0.75rem";
-                    div.style.cursor = "pointer";
-                    div.style.borderBottom = "1px solid rgba(160, 174, 192, 0.1)";
-                    div.style.textAlign = "left";
-                    div.textContent = item.display_name;
-
-                    // Hover styles
-                    div.onmouseover = () => { div.style.backgroundColor = "rgba(160, 174, 192, 0.15)"; };
-                    div.onmouseout = () => { div.style.backgroundColor = "transparent"; };
-
-                    div.onclick = () => {
-                        document.getElementById("custom-city-input").value = item.display_name;
-                        container.style.display = "none";
-                    };
-                    container.appendChild(div);
-                });
-                container.style.display = "flex";
+                // Collect remote city display names
+                const remoteCities = data.map(item => item.display_name);
+                
+                // Merge local and remote, removing duplicates
+                const merged = Array.from(new Set([...localMatches, ...remoteCities])).slice(0, 5);
+                renderSuggestions(merged);
             })
             .catch(() => {
-                if (container) container.style.display = "none";
+                // Fallback completely to local matches if network/Nominatim is blocked
+                if (localMatches.length > 0) {
+                    renderSuggestions(localMatches);
+                } else if (container) {
+                    container.style.display = "none";
+                }
             });
-    }, 400);
+    }, 300);
 }
 
 // Close suggestion box when clicking away
