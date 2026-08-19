@@ -2687,6 +2687,10 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         row = numberOfRows - roww - 1;
         column = numberOfColumns - columnn - 1;
+        
+        row = Math.round(row);
+        column = Math.round(column);
+
         if (column == 0) {
             column = 0;
         }
