@@ -389,6 +389,8 @@ html, body {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     backdrop-filter: blur(8px);
     align-self: center;
+    position: relative !important;
+    z-index: 205 !important;
 }
 
 @media (max-width: 600px) {
@@ -438,6 +440,8 @@ html, body {
     align-self: center !important;
     height: auto !important;
     line-height: 1 !important;
+    position: relative !important;
+    z-index: 205 !important;
 }
 
 /* Pre-Selection / Static State */
