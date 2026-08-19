@@ -194,7 +194,7 @@
  } else {
  return "Budget Strategy ($"+ budgetMillions + "M remaining): Allocate funds by building high-elevation Flood Walls ($1.2M) along primary riverfront channels first. Reserve 20% of budget for targeted Sandbags during sudden crest spikes!";
  }
- } else if (lower.includes("critical") || lower.includes("priority") || lower.includes("structures") || lower.includes("important")) {
+ } else if (lower.includes("critical") || lower.includes("priority") || lower.includes("structures") || lower.includes("important") || lower.includes("focus on") || lower.includes("what to save") || lower.includes("protect") || lower.includes("saving") || lower.includes("save")) {
  if (cityName.toLowerCase().includes("des moines")) {
  return "Critical Buildings in Des Moines: Submerged Water Works plant (Wat), Downtown Commercial district (Com), and Police/Fire Stations. Protecting Water Works preserves safe drinking water for the city!";
  } else if (cityName.toLowerCase().includes("st. bernard")) {
@@ -205,17 +205,17 @@
  return "Critical Buildings in "+ cityName + ": Hospitals (Hos), Water Infrastructure (Wat), Police/Fire Stations, and High-Density Residential blocks (Res3). Focus flood walls here first!";
  }
  } else if (lower.includes("build first") || lower.includes("what to build") || lower.includes("start") || lower.includes("recommendation")) {
- return "Action Plan for "+ cityName + ": 1) Toggle RISK on your HUD to locate purple/red danger tiles. 2) Place Flood Walls along low riverbanks. 3) Add Sandbags in front of Hospitals and Water Utilities!";
+ return "Action Plan for "+ cityName + ": 1) Toggle RISK on your HUD to locate red/yellow danger tiles. 2) Place Flood Walls along low riverbanks. 3) Add Sandbags in front of Hospitals and Water Utilities!";
  } else if (lower.includes("wall") || lower.includes("sandbag") || lower.includes("barrier") || lower.includes("hesco")) {
  return "️ Flood Walls provide 100% elevation protection against high crests, while Sandbags are low-cost emergency barriers ($150k). Use Flood Walls along main river channels and Sandbags for quick perimeter defense!";
  } else if (lower.includes("wet") || lower.includes("dry") || lower.includes("proofing")) {
  return "Dry Floodproofing creates a waterproof seal around structure walls (1-4 ft). Wet Floodproofing allows water into lower utility areas to equalize pressure and reduce structural collapse risk.";
- } else if (lower.includes("risk") || lower.includes("grid") || lower.includes("purple") || lower.includes("yellow") || lower.includes("red")) {
+ } else if (lower.includes("risk") || lower.includes("grid") || lower.includes("yellow") || lower.includes("red")) {
  return "️ Toggle the RISK button on your HUD to highlight vulnerable tiles. Red tiles indicate high flood hazard, yellow indicates moderate risk, and white is safe ground!";
  } else if (lower.includes("population") || lower.includes("people") || lower.includes("happy")) {
  return "SAFE POPULATION shows the percentage of residents protected from floodwaters. Keep it at 100% by protecting high-density residential blocks (Res1, Res2, Res3)!";
  } else {
- return "I am monitoring "+ cityName + "(Current Budget: $"+ budgetMillions + "M). Check your Risk Overlay (purple grid) and place Flood Walls in front of low-elevation riverbank tiles!";
+ return "I am monitoring "+ cityName + "(Current Budget: $"+ budgetMillions + "M). Check your Risk Overlay (red/yellow grid) and place Flood Walls in front of low-elevation riverbank tiles!";
  }
  }
 
