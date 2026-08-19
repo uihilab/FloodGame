@@ -1138,22 +1138,22 @@
  <div class="menu-title-badge">Hydrological Simulation &amp; Mitigation Sandbox</div>
  </div>
  <!-- Map Selection Tabs -->
- <div class="tabs is-toggle is-fullwidth" style="margin-bottom: 20px; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-   <ul style="border: none;">
-     <li id="tab-predefined" class="is-active" onclick="switchMapSelectTab('predefined')" style="margin: 0;">
-       <a style="border-radius: 10px 0 0 10px; background: rgba(30,41,59,0.6); color: #cbd5e1; border: 1px solid rgba(160,174,192,0.3); font-weight: 700; transition: all 0.2s;">
-         <i class="fas fa-map" style="margin-right: 8px;"></i>
-         <span>Predefined Scenarios</span>
-       </a>
-     </li>
-     <li id="tab-custom" onclick="switchMapSelectTab('custom')" style="margin: 0;">
-       <a style="border-radius: 0 10px 10px 0; background: rgba(30,41,59,0.6); color: #cbd5e1; border: 1px solid rgba(160,174,192,0.3); border-left: none; font-weight: 700; transition: all 0.2s;">
-         <i class="fas fa-tools" style="margin-right: 8px;"></i>
-         <span>Custom City Sandbox</span>
-       </a>
-     </li>
-   </ul>
- </div>
+  <div class="tabs is-toggle is-fullwidth" style="margin-bottom: 20px; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    <ul style="border: none;">
+      <li id="tab-predefined" class="is-active" onclick="switchMapSelectTab('predefined')" style="margin: 0;">
+        <a style="border-radius: 10px 0 0 10px; font-weight: 700; transition: all 0.2s;">
+          <i class="fas fa-map" style="margin-right: 8px;"></i>
+          <span>Predefined Locations</span>
+        </a>
+      </li>
+      <li id="tab-custom" onclick="switchMapSelectTab('custom')" style="margin: 0;">
+        <a style="border-radius: 0 10px 10px 0; border-left: none; font-weight: 700; transition: all 0.2s;">
+          <i class="fas fa-tools" style="margin-right: 8px;"></i>
+          <span>Custom Location</span>
+        </a>
+      </li>
+    </ul>
+  </div>
 
  <div class="map-selection-grid" id="test2">
  <div id="iowa_city" class="map-card map-option" onclick="changeColorOfPredefinedMaps(this)">
@@ -1219,17 +1219,23 @@
      const customTab = document.getElementById("tab-custom");
      const grid = document.getElementById("test2");
      const sandbox = document.getElementById("custom_city_section");
+     const settings = document.querySelector(".menu-settings-row");
+     const launchBtn = document.getElementById("start-map-init");
      
      if (mode === "predefined") {
          if (predefinedTab) predefinedTab.classList.add("is-active");
          if (customTab) customTab.classList.remove("is-active");
          if (grid) grid.style.display = "grid";
          if (sandbox) sandbox.style.display = "none";
+         if (settings) settings.style.display = "flex";
+         if (launchBtn) launchBtn.style.display = "block";
      } else {
          if (predefinedTab) predefinedTab.classList.remove("is-active");
          if (customTab) customTab.classList.add("is-active");
          if (grid) grid.style.display = "none";
          if (sandbox) sandbox.style.display = "flex";
+         if (settings) settings.style.display = "none";
+         if (launchBtn) launchBtn.style.display = "none";
      }
  }
  </script>

@@ -2219,3 +2219,22 @@ html, body {
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 18px rgba(96, 165, 250, 0.15) !important;
     transform: translateY(-2px);
 }
+
+/* Premium pressable styles for map select tabs */
+.tabs li a {
+    cursor: pointer !important;
+    background: rgba(30, 41, 59, 0.6) !important;
+    color: #94a3b8 !important;
+    border: 1.5px solid rgba(160, 174, 192, 0.3) !important;
+}
+.tabs li:not(.is-active) a:hover {
+    background: rgba(45, 55, 72, 0.8) !important;
+    color: #ffffff !important;
+    border-color: rgba(96, 165, 250, 0.5) !important;
+}
+.tabs li.is-active a {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+    color: #ffffff !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.45) !important;
+}
