@@ -371,7 +371,11 @@ def main():
     emin, emax = min(elevations), max(elevations)
 
     print("\n[Step 3] Fetching OpenStreetMap data...")
-    elements = fetch_osm(lat_min, lat_max, lon_min, lon_max)
+    try:
+        elements = fetch_osm(lat_min, lat_max, lon_min, lon_max)
+    except Exception as e:
+        print(f"   OSM fetch failed ({e}). Proceeding with procedural street grid and building fallback...")
+        elements = []
 
     print("\n[Step 4] Detecting street grid angle...")
     angle = args.rotation if args.rotation is not None else detect_street_angle(elements, clat)
