@@ -465,16 +465,6 @@ def main():
                 smoothed[r * COLS + c] = val_sum / val_count
         elevations = smoothed
 
-    if water_cells:
-        emin_raw = min(elevations)
-        for r in range(ROWS):
-            for c in range(COLS):
-                idx = r * COLS + c
-                min_dist = min(abs(r - wr) + abs(c - wc) for wr, wc in water_cells)
-                if min_dist > 0 and min_dist <= 6:
-                    factor = min_dist / 6.0
-                    elevations[idx] = emin_raw + (elevations[idx] - emin_raw) * factor
-
     emin, emax = min(elevations), max(elevations)
 
     print(f"   Buildings: {building_counts}")
