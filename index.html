@@ -1155,7 +1155,7 @@
     </ul>
   </div>
 
- <div class="map-selection-grid" id="test2">
+ <div class="map-selection-grid" id="map-selection-grid-container">
  <div id="iowa_city" class="map-card map-option" onclick="changeColorOfPredefinedMaps(this)">
  <img src="./css/img/iowa_city_image.png" alt="Iowa City">
  <strong>Iowa City</strong>
@@ -1213,14 +1213,13 @@
     </div>
     <span id="custom-city-status" style="font-size: 0.8rem; color: #c8860a; min-height: 18px; font-weight: 700; margin-left: 2px;"></span>
   </div>
-  </div>
   
   <script>
   // Global tab switching logic for map selector modal
   function switchMapSelectTab(mode) {
       const predefinedTab = document.getElementById("tab-predefined");
       const customTab = document.getElementById("tab-custom");
-      const grid = document.getElementById("test2");
+      const grid = document.getElementById("map-selection-grid-container");
       const sandbox = document.getElementById("custom_city_section");
       const settings = document.querySelector(".menu-settings-row");
       const launchBtn = document.getElementById("start-map-init");
@@ -1245,7 +1244,6 @@
   }
   </script>
 
- </div>
 
 
  <div class="menu-settings-row">
@@ -1851,7 +1849,7 @@ function sendStartInformation() {
  };
  };
 
- if (!document.getElementById("test2").classList.contains("is-hidden")) {
+ if (!document.getElementById("map-selection-grid-container").classList.contains("is-hidden")) {
  var idOfMap = document.querySelector(".selected-map").id;
  return [0, idOfMap, graphics]
  }
