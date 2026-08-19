@@ -2213,28 +2213,38 @@ html, body {
     display: none !important;
 }
 
-/* Premium Custom City Generator Hover Effects */
-#custom_city_section:hover {
-    border-color: rgba(96, 165, 250, 0.45) !important;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 18px rgba(96, 165, 250, 0.15) !important;
-    transform: translateY(-2px);
-}
-
-/* Premium pressable styles for map select tabs */
+/* Premium Gold/White Map Select Tabs */
 .tabs li a {
     cursor: pointer !important;
-    background: rgba(30, 41, 59, 0.6) !important;
-    color: #94a3b8 !important;
-    border: 1.5px solid rgba(160, 174, 192, 0.3) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: rgba(255, 255, 255, 0.75) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+    font-weight: 700;
+    transition: all 0.25s ease;
 }
 .tabs li:not(.is-active) a:hover {
-    background: rgba(45, 55, 72, 0.8) !important;
+    background: rgba(255, 255, 255, 0.22) !important;
     color: #ffffff !important;
-    border-color: rgba(96, 165, 250, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.45) !important;
 }
 .tabs li.is-active a {
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
-    color: #ffffff !important;
-    border-color: #3b82f6 !important;
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.45) !important;
+    background: linear-gradient(180deg, #f7d770 0%, #e0a316 100%) !important;
+    color: #2b1800 !important;
+    border-color: #fce8a6 !important;
+    box-shadow: 0 4px 14px rgba(224, 163, 22, 0.4) !important;
+}
+
+/* Premium Gold/White Custom Sandbox Design */
+#custom_city_section {
+    background: #ffffff !important;
+    border: 3px solid #d8e4ec !important;
+    border-radius: 14px !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
+    padding: 24px !important;
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+#custom_city_section:hover {
+    border-color: #f5d060 !important;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2), 0 0 0 2px #f5d060 !important;
+    transform: translateY(-2px) !important;
 }
