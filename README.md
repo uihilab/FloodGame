@@ -1,7 +1,7 @@
 # FloodGame - Interactive Flood Mitigation Sandbox
 
 <div style="text-align: center;">
-    <img src="./css/img/iowa_city_image.png" alt="FloodGame Gameplay" style="width:60%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+    <img src="./css/img/gameplay.png" alt="FloodGame Gameplay" style="width:80%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
 </div>
 
 ## About the Game
