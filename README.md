@@ -34,7 +34,7 @@ Click on a map tile to open the mitigation menu and select your strategy:
 * **Flood Insurance ($300k)**: Financial protection that helps cover damages (does not stop water, but saves money post-flood).
 
 ### 5. Launch the Simulation!
-Once you have placed your defenses, click the **Launch Simulation** button to watch the floodwaters crest. You can also let the countdown timer run down to zero to start the simulation automatically. Observe how your choices hold up and see if your defenses succeed in protecting the city!
+Once you have placed your defenses, click the **Finish** button to watch the floodwaters crest. You can also let the countdown timer run down to zero to start the simulation automatically. Observe how your choices hold up and see if your defenses succeed in protecting the city!
 
 ---
 
