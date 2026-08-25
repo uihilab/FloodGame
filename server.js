@@ -59,6 +59,7 @@ app.get("/logs", async (req, res) => {
 
 const PORT = process.env.PORT || 3005;
 const GAME_DIR = path.join(__dirname);
+app.use(express.static(GAME_DIR));
 
 // POST /generate-map — body: { location: "City, State" }
 app.post("/generate-map", (req, res) => {
