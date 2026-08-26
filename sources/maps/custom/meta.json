@@ -3,23 +3,23 @@
   "center_lat": 29.9561422,
   "center_lon": -90.0733934,
   "rotation_deg": -35.0,
-  "flood_edge": "east",
-  "water_tile_count": 1,
+  "flood_edge": "SOUTH",
+  "water_tile_count": 50,
   "building_counts": {
-    "Chu": 3,
-    "School": 1,
-    "Res2": 168,
+    "School": 2,
+    "Chu": 2,
+    "Res2": 154,
     "Fire": 2,
-    "Res3": 164,
-    "Res1": 158,
+    "Res3": 159,
+    "Res1": 145,
     "Bank": 1,
-    "Htl": 17,
-    "Com2": 43,
+    "Com2": 30,
+    "Htl": 15,
     "Gas": 1,
     "Hos": 1,
     "Pol": 1,
     "Wat": 1,
-    "Com": 106
+    "Com": 65
   },
-  "location_query": "New Orleans, Orleans Parish, Louisiana, United States"
+  "location_query": "New Orleans, LA"
 }
