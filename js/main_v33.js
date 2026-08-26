@@ -359,6 +359,23 @@ async function main(opts, list_of_files, game_graphics_opt) {
         buttonGUISetUp();
         mitigationsActions();
         guiCostUpdate();
+        // Scan loaded floodTiles to determine the correct scenario flood level
+        window.scenarioFloodLevel = 55; // Default fallback
+        if (floodTiles) {
+            for (var r = 0; r < numberOfRows; r++) {
+                var found = false;
+                for (var c = 0; c < numberOfColumns; c++) {
+                    var tile = floodTiles[r][c];
+                    if (tile && tile !== 0 && tile.flood_level) {
+                        window.scenarioFloodLevel = tile.flood_level;
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) break;
+            }
+        }
+
         totalCostAtTheStart = calculateTotalDamage();
         [initialBuilding, initialEffectedBuilding] = findNumberOfEffectedBuilding();
         [initialCriticalBuilding, initialEffectedCriticalBuilding] = findCriticalBuildingInformations();
@@ -1658,7 +1675,10 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
 
-    function updateFloodInformation(max_flood_level=55){
+    function updateFloodInformation(max_flood_level){
+        if (max_flood_level === undefined || max_flood_level === 55) {
+            max_flood_level = window.scenarioFloodLevel || 55;
+        }
         /*
             This function updates the floodTiles based on the
             d4 floodfill algorithm.
@@ -2305,7 +2325,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 obj = floodTiles[row][column];
                 if (isABuilding(surfaceTiles[row][column].type)){
                     total++;
-                    if (obj !=0 ){
+                    if (obj != 0 && obj.water_level > 0){
                         totalBuilding++;
                     };
 
@@ -2326,7 +2346,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 obj = floodTiles[row][column];
                 if (isACriticalBuilding(surfaceTiles[row][column].type)){
                     total++;
-                    if (obj != 0){
+                    if (obj != 0 && obj.water_level > 0){
                         totalBuilding++;
                     };
                 };
@@ -2346,7 +2366,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 obj = floodTiles[row][column];
                 if (helperFunction(surfaceTiles[row][column].type)){
                     total++;
-                    if (obj != 0){
+                    if (obj != 0 && obj.water_level > 0){
                         totalBuilding++;
                     };
                 };
@@ -5053,7 +5073,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 obj = floodTiles[row][column];
                 if (surfaceTiles[row][column] != 0){
                     total += surfaceTiles[row][column].peopleOnIt;
-                    if (obj != 0){
+                    if (obj != 0 && obj.water_level > 0){
                         totalAffectedPeople += surfaceTiles[row][column].peopleOnIt;
                     };
                 };
