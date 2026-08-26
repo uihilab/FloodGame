@@ -7,11 +7,11 @@
  <title>FloodGame</title>
  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
  <script src="https://kit.fontawesome.com/b11836b105.js" crossorigin="anonymous"></script>
- <link rel="stylesheet" href="./css/style.css?v=20">
+ <link rel="stylesheet" href="./css/style.css?v=21">
  <link rel="stylesheet" href="./css/aiTutor.css?v=19">
  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
  <script defer src="./js/aiTutor_v22.js"></script>
- <script type="module" src="./js/main_v33.js?v=cars_v41"></script>
+ <script type="module" src="./js/main_v33.js?v=cars_v42"></script>
  <script src="./js/config.js"></script>
  <script src="./js/location_ai_knowledge.js"></script>
  <!-- playground-hide -->
@@ -67,7 +67,7 @@
  </div>
  <div class="hud-card-text">
  <div class="hud-card-label">BUDGET:</div>
- <div class="hud-card-value green" id="budget-progress">$50.0M</div>
+ <div class="hud-card-value green" id="budget-progress">$50.00M</div>
  </div>
  <button class="hud-plus-btn green" onclick="openBudgetInfoModal()" title="Budget Info & Cost Breakdown">
  <i class="fas fa-info"></i>
@@ -1893,7 +1893,7 @@ var simElapsedDays = 0;
 setInterval(() => {
  // 1. Sync Budget
  if (typeof window.totalAvailableMoney !== 'undefined') {
- const moneyMB = (window.totalAvailableMoney / 1000000).toFixed(1);
+ const moneyMB = (window.totalAvailableMoney / 1000000).toFixed(2);
  document.querySelector("#budget-progress").textContent = "$" + moneyMB + "M";
  } else {
  const budgetText = document.querySelectorAll("#critical-facts .has-text-right")[0]?.textContent;
