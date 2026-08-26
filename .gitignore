@@ -2,5 +2,8 @@
 js/config.js
 
 # OS generated files
-.DS_Store
+**/.DS_Store
 Thumbs.db
+node_modules
+.env
+.vscode

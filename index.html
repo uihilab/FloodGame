@@ -2196,10 +2196,13 @@ function clickBottomHUD(type) {
  }
 
  if (isAlreadyActive) {
- clearAllCheckboxes();
- buttons.forEach(btn => btn.classList.remove("active-tool"));
- document.querySelector(".left-hud-panel").classList.add("is-hidden");
- return;
+  clearAllCheckboxes();
+  // Reset card visibility so all abilities show when a tile is clicked later
+  filterMitigationCards(null);
+  if (headerSpan) headerSpan.textContent = "INSPECTOR & MITIGATIONS";
+  buttons.forEach(btn => btn.classList.remove("active-tool"));
+  document.querySelector(".left-hud-panel").classList.add("is-hidden");
+  return;
  }
 
  buttons.forEach(btn => btn.classList.remove("active-tool"));

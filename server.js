@@ -1,6 +1,7 @@
+require("dotenv").config();
 const express = require("express");
-const { Pool } = require("pg");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const { exec } = require("child_process");
 const path = require("path");
 const fs = require("fs");
@@ -9,57 +10,83 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// PostgreSQL connection — configure via environment variables
-const pool = new Pool({
-    host:     process.env.PG_HOST     || "localhost",
-    port:     process.env.PG_PORT     || 5432,
-    database: process.env.PG_DATABASE || "floodgame",
-    user:     process.env.PG_USER     || process.env.USER,
-    password: process.env.PG_PASSWORD || "",
-});
+const PORT = process.env.PORT || 3005;
+const PGRST = process.env.POSTGREST_URL || "http://127.0.0.1:3006";
+const ADMIN_KEY = process.env.ADMIN_KEY;
+const JWT_SECRET = process.env.POSTGREST_JWT_SECRET;
+
+const GAME_DIR = path.join(__dirname);
+app.use(express.static(GAME_DIR));
+
+function serviceToken() {
+    return jwt.sign({ role: "floodgame_service" }, JWT_SECRET, { expiresIn: "1h" });
+}
+
+// postgrest call
+async function db(path, method = "GET", body) {
+    const r = await fetch(`${PGRST}${path}`, {
+        method,
+        headers: {
+            "Content-Type": "application/json",
+            Prefer: "return=representation",
+            Authorization: `Bearer ${serviceToken()}`,
+        },
+        body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+}
+
+//wraps a route so errors return a clean 500 instead of hanging
+const route = (fn) => (req, res) =>
+    fn(req, res).catch((e) => {
+        console.error(e.message);
+        res.status(500).json({ error: "Database error" });
+    });
+
+// api key for reading/editing/deleting
+const admin = (req, res, next) =>
+    req.header("x-api-key") === ADMIN_KEY
+        ? next()
+        : res.status(401).json({ error: "Unauthorized" });
 
 app.get("/health", (req, res) => {
     res.json({ status: "ok" });
 });
 
-// POST /log — body: { session_id, location, role, message }
-app.post("/log", async (req, res) => {
+// CREATE
+app.post("/log", route(async (req, res) => {
     const { session_id, location, role, message } = req.body;
+    if (!session_id || !role || !message)
+        return res.status(400).json({ error: "session_id, role and message are required" });
+    const rows = await db("/ai_chat_logs", "POST", { session_id, location, role, message });
+    res.status(201).json(rows[0]);
+}));
 
-    if (!session_id || !role || !message) {
-        return res.status(400).json({ error: "Missing required fields: session_id, role, message" });
-    }
-    if (role !== "user" && role !== "assistant") {
-        return res.status(400).json({ error: "role must be 'user' or 'assistant'" });
-    }
+// READ all
+app.get("/get-logs", admin, route(async (req, res) => {
+    let path = "/ai_chat_logs?order=timestamp.asc";
+    if (req.query.session_id) path += `&session_id=eq.${req.query.session_id}`;
+    res.json(await db(path));
+}));
 
-    try {
-        await pool.query(
-            `INSERT INTO ai_chat_logs (session_id, location, role, message)
-             VALUES ($1, $2, $3, $4)`,
-            [session_id, location || null, role, message]
-        );
-        res.json({ success: true });
-    } catch (err) {
-        console.error("DB insert error:", err.message);
-        res.status(500).json({ error: "Database error" });
-    }
-});
+// READ one
+app.get("/logs/:id", admin, route(async (req, res) => {
+    const rows = await db(`/ai_chat_logs?id=eq.${Number(req.params.id)}`);
+    res.json(rows[0] || null);
+}));
 
-// GET /logs — retrieve the 100 most recent chat logs
-app.get("/logs", async (req, res) => {
-    try {
-        const result = await pool.query("SELECT * FROM ai_chat_logs ORDER BY timestamp DESC LIMIT 100");
-        res.json(result.rows);
-    } catch (err) {
-        console.error("DB select error:", err.message);
-        res.status(500).json({ error: err.message });
-    }
-});
+// UPDATE — admin
+app.patch("/logs/:id", admin, route(async (req, res) => {
+    const rows = await db(`/ai_chat_logs?id=eq.${Number(req.params.id)}`, "PATCH", req.body);
+    res.json(rows[0] || null);
+}));
 
-const PORT = process.env.PORT || 3005;
-const GAME_DIR = path.join(__dirname);
-app.use(express.static(GAME_DIR));
+// DELETE — admin
+app.delete("/logs/:id", admin, route(async (req, res) => {
+    await db(`/ai_chat_logs?id=eq.${Number(req.params.id)}`, "DELETE");
+    res.json({ deleted: true });
+}));
 
 // POST /generate-map — body: { location: "City, State" }
 app.post("/generate-map", (req, res) => {
@@ -82,10 +109,10 @@ app.post("/generate-map", (req, res) => {
         // Read and return the generated files
         const mapDir = path.join(GAME_DIR, "sources/maps/custom");
         try {
-            const ground   = JSON.parse(fs.readFileSync(path.join(mapDir, "GroundTiles.json")));
-            const surface  = JSON.parse(fs.readFileSync(path.join(mapDir, "SurfaceTiles.json")));
+            const ground = JSON.parse(fs.readFileSync(path.join(mapDir, "GroundTiles.json")));
+            const surface = JSON.parse(fs.readFileSync(path.join(mapDir, "SurfaceTiles.json")));
             const surface2 = JSON.parse(fs.readFileSync(path.join(mapDir, "SurfaceTiles_v2.json")));
-            const meta     = JSON.parse(fs.readFileSync(path.join(mapDir, "meta.json")));
+            const meta = JSON.parse(fs.readFileSync(path.join(mapDir, "meta.json")));
             res.json({ success: true, meta, ground, surface, surface2 });
         } catch (e) {
             res.status(500).json({ error: "Could not read generated map files" });
@@ -93,6 +120,4 @@ app.post("/generate-map", (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`FloodGame log server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Gateway on ${PORT} -> ${PGRST}`));
