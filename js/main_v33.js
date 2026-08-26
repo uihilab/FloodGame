@@ -139,7 +139,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
     
 
     var allMitigationsSelects = document.querySelectorAll(".mitigation-option select");
-    var allCheckbox = document.querySelectorAll("[type='checkbox']");
+    var allCheckbox = document.querySelectorAll(".mitigation-option [type='checkbox']");
     var allMitigationsCostTexts = document.querySelectorAll(".mitigation-option .mitigation-cost");
 
     var mitigation_opts = document.querySelectorAll(".mitigation-option");
@@ -4690,49 +4690,45 @@ async function main(opts, list_of_files, game_graphics_opt) {
         // Flood Wall
         allCheckbox[2].onclick = function() {
             // Flood wall is applied 
+            console.log("[FloodWall] checkbox clicked, checked=", this.checked, "tile=", selectedTile.row, selectedTile.column, "budget before=", totalAvailableMoney);
             if (this.checked) {
                 // Update tile information
                 groundTiles[selectedTile.row][selectedTile.column].floodWall = parseInt(allMitigationsSelects[2].value);
                 if (isBuildingStructure(selectedTile.row, selectedTile.column)){
-                    // Add Cost
-                    expenses += mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    // Calculate Remaning Budget
-                    totalAvailableMoney -= mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
+                    var fwCost = mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
+                    console.log("[FloodWall] building tile cost=", fwCost);
+                    expenses += fwCost;
+                    totalAvailableMoney -= fwCost;
                 }
                 else{
-                    // Add Cost
-                    expenses += mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * 500;
-                    // Calculate Remaning Budget
-                    totalAvailableMoney -= mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * 500;
+                    var fwCost = mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * 500;
+                    console.log("[FloodWall] ground tile cost=", fwCost);
+                    expenses += fwCost;
+                    totalAvailableMoney -= fwCost;
                 }
                 // Update Main Game Panel
                 updateTileOptions(selectedTile.row, selectedTile.column);
                 updateTileInformationPanel();
-                // Disables Dropdown Menu
-                // disableMitigationValue(mitigation_opts[2]);
             }
             // Flood wall is removed
             else {
                 // Update tile information
                 groundTiles[selectedTile.row][selectedTile.column].floodWall = 0;
                 if (isBuildingStructure(selectedTile.row, selectedTile.column)){
-                    // Add Cost
-                    expenses -= mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    // Calculate Remaning Budget
-                    totalAvailableMoney += mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
+                    var fwCost = mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
+                    expenses -= fwCost;
+                    totalAvailableMoney += fwCost;
                 }
                 else{
-                    // Add Cost
-                    expenses -= mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * 500;
-                    // Calculate Remaning Budget
-                    totalAvailableMoney += mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * 500;
+                    var fwCost = mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * 500;
+                    expenses -= fwCost;
+                    totalAvailableMoney += fwCost;
                 }
                 // Update Main Game Panel
                 updateTileOptions(selectedTile.row, selectedTile.column);
                 updateTileInformationPanel();
-                // Enables Dropdown Menu
-                //enableMitigationValue(mitigation_opts[2]);
             };
+            console.log("[FloodWall] budget after=", totalAvailableMoney);
             onMitigationChanged();
         };
 
