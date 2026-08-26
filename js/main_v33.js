@@ -4381,16 +4381,19 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         var result = false;
 
-        if (groundTiles[row][column].floodWall) {
+        if (groundTiles[row][column].floodWall != 0) {
             result = true;
         };
 
-        var st = surfaceTiles[row][column];
-        if (st && typeof st === 'object') {
-            if (st.floodInsurance || st.elevateStructure || st.Dryfloodproofing ||
-                st.Wetfloodproofing || st.sandBag) {
+        if (surfaceTiles[row][column] != 0) {
+            if (surfaceTiles[row][column].floodInsurance != 0 ||
+                surfaceTiles[row][column].elevateStructure != 0 || 
+                surfaceTiles[row][column].Dryfloodproofing != 0 ||
+                surfaceTiles[row][column].Wetfloodproofing != 0 ||
+                surfaceTiles[row][column].sandBag != 0) {
                 result = true;
             }
+            
         };
         return result;
     }
@@ -4427,37 +4430,44 @@ async function main(opts, list_of_files, game_graphics_opt) {
             };
         } else if (type == 1) {
             // Check Elevate Structure
-            var st1 = surfaceTiles[row][column];
-            if (st1 && typeof st1 === 'object' && st1.elevateStructure) {
-                result = true;
+            if (surfaceTiles[row][column] != 0){
+                if (surfaceTiles[row][column].elevateStructure != 0) {
+                    result = true;
+                };
             }
         } else if (type == 2) {
             // Check Flood Wall
-            if (groundTiles[row][column].floodWall) {
+            if (groundTiles[row][column].floodWall != 0) {
                 result = true;
             };
 
         } else if (type == 3) {
             // Check sandbag
-            var st3 = surfaceTiles[row][column];
-            if (st3 && typeof st3 === 'object' && st3.sandBag) {
-                result = true;
+            if (surfaceTiles[row][column] != 0){
+                if (surfaceTiles[row][column].sandBag != 0) {
+                    result = true;
+                };
             }
         } else if (type == 4) {
-            var st4 = surfaceTiles[row][column];
-            if (st4 && typeof st4 === 'object' && st4.floodInsurance) {
-                result = true;
+            if (surfaceTiles[row][column] != 0){
+                if (surfaceTiles[row][column].floodInsurance != 0) {
+                    result = true;
+                };
             }
         } else if (type == 5){
-            var st5 = surfaceTiles[row][column];
-            if (st5 && typeof st5 === 'object' && st5.Dryfloodproofing) {
-                result = true;
+            if (surfaceTiles[row][column] != 0){
+                if (surfaceTiles[row][column].Dryfloodproofing != 0) {
+                    result = true;
+                };
             }
+
         } else if (type == 6){
-            var st6 = surfaceTiles[row][column];
-            if (st6 && typeof st6 === 'object' && st6.Wetfloodproofing) {
-                result = true;
+            if (surfaceTiles[row][column] != 0){
+                if (surfaceTiles[row][column].Wetfloodproofing != 0) {
+                    result = true;
+                };
             }
+
         } else {
             result = false
         };
@@ -4532,11 +4542,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
         if (groundTiles[row][column].floodWall && groundTiles[row][column].floodWall > 0) {
             mitigations.push("Flood Wall (" + groundTiles[row][column].floodWall + "ft)");
         }
-        if (groundTiles[row][column].sandbag && groundTiles[row][column].sandbag > 0) {
-            mitigations.push("Sandbags (" + groundTiles[row][column].sandbag + "ft)");
-        }
         if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && typeof surfaceTiles[row][column] === 'object') {
             var s = surfaceTiles[row][column];
+            if (s.sandBag && s.sandBag > 0) mitigations.push("Sandbags (" + s.sandBag + "ft)");
             if (s.Dryfloodproofing && s.Dryfloodproofing != 0) mitigations.push("Dry Floodproof (" + s.Dryfloodproofing + "ft)");
             if (s.Wetfloodproofing && s.Wetfloodproofing != 0) mitigations.push("Wet Floodproof (" + s.Wetfloodproofing + "ft)");
             if (s.insurance) mitigations.push("Flood Insurance");
