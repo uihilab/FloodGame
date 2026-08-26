@@ -1736,6 +1736,15 @@ async function main(opts, list_of_files, game_graphics_opt) {
         return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : "0";
     };
 
+    function isBuildingStructure(row, column) {
+        if (row === undefined || column === undefined) return false;
+        var tile = surfaceTiles[row][column];
+        if (!tile || tile === 0) return false;
+        if (Array.isArray(tile)) return false; // Guards against tree arrays []
+        if (typeof tile !== 'object') return false;
+        return tile.type && buildingMetaDict[tile.type];
+    }
+
     function guiCostUpdate() {
         /*
             This function updates the cost values shown on
@@ -1762,7 +1771,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             //allMitigationsCostTexts[2].textContent = "$" + mitigationMetaData[
                 //"flood_wall"]["opts_values"][parseInt(allMitigationsSelects[2].value)]["cost"];
 
-            if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+            if (isBuildingStructure(selectedTile.row, selectedTile.column)){
                 allMitigationsCostTexts[2].textContent = "$" + nFormatter(mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
             }
             else{
@@ -1774,7 +1783,11 @@ async function main(opts, list_of_files, game_graphics_opt) {
         allMitigationsSelects[3].onchange = function() {
             //allMitigationsCostTexts[3].textContent = "$" + mitigationMetaData[
                 //"sand_bag"]["opts_values"][parseInt(allMitigationsSelects[3].value)]["cost"];
-            allMitigationsCostTexts[3].textContent = "$" + nFormatter(mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
+            if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
+                allMitigationsCostTexts[3].textContent = "$" + nFormatter(mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
+            } else {
+                allMitigationsCostTexts[3].textContent = "$0";
+            }
         };
         // Insurance
 
@@ -1784,20 +1797,32 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         // Elevate Structure
         elevateStructureSlider[0].onchange = function(){
-            allMitigationsCostTexts[7].textContent = "$" + nFormatter(mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"], 1);
+            if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
+                allMitigationsCostTexts[7].textContent = "$" + nFormatter(mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"], 1);
+            } else {
+                allMitigationsCostTexts[7].textContent = "$0";
+            }
         }
         // Wet Floodproofing
         allMitigationsSelects[4].onchange = function() {
             //allMitigationsCostTexts[3].textContent = "$" + mitigationMetaData[
                 //"sand_bag"]["opts_values"][parseInt(allMitigationsSelects[3].value)]["cost"];
-            allMitigationsCostTexts[8].textContent = "$" + nFormatter(mitigationMetaDataNew["Wetfloodproofing"]["cost"][parseInt(allMitigationsSelects[4].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
+            if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
+                allMitigationsCostTexts[8].textContent = "$" + nFormatter(mitigationMetaDataNew["Wetfloodproofing"]["cost"][parseInt(allMitigationsSelects[4].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
+            } else {
+                allMitigationsCostTexts[8].textContent = "$0";
+            }
         };
 
         // Dry Floodproofing
         allMitigationsSelects[5].onchange = function() {
             //allMitigationsCostTexts[3].textContent = "$" + mitigationMetaData[
                 //"sand_bag"]["opts_values"][parseInt(allMitigationsSelects[3].value)]["cost"];
-            allMitigationsCostTexts[9].textContent = "$" + nFormatter(mitigationMetaDataNew["Dryfloodproofing"]["cost"][parseInt(allMitigationsSelects[5].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
+            if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
+                allMitigationsCostTexts[9].textContent = "$" + nFormatter(mitigationMetaDataNew["Dryfloodproofing"]["cost"][parseInt(allMitigationsSelects[5].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
+            } else {
+                allMitigationsCostTexts[9].textContent = "$0";
+            }
         };
         allMitigationsSelects[6].onchange = function() {
             allMitigationsCostTexts[10].textContent = "$" + nFormatter(mitigationMetaData[
@@ -1814,11 +1839,15 @@ async function main(opts, list_of_files, game_graphics_opt) {
             when a new building tile is selected.
 
         */
-        // Insurance
-        allMitigationsCostTexts[4].textContent = "$" + nFormatter(mitigationMetaDataNew["Insurance"]["cost"][surfaceTiles[selectedTile.row][selectedTile.column].type] * (buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Str_val"] + buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Cont_val"]), 1);
-        // Relocate Structure
-        allMitigationsCostTexts[5].textContent = "$" + nFormatter(mitigationMetaDataNew["Relocate"]["cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Area"], 1);
-        // Remove Structure
+        if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
+            // Insurance
+            allMitigationsCostTexts[4].textContent = "$" + nFormatter(mitigationMetaDataNew["Insurance"]["cost"][surfaceTiles[selectedTile.row][selectedTile.column].type] * (buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Str_val"] + buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Cont_val"]), 1);
+            // Relocate Structure
+            allMitigationsCostTexts[5].textContent = "$" + nFormatter(mitigationMetaDataNew["Relocate"]["cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Area"], 1);
+        } else {
+            allMitigationsCostTexts[4].textContent = "$0";
+            allMitigationsCostTexts[5].textContent = "$0";
+        }
     };
 
     function guiCostUpdateOnTileChanged(){
@@ -1832,29 +1861,37 @@ async function main(opts, list_of_files, game_graphics_opt) {
             "add_structure"]["opts_values"][(allMitigationsSelects[0].value)]["cost"], 1);
 
         // FloodWall
-        if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+        if (isBuildingStructure(selectedTile.row, selectedTile.column)){
             allMitigationsCostTexts[2].textContent = "$" + nFormatter(mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
         }
         else{
             allMitigationsCostTexts[2].textContent = "$" + nFormatter(mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * 500, 1);
         }
         // SandBag
-         if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+         if (isBuildingStructure(selectedTile.row, selectedTile.column)){
             allMitigationsCostTexts[3].textContent = "$" + nFormatter(mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
+         } else {
+            allMitigationsCostTexts[3].textContent = "$0";
          }
         
-         // Elevate Structure
-         if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
-            allMitigationsCostTexts[7].textContent = "$" + nFormatter(mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"], 1);
-         }
+          // Elevate Structure
+          if (isBuildingStructure(selectedTile.row, selectedTile.column)){
+             allMitigationsCostTexts[7].textContent = "$" + nFormatter(mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"], 1);
+          } else {
+             allMitigationsCostTexts[7].textContent = "$0";
+          }
 
         // Wet Floodproofing
-        if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+        if (isBuildingStructure(selectedTile.row, selectedTile.column)){
             allMitigationsCostTexts[8].textContent = "$" + nFormatter(mitigationMetaDataNew["Wetfloodproofing"]["cost"][parseInt(allMitigationsSelects[4].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
+         } else {
+            allMitigationsCostTexts[8].textContent = "$0";
          }
         // Dry Floodproofing
-        if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+        if (isBuildingStructure(selectedTile.row, selectedTile.column)){
             allMitigationsCostTexts[9].textContent = "$" + nFormatter(mitigationMetaDataNew["Dryfloodproofing"]["cost"][parseInt(allMitigationsSelects[5].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
+         } else {
+            allMitigationsCostTexts[9].textContent = "$0";
          }
     };
 
@@ -4646,7 +4683,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             if (this.checked) {
                 // Update tile information
                 groundTiles[selectedTile.row][selectedTile.column].floodWall = parseInt(allMitigationsSelects[2].value);
-                if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+                if (isBuildingStructure(selectedTile.row, selectedTile.column)){
                     // Add Cost
                     expenses += mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
                     // Calculate Remaning Budget
@@ -4671,7 +4708,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             else {
                 // Update tile information
                 groundTiles[selectedTile.row][selectedTile.column].floodWall = 0;
-                if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+                if (isBuildingStructure(selectedTile.row, selectedTile.column)){
                     // Add Cost
                     expenses -= mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
                     // Calculate Remaning Budget
@@ -4701,7 +4738,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             // Sand bag is applied
             if (this.checked) {
                 // Update tile information
-                if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+                if (isBuildingStructure(selectedTile.row, selectedTile.column)){
                     surfaceTiles[selectedTile.row][selectedTile.column].sandBag = parseInt(allMitigationsSelects[3].value);
                     // Add Cost
                     expenses += mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
@@ -4721,7 +4758,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             // Sand bag is removed
             else {
                 // Update tile information
-                if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+                if (isBuildingStructure(selectedTile.row, selectedTile.column)){
                     surfaceTiles[selectedTile.row][selectedTile.column].sandBag = 0;
                     // Add Cost
                     expenses -= mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
@@ -4774,9 +4811,11 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         // Relocate Structure
         allCheckbox[5].onclick = function() {
-            selectedBuilding.isMove = true;
-            expenses += mitigationMetaDataNew["Relocate"]["cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Area"];
-            totalAvailableMoney -= mitigationMetaDataNew["Relocate"]["cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Area"];
+            if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
+                selectedBuilding.isMove = true;
+                expenses += mitigationMetaDataNew["Relocate"]["cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Area"];
+                totalAvailableMoney -= mitigationMetaDataNew["Relocate"]["cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Area"];
+            }
         };
         // Remove Structure
         allCheckbox[6].onclick = function() {
@@ -4801,7 +4840,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
         // Elevate Structure
         allCheckbox[7].onclick = function() {
             if (this.checked) {
-                if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+                if (isBuildingStructure(selectedTile.row, selectedTile.column)){
                     surfaceTiles[selectedTile.row][selectedTile.column].elevateStructure = parseInt(elevateStructureSlider[0].value);
                     
                     expenses += mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"];
@@ -4817,7 +4856,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 }
             }
             else {
-                if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+                if (isBuildingStructure(selectedTile.row, selectedTile.column)){
                     surfaceTiles[selectedTile.row][selectedTile.column].elevateStructure = 0;
 
                     expenses -= mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"];
@@ -4837,7 +4876,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             // Wet Floodproofing is applied
             if (this.checked) {
                 // Update tile information
-                if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+                if (isBuildingStructure(selectedTile.row, selectedTile.column)){
                     surfaceTiles[selectedTile.row][selectedTile.column].Wetfloodproofing = parseInt(allMitigationsSelects[4].value);
                     // Add Cost
                     expenses += mitigationMetaDataNew["Wetfloodproofing"]["cost"][parseInt(allMitigationsSelects[4].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
@@ -4858,7 +4897,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             //  Wet Floodproofing is removed
             else {
                 // Update tile information
-                if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+                if (isBuildingStructure(selectedTile.row, selectedTile.column)){
                     surfaceTiles[selectedTile.row][selectedTile.column].Wetfloodproofing = 0;
                     // Add Cost
                     expenses -= mitigationMetaDataNew["Wetfloodproofing"]["cost"][parseInt(allMitigationsSelects[4].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
@@ -4881,7 +4920,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             // Dry Floodproofing is applied
             if (this.checked) {
                 // Update tile information
-                if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+                if (isBuildingStructure(selectedTile.row, selectedTile.column)){
                     surfaceTiles[selectedTile.row][selectedTile.column].Dryfloodproofing = parseInt(allMitigationsSelects[5].value);
                     // Add Cost
                     expenses += mitigationMetaDataNew["Dryfloodproofing"]["cost"][parseInt(allMitigationsSelects[5].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
@@ -4902,7 +4941,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             //  Dry Floodproofing is removed
             else {
                 // Update tile information
-                if (surfaceTiles[selectedTile.row][selectedTile.column] != 0){
+                if (isBuildingStructure(selectedTile.row, selectedTile.column)){
                     surfaceTiles[selectedTile.row][selectedTile.column].Dryfloodproofing = 0;
                     // Add Cost
                     expenses -= mitigationMetaDataNew["Dryfloodproofing"]["cost"][parseInt(allMitigationsSelects[5].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
