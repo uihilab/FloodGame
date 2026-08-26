@@ -2311,7 +2311,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
         for (var row = 0; row < numberOfRows; row++) {
             for (var column = 0; column < numberOfColumns; column++) {
                 obj = floodTiles[row][column];
-                if (isABuilding(surfaceTiles[row][column].type)){
+                if (isBuildingStructure(row, column) && isABuilding(surfaceTiles[row][column].type)){
                     total++;
                     if (obj !=0 ){
                         totalBuilding++;
@@ -2332,7 +2332,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
         for (var row = 0; row < numberOfRows; row++) {
             for (var column = 0; column < numberOfColumns; column++) {
                 obj = floodTiles[row][column];
-                if (isACriticalBuilding(surfaceTiles[row][column].type)){
+                if (isBuildingStructure(row, column) && isACriticalBuilding(surfaceTiles[row][column].type)){
                     total++;
                     if (obj != 0){
                         totalBuilding++;
@@ -2352,7 +2352,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
         for (var row = 0; row < numberOfRows; row++) {
             for (var column = 0; column < numberOfColumns; column++) {
                 obj = floodTiles[row][column];
-                if (helperFunction(surfaceTiles[row][column].type)){
+                if (isBuildingStructure(row, column) && helperFunction(surfaceTiles[row][column].type)){
                     total++;
                     if (obj != 0){
                         totalBuilding++;
