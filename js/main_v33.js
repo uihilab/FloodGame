@@ -2796,6 +2796,12 @@ async function main(opts, list_of_files, game_graphics_opt) {
         selectedTile.column = column;
         [selectedTile.pos_x, selectedTile.pos_z] = calculatePosition(row, column);
 
+        if (isBuildingStructure(row, column)) {
+            fillSelectedBuilding(row, column);
+        } else {
+            clearSelectedBuilding();
+        }
+
         moveWireFrame_3(1, row, column);
         updateTileOptions(row, column);
         
@@ -3051,27 +3057,17 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function fillSelectedBuilding(row, column) {
+        if (!surfaceTiles || !surfaceTiles[row] || !surfaceTiles[row][column] || surfaceTiles[row][column] === 0) return;
+        var st = surfaceTiles[row][column];
         selectedBuilding.isSelected = true;
-        /*
-        if (Array.isArray(surfaceTiles[row][column])) {
-            selectedBuilding.meshName = surfaceTiles[row][column][0].type;
-            selectedBuilding.instanceId = surfaceTiles[row][column][0].instanceId;
-            selectedBuilding.height = surfaceTiles[row][column][0].height;
-            selectedBuilding.size = surfaceTiles[row][column][0].size;
-            selectedBuilding.peopleOnIt = surfaceTiles[row][column][0].peopleOnIt;
-        } else {
-            */
-            selectedBuilding.meshName = surfaceTiles[row][column].type;
-            selectedBuilding.instanceId = surfaceTiles[row][column].instanceId;
-            selectedBuilding.height = surfaceTiles[row][column].height;
-            selectedBuilding.size = surfaceTiles[row][column].size;
-            selectedBuilding.peopleOnIt = surfaceTiles[row][column].peopleOnIt;
-        
-
+        selectedBuilding.meshName = (typeof st === 'object') ? st.type : st;
+        selectedBuilding.instanceId = (typeof st === 'object' && st.instanceId !== undefined) ? st.instanceId : -1;
+        selectedBuilding.height = (typeof st === 'object' && st.height !== undefined) ? st.height : 100;
+        selectedBuilding.size = (typeof st === 'object' && st.size !== undefined) ? st.size : 6;
+        selectedBuilding.peopleOnIt = (typeof st === 'object' && st.peopleOnIt !== undefined) ? st.peopleOnIt : 0;
         selectedBuilding.row = row;
         selectedBuilding.column = column;
-        [selectedBuilding.pos_x, selectedBuilding.pos_z] = calculatePosition(
-            row, column);
+        [selectedBuilding.pos_x, selectedBuilding.pos_z] = calculatePosition(row, column);
 
         guiCostUpdateForNonOptionMitigations();
         showEmptyTileGUI(false);
@@ -3172,52 +3168,60 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function changePositionBuilding(row, column) {
+        var sRow = (selectedBuilding.row >= 0) ? selectedBuilding.row : selectedTile.row;
+        var sCol = (selectedBuilding.column >= 0) ? selectedBuilding.column : selectedTile.column;
 
-        if (["water", "parking_lot", "road", "building"].includes(groundTiles[row][column].type)) {
-            alert("Destination should be empty tile!!!");
+        // Reset move state immediately so subsequent clicks don't get trapped in isMove
+        selectedBuilding.isMove = false;
+
+        if (sRow < 0 || sCol < 0 || !surfaceTiles || !surfaceTiles[sRow] || !surfaceTiles[sRow][sCol] || surfaceTiles[sRow][sCol] === 0) {
+            console.error("Relocate failed: No source building found at", sRow, sCol);
             clearSelectedTile();
-            return
-        };
+            return;
+        }
 
-        
-        clearTileForBuilding(row, column);
+        var gtType = (groundTiles[row] && groundTiles[row][column]) ? groundTiles[row][column].type : "";
+        if (["water", "parking_lot", "road", "building"].includes(gtType) || (surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] !== 0)) {
+            alert("Destination should be an empty land tile!");
+            clearSelectedTile();
+            return;
+        }
 
-        obj = surfaceTiles[selectedBuilding.row][selectedBuilding.column];
+        var obj = surfaceTiles[sRow][sCol];
         var [x, z] = calculatePosition(row, column);
 
-        if (isNonInstancing(obj.type)){
-            changePositionofObject(`${obj.row}_${obj.column}`, x, groundTiles[row][column].elevation, z);
-        }
-        else{
-            transform.scale.set(
-                1,
-                1,
-                1,
-            );
+        clearTileForBuilding(row, column);
 
-            transform.position.set(
-                x,
-                groundTiles[row][column].elevation,
-                z);
+        if (typeof obj === 'object' && isNonInstancing(obj.type)) {
+            changePositionofObject(`${sRow}_${sCol}`, x, groundTiles[row][column].elevation, z);
+        } else if (typeof obj === 'object' && obj.type && meshDict[obj.type] && obj.instanceId !== undefined) {
+            transform.scale.set(1, 1, 1);
+            transform.position.set(x, groundTiles[row][column].elevation, z);
             transform.updateMatrix();
 
             meshDict[obj.type].setMatrixAt(obj.instanceId, transform.matrix);
             meshDict[obj.type].instanceMatrix.needsUpdate = true;
         }
-        surfaceTiles[row][column] = surfaceTiles[obj.row][obj.column];
-        surfaceTiles[obj.row][obj.column] = 0;
-        surfaceTiles[row][column].row = row;
-        surfaceTiles[row][column].column = column;
-        surfaceTiles[row][column].elevation = groundTiles[row][column];
-        clearTileForBuilding(selectedBuilding.row, selectedBuilding.column);
-        createPark(selectedBuilding.row, selectedBuilding.column);
+
+        // Move surface tile object reference to target location
+        surfaceTiles[row][column] = obj;
+        surfaceTiles[sRow][sCol] = 0; // Clear original tile completely so it doesn't duplicate!
+
+        if (typeof surfaceTiles[row][column] === 'object') {
+            surfaceTiles[row][column].row = row;
+            surfaceTiles[row][column].column = column;
+            surfaceTiles[row][column].elevation = groundTiles[row][column].elevation;
+        }
+
+        // Clear 3D graphics on old tile and create park background
+        clearTileForBuilding(sRow, sCol);
+        createPark(sRow, sCol);
 
         clearSelectedTile();
         fillSelectedTile(row, column);
 
-        expenses += mitigationMetaData["relocate_structure"]["cost"];
-        totalAvailableMoney -= mitigationMetaData["relocate_structure"]["cost"];
         updateGameProgressPanel();
+        onMitigationChanged();
     };
 
 
@@ -4801,8 +4805,19 @@ async function main(opts, list_of_files, game_graphics_opt) {
         allCheckbox[5].onclick = function() {
             if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
                 selectedBuilding.isMove = true;
-                expenses += mitigationMetaDataNew["Relocate"]["cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Area"];
-                totalAvailableMoney -= mitigationMetaDataNew["Relocate"]["cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Area"];
+                selectedBuilding.row = selectedTile.row;
+                selectedBuilding.column = selectedTile.column;
+                fillSelectedBuilding(selectedTile.row, selectedTile.column);
+
+                var st = surfaceTiles[selectedTile.row][selectedTile.column];
+                var bType = (typeof st === 'object') ? st.type : st;
+                var area = (buildingMetaDict && buildingMetaDict[bType]) ? (buildingMetaDict[bType]["Area"] || 100) : 100;
+                var unitCost = (mitigationMetaDataNew && mitigationMetaDataNew["Relocate"]) ? (mitigationMetaDataNew["Relocate"]["cost"] || 500) : 500;
+                var cost = unitCost * area;
+
+                expenses += cost;
+                totalAvailableMoney -= cost;
+                onMitigationChanged();
             }
         };
         // Remove Structure
