@@ -359,23 +359,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
         buttonGUISetUp();
         mitigationsActions();
         guiCostUpdate();
-        // Scan loaded floodTiles to determine the correct scenario flood level
-        window.scenarioFloodLevel = 55; // Default fallback
-        if (floodTiles) {
-            for (var r = 0; r < numberOfRows; r++) {
-                var found = false;
-                for (var c = 0; c < numberOfColumns; c++) {
-                    var tile = floodTiles[r][c];
-                    if (tile && tile !== 0 && tile.flood_level) {
-                        window.scenarioFloodLevel = tile.flood_level;
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) break;
-            }
-        }
-
         totalCostAtTheStart = calculateTotalDamage();
         [initialBuilding, initialEffectedBuilding] = findNumberOfEffectedBuilding();
         [initialCriticalBuilding, initialEffectedCriticalBuilding] = findCriticalBuildingInformations();
@@ -1675,10 +1658,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
 
-    function updateFloodInformation(max_flood_level){
-        if (max_flood_level === undefined || max_flood_level === 55) {
-            max_flood_level = window.scenarioFloodLevel || 55;
-        }
+    function updateFloodInformation(max_flood_level=55){
         /*
             This function updates the floodTiles based on the
             d4 floodfill algorithm.
@@ -1763,6 +1743,14 @@ async function main(opts, list_of_files, game_graphics_opt) {
         if (Array.isArray(tile)) return false; // Guards against tree arrays []
         if (typeof tile !== 'object') return false;
         return tile.type && buildingMetaDict[tile.type];
+    }
+    function onMitigationChanged() {
+        updateFloodInformation();
+        updateGameProgressPanel();
+        updateGoalsPanel();
+        if (typeof borderSegments !== 'undefined' && borderSegments.visible) {
+            changeColorofRiskyAreas();
+        }
     }
 
     function guiCostUpdate() {
@@ -2325,7 +2313,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 obj = floodTiles[row][column];
                 if (isABuilding(surfaceTiles[row][column].type)){
                     total++;
-                    if (obj != 0 && obj.water_level > 0){
+                    if (obj !=0 ){
                         totalBuilding++;
                     };
 
@@ -2346,7 +2334,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 obj = floodTiles[row][column];
                 if (isACriticalBuilding(surfaceTiles[row][column].type)){
                     total++;
-                    if (obj != 0 && obj.water_level > 0){
+                    if (obj != 0){
                         totalBuilding++;
                     };
                 };
@@ -2366,7 +2354,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 obj = floodTiles[row][column];
                 if (helperFunction(surfaceTiles[row][column].type)){
                     total++;
-                    if (obj != 0 && obj.water_level > 0){
+                    if (obj != 0){
                         totalBuilding++;
                     };
                 };
@@ -2959,7 +2947,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
         /* Sand Bag */
         if (temp_mit_id == 3) {
             checkMitigationStatus(mitigation_opts[3]);
-            allMitigationsSelects[3].selectedIndex = convertSandBagHeighttoSelectedIndex(tempGroundTiles1.sandbag);
+            allMitigationsSelects[3].selectedIndex = convertSandBagHeighttoSelectedIndex(
+                (surfaceTiles[row][column] && surfaceTiles[row][column] !== 0) ? surfaceTiles[row][column].sandBag : 0
+            );
             disableMitigationValue(mitigation_opts[3]);
         } else {
             uncheckMitigationStatus(mitigation_opts[3]);
@@ -4715,9 +4705,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     // Calculate Remaning Budget
                     totalAvailableMoney -= mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * 500;
                 }
-                // Update Quick Facts Panel
-                updateGameProgressPanel();
-                updateGoalsPanel();
                 // Update Main Game Panel
                 updateTileOptions(selectedTile.row, selectedTile.column);
                 updateTileInformationPanel();
@@ -4740,16 +4727,13 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     // Calculate Remaning Budget
                     totalAvailableMoney += mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * 500;
                 }
-                // Update Quick Facts Panel
-                updateGameProgressPanel();
-                updateGoalsPanel();
                 // Update Main Game Panel
                 updateTileOptions(selectedTile.row, selectedTile.column);
                 updateTileInformationPanel();
                 // Enables Dropdown Menu
                 //enableMitigationValue(mitigation_opts[2]);
             };
-            updateFloodInformation();
+            onMitigationChanged();
         };
 
 
@@ -4764,9 +4748,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     expenses += mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
                     // Calculate Remaining Budget
                     totalAvailableMoney -= mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    // Update Quick Facts Panel
-                    updateGameProgressPanel();
-                    updateGoalsPanel();
                     // Update Main Game Panel
                     updateTileOptions(selectedTile.row, selectedTile.column);
                     updateTileInformationPanel();
@@ -4784,19 +4765,12 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     expenses -= mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
                     // Calculate Remaining Budget
                     totalAvailableMoney += mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    // Update Quick Facts Panel
-                    updateGameProgressPanel();
-                    updateGoalsPanel();
-                    // Update Quick Facts Panel
-                    updateGameProgressPanel();
-                    updateGoalsPanel();
                     // Update Main Game Panel
                     updateTileOptions(selectedTile.row, selectedTile.column);
                     updateTileInformationPanel();
                 }
             };
-            updateFloodInformation();
-
+            onMitigationChanged();
         };
 
         // Insurance
@@ -4847,15 +4821,12 @@ async function main(opts, list_of_files, game_graphics_opt) {
             expenses += mitigationMetaData["remove_structure"]["cost"];
             // Calculate Remaining Budget
             totalAvailableMoney -= mitigationMetaData["remove_structure"]["cost"];
-            // Update Quick Facts Panel
-            updateGameProgressPanel();
-            updateGoalsPanel();
 
             // Update Main Game Panel
             uncheckAllMitigationStatus();
             showEmptyTileGUI(false);
             showBuildingTileGUI(false);
-            updateFloodInformation();
+            onMitigationChanged();
         };
         // Elevate Structure
         allCheckbox[7].onclick = function() {
@@ -4865,10 +4836,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     
                     expenses += mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"];
                     totalAvailableMoney -= mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"];
-
-                    
-                    updateGameProgressPanel();
-                    updateGoalsPanel();
 
                     updateTileOptions(selectedTile.row, selectedTile.column);
                     updateTileInformationPanel();
@@ -4882,13 +4849,11 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     expenses -= mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"];
                     totalAvailableMoney += mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"];
 
-                                        updateGameProgressPanel();
-                    updateGoalsPanel();
-
                     updateTileOptions(selectedTile.row, selectedTile.column);
                     updateTileInformationPanel();
                 }
             }
+            onMitigationChanged();
         }
         // Wet Floodproofing
         
@@ -4902,9 +4867,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     expenses += mitigationMetaDataNew["Wetfloodproofing"]["cost"][parseInt(allMitigationsSelects[4].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
                     // Calculate Remaining Budget
                     totalAvailableMoney -= mitigationMetaDataNew["Wetfloodproofing"]["cost"][parseInt(allMitigationsSelects[4].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    // Update Quick Facts Panel
-                    updateGameProgressPanel();
-                    updateGoalsPanel();
 
                     // Update Main Game Panel
                     updateTileOptions(selectedTile.row, selectedTile.column);
@@ -4923,16 +4885,13 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     expenses -= mitigationMetaDataNew["Wetfloodproofing"]["cost"][parseInt(allMitigationsSelects[4].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
                     // Calculate Remaining Budget
                     totalAvailableMoney += mitigationMetaDataNew["Wetfloodproofing"]["cost"][parseInt(allMitigationsSelects[4].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    // Update Quick Facts Panel
-                    updateGameProgressPanel();
-                    updateGoalsPanel();
 
                     // Update Main Game Panel
                     updateTileOptions(selectedTile.row, selectedTile.column);
                     updateTileInformationPanel();
                 }
             }
-            updateFloodInformation();
+            onMitigationChanged();
 
         };
         // Dry Floodproofing
@@ -4946,9 +4905,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     expenses += mitigationMetaDataNew["Dryfloodproofing"]["cost"][parseInt(allMitigationsSelects[5].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
                     // Calculate Remaining Budget
                     totalAvailableMoney -= mitigationMetaDataNew["Dryfloodproofing"]["cost"][parseInt(allMitigationsSelects[5].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    // Update Quick Facts Panel
-                    updateGameProgressPanel();
-                    updateGoalsPanel();
 
                     // Update Main Game Panel
                     updateTileOptions(selectedTile.row, selectedTile.column);
@@ -4967,16 +4923,13 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     expenses -= mitigationMetaDataNew["Dryfloodproofing"]["cost"][parseInt(allMitigationsSelects[5].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
                     // Calculate Remaining Budget
                     totalAvailableMoney += mitigationMetaDataNew["Dryfloodproofing"]["cost"][parseInt(allMitigationsSelects[5].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    // Update Quick Facts Panel
-                    updateGameProgressPanel();
-                    updateGoalsPanel();
 
                     // Update Main Game Panel
                     updateTileOptions(selectedTile.row, selectedTile.column);
                     updateTileInformationPanel();
                 }
             }
-            updateFloodInformation();
+            onMitigationChanged();
 
         };
         allCheckbox[10].onclick = function(){
@@ -5073,7 +5026,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 obj = floodTiles[row][column];
                 if (surfaceTiles[row][column] != 0){
                     total += surfaceTiles[row][column].peopleOnIt;
-                    if (obj != 0 && obj.water_level > 0){
+                    if (obj != 0){
                         totalAffectedPeople += surfaceTiles[row][column].peopleOnIt;
                     };
                 };
