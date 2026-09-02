@@ -2,22 +2,22 @@
 <html>
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, height=device-height">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>FloodGame</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
-  <script src="https://kit.fontawesome.com/b11836b105.js" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="./css/style.css?v=28">
-  <link rel="stylesheet" href="./css/aiTutor.css?v=19">
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script defer src="./js/aiTutor_v22.js"></script>
-  <script src="./js/minimap.js?v=radar_v7"></script>
-  <script type="module" src="./js/main_v33.js?v=minimap_v7"></script>
-  <script src="./js/config.js"></script>
-  <script src="./js/location_ai_knowledge.js"></script>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1, height=device-height">
+ <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+ <meta http-equiv="Pragma" content="no-cache">
+ <meta http-equiv="Expires" content="0">
+ <title>FloodGame</title>
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+ <script src="https://kit.fontawesome.com/b11836b105.js" crossorigin="anonymous"></script>
+ <link rel="stylesheet" href="./css/style.css?v=28">
+ <link rel="stylesheet" href="./css/aiTutor.css?v=19">
+ <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+ <script defer src="./js/aiTutor_v22.js"></script>
+ <script src="./js/minimap.js?v=radar_v12"></script>
+ <script type="module" src="./js/main_v33.js?v=defense_v12"></script>
+ <script src="./js/config.js"></script>
+ <script src="./js/location_ai_knowledge.js"></script>
   <script>
     // Key is restricted by HTTP referrer in Google Cloud Console - safe to include here
     window.GOOGLE_MAPS_API_KEY = window.GOOGLE_MAPS_API_KEY || "AIzaSyBhnN6Wv7F2HEnBytOd7Zw7tlZVLvfZ334";
@@ -2023,7 +2023,7 @@
             this.onerror = null;
           };
           const style = `maptype=terrain&style=element:labels%7Cvisibility:off&style=feature:administrative.land_parcel%7Cvisibility:off&style=feature:administrative.neighborhood%7Cvisibility:off&style=feature:poi.business%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.business%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.business%7Celement:geometry.stroke%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.medical%7Celement:geometry%7Ccolor:0xf9e8ea%7Cvisibility:on&style=feature:poi.medical%7Celement:geometry.fill%7Ccolor:0xf9e8ea&style=feature:poi.medical%7Celement:geometry.stroke%7Ccolor:0xf9e8ea&style=feature:poi.park%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.park%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.park%7Celement:geometry.stroke%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.school%7Celement:geometry%7Ccolor:0xedf0f3%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry.fill%7Ccolor:0xbae4b9%7Cvisibility:on&style=feature:poi.sports_complex%7Celement:geometry.stroke%7Ccolor:0xbae4b9&style=feature:road%7Celement:geometry.fill%7Ccolor:0xfefefe%7Cvisibility:on&style=feature:road%7Celement:geometry.stroke%7Ccolor:0xffffff%7Cvisibility:on&style=feature:road.arterial%7Celement:labels%7Cvisibility:off&style=feature:road.highway%7Celement:labels%7Cvisibility:off&style=feature:road.local%7Cvisibility:off&style=feature:transit.line%7Celement:geometry.fill%7Cvisibility:off&style=feature:transit.line%7Celement:geometry.stroke%7Cvisibility:off&style=feature:transit.station%7Celement:geometry%7Ccolor:0xedf0f3%7Cvisibility:on&style=feature:water%7Celement:geometry%7Ccolor:0x9bd0fe%7Cvisibility:on&style=feature:water%7Celement:geometry.fill%7Ccolor:0x9bd0fe%7Cvisibility:on&style=feature:water%7Celement:geometry.stroke%7Ccolor:0x9bd0fe%7Cvisibility:on`;
-          const apiKey = window.GOOGLE_MAPS_API_KEY || "AIzaSyAu_w256B0ocPN9ViKAX8pAt0RljLVSJnU";
+          const apiKey = window.GOOGLE_MAPS_API_KEY || "AIzaSyBhnN6Wv7F2HEnBytOd7Zw7tlZVLvfZ334";
           img.src = `https://maps.googleapis.com/maps/api/staticmap?center=${config.coords}&zoom=${config.zoom}&size=300x200&key=${apiKey}&${style}`;
         }
       }
@@ -2039,7 +2039,7 @@
         this.src = "./css/img/iowa_city_image.png";
         this.onerror = null;
       };
-      googleImg.src = `https://maps.googleapis.com/maps/api/staticmap?center=41.656910,-91.541321&zoom=17&size=640x640&key=${window.GOOGLE_MAPS_API_KEY || "AIzaSyAi9ZclWNZruhG2e3mmR9GtH3p-V0dXgps"}&style=feature:all|element:labels|visibility:off`;
+      googleImg.src = `https://maps.googleapis.com/maps/api/staticmap?center=41.656910,-91.541321&zoom=17&size=640x640&key=${window.GOOGLE_MAPS_API_KEY || "AIzaSyBhnN6Wv7F2HEnBytOd7Zw7tlZVLvfZ334"}&style=feature:all|element:labels|visibility:off`;
     }
   });
   function initMap() {
@@ -2619,7 +2619,7 @@
 <script>
   (function () {
     var script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${window.GOOGLE_MAPS_API_KEY || "AIzaSyAu_w256B0ocPN9ViKAX8pAt0RljLVSJnU"}&callback=initMap&v=weekly`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${window.GOOGLE_MAPS_API_KEY || "AIzaSyBhnN6Wv7F2HEnBytOd7Zw7tlZVLvfZ334"}&callback=initMap&v=weekly`;
     script.defer = true;
     document.head.appendChild(script);
   })();
