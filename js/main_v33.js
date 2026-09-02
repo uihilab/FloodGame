@@ -2497,6 +2497,11 @@ async function main(opts, list_of_files, game_graphics_opt) {
         updateCars(delta);
         updateBoats(elapsed);
 
+        // Update real-world aerial minimap camera viewport
+        if (window.Minimap) {
+            window.Minimap.update(camera, cameraControls);
+        }
+
         render();
         stats.update();
 
@@ -5258,10 +5263,20 @@ function generateCustomMap() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ location })
     })
-        .then(r => r.json())
+        .then(async r => {
+            const text = await r.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                throw new Error(`Server returned non-JSON response (${r.status}). Backend server may have restarted.`);
+            }
+            if (!r.ok || !data.success) {
+                throw new Error(data.error || `Generation failed with status ${r.status}`);
+            }
+            return data;
+        })
         .then(data => {
-            if (!data.success) throw new Error(data.error || "Generation failed");
-
             // Register custom map files dynamically in game loader dictionary
             dictOfDefaultMaps['custom'] = [
                 data.ground,
@@ -5271,7 +5286,16 @@ function generateCustomMap() {
             ];
 
             // Store custom city name globally for HUD display
-            window.customCityName = data.meta.location_query || location;
+            window.customCityName = (data.meta && data.meta.location_query) ? data.meta.location_query : location;
+
+            // Pass custom GPS coordinates to Minimap if returned by generator
+            if (data.meta && window.Minimap) {
+                const clat = data.meta.center_lat || (data.meta.center ? data.meta.center[0] : undefined);
+                const clon = data.meta.center_lon || (data.meta.center ? data.meta.center[1] : undefined);
+                if (clat !== undefined && clon !== undefined) {
+                    window.Minimap.setLocation('custom', window.customCityName, clat, clon);
+                }
+            }
 
             if (status) status.textContent = "Done! Starting game...";
 
@@ -5302,8 +5326,8 @@ window.generateCustomMap = generateCustomMap;
 
 function clearMapsUI() {
     document.getElementById("modal-js-example").classList.remove("is-active");
-    // Show top and bottom HUD bars, but keep left sidebar closed!
-    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .top-hud-toggle-btn");
+    // Show top and bottom HUD bars, and minimap radar!
+    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .top-hud-toggle-btn, .minimap-hud");
     for (var i = 0; i < hudEls.length; i++) {
         hudEls[i].classList.remove("is-hidden");
     }
@@ -5314,7 +5338,7 @@ function clearMapsUI() {
 function showMapsUI() {
     document.getElementById("modal-js-example").classList.add("is-active");
     // Hide all HUD elements
-    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .left-hud-panel, .top-hud-toggle-btn");
+    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .left-hud-panel, .top-hud-toggle-btn, .minimap-hud");
     for (var i = 0; i < hudEls.length; i++) {
         hudEls[i].classList.add("is-hidden");
     }
@@ -5343,8 +5367,13 @@ function startGame(name) {
         el.textContent = displayName;
     });
 
-    // Show top and bottom HUD bars, but keep left sidebar and AI tutor drawer closed!
-    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .top-hud-toggle-btn");
+    // Update real-world aerial minimap location
+    if (window.Minimap) {
+        window.Minimap.setLocation(mapKey, displayName);
+    }
+
+    // Show top, bottom HUD bars, and minimap radar
+    var hudEls = document.querySelectorAll(".top-left-hud-panel, .top-hud-bar, .bottom-hud-bar, .top-hud-toggle-btn, .minimap-hud");
     for (var i = 0; i < hudEls.length; i++) {
         hudEls[i].classList.remove("is-hidden");
     }

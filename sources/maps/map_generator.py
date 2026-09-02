@@ -33,7 +33,7 @@ def fetch_url(url, post_data=None, is_json=False, retries=3):
     for attempt in range(retries):
         try:
             req = urllib.request.Request(url)
-            req.add_header('User-Agent', 'FloodGameMapGenerator/2.0 (campbell.endries@tulane.edu)')
+            req.add_header('User-Agent', 'FloodGameMapGenerator/2.0 (https://github.com/uihilab/FloodGame)')
             req.add_header('Referer', 'https://github.com/uihilab/FloodGame')
             data = None
             if post_data:

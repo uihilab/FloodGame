@@ -26,7 +26,7 @@ os.makedirs("./sources/maps/greenville", exist_ok=True)
 # Helper function to perform HTTP requests using python built-ins
 def fetch_url(url, post_data=None, is_json=False):
     req = urllib.request.Request(url)
-    req.add_header('User-Agent', 'FloodGameMapGenerator/1.0 (campbell.endries@gmail.com)')
+    req.add_header('User-Agent', 'FloodGameMapGenerator/1.0 (https://github.com/uihilab/FloodGame)')
     req.add_header('Referer', 'https://github.com/uihilab/FloodGame')
     if post_data:
         if is_json:

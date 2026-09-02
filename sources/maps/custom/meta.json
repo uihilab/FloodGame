@@ -1,25 +1,25 @@
 {
   "name": "custom",
-  "center_lat": 29.9561422,
-  "center_lon": -90.0733934,
-  "rotation_deg": -35.0,
+  "center_lat": 40.7127281,
+  "center_lon": -74.0060152,
+  "rotation_deg": -25.0,
   "flood_edge": "SOUTH",
   "water_tile_count": 50,
   "building_counts": {
-    "School": 2,
-    "Chu": 2,
-    "Res2": 154,
+    "Pol": 2,
+    "Res1": 397,
+    "Res3": 448,
+    "Res2": 427,
+    "Bank": 14,
+    "Com2": 32,
+    "School": 6,
+    "Com": 77,
     "Fire": 2,
-    "Res3": 159,
-    "Res1": 145,
-    "Bank": 1,
-    "Com2": 30,
-    "Htl": 15,
-    "Gas": 1,
+    "Chse": 5,
+    "Chu": 5,
+    "Htl": 3,
     "Hos": 1,
-    "Pol": 1,
-    "Wat": 1,
-    "Com": 65
+    "Wat": 1
   },
-  "location_query": "New Orleans, LA"
+  "location_query": "New York, NY"
 }

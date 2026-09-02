@@ -19,7 +19,7 @@ const GAME_DIR = path.join(__dirname);
 app.use(express.static(GAME_DIR));
 
 function serviceToken() {
-    return jwt.sign({ role: "floodgame_service" }, JWT_SECRET, { expiresIn: "1h" });
+    return JWT_SECRET ? jwt.sign({ role: "floodgame_service" }, JWT_SECRET, { expiresIn: "1h" }) : "";
 }
 
 // postgrest call

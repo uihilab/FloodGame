@@ -4,14 +4,18 @@
 <head>
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1, height=device-height">
+ <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+ <meta http-equiv="Pragma" content="no-cache">
+ <meta http-equiv="Expires" content="0">
  <title>FloodGame</title>
  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
  <script src="https://kit.fontawesome.com/b11836b105.js" crossorigin="anonymous"></script>
- <link rel="stylesheet" href="./css/style.css?v=21">
+ <link rel="stylesheet" href="./css/style.css?v=28">
  <link rel="stylesheet" href="./css/aiTutor.css?v=19">
  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
  <script defer src="./js/aiTutor_v22.js"></script>
- <script type="module" src="./js/main_v33.js?v=cars_v45"></script>
+ <script src="./js/minimap.js?v=radar_v7"></script>
+ <script type="module" src="./js/main_v33.js?v=minimap_v7"></script>
  <script src="./js/config.js"></script>
  <script src="./js/location_ai_knowledge.js"></script>
  <!-- playground-hide -->
@@ -163,6 +167,29 @@
  <span class="hud-circle-btn-label">AI GUIDE</span>
  </div>
 
+ </div>
+
+ <!-- Real-World Aerial Minimap (Overview Radar) -->
+ <div id="minimap-hud" class="minimap-hud is-hidden" style="width: 270px !important;">
+  <div class="minimap-header">
+   <div class="minimap-title-group">
+    <span class="minimap-pulse-dot"></span>
+    <span class="minimap-title">RADAR</span>
+    <span class="minimap-city" id="minimap-city-name">Iowa City, IA</span>
+   </div>
+   <div class="minimap-actions">
+    <button id="minimap-mode-btn" class="minimap-btn" title="Toggle Satellite / Hybrid View">
+     <span id="minimap-mode-label">HYB</span>
+    </button>
+    <button id="minimap-toggle-btn" class="minimap-btn" title="Minimize / Expand Radar">
+     <i class="fas fa-minus"></i>
+    </button>
+   </div>
+  </div>
+  <div class="minimap-body" style="padding: 12px !important;">
+   <canvas id="minimap-canvas" width="245" height="245" style="width: 245px !important; height: 245px !important; display: block !important;"></canvas>
+   <div class="minimap-coords-badge">50x50 km²</div>
+  </div>
  </div>
 
  <!-- Left HUD Panel (Tile Inspector & Mitigation Options) -->
@@ -1518,7 +1545,7 @@ function debouncedCitySearch(query) {
 
     // 2. Query Nominatim (with email header) and filter in JS to support small towns/villages
     citySearchTimeout = setTimeout(() => {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&email=campbell.endries@gmail.com&countrycodes=us`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&email=uihilab@gmail.com&countrycodes=us`;
         fetch(url)
             .then(r => r.json())
             .then(data => {
