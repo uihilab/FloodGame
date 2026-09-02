@@ -1915,6 +1915,12 @@ async function main(opts, list_of_files, game_graphics_opt) {
         window.totalAvailableMoney = totalAvailableMoney;
         gameProgressPanel[0].textContent = "$" + nFormatter((totalAvailableMoney).toFixed(0), 2) + "/" + nFormatter(50000000, 1);
 
+        // Directly sync the top HUD budget display
+        var budgetEl = document.querySelector("#budget-progress");
+        if (budgetEl) {
+            budgetEl.textContent = "$" + (totalAvailableMoney / 1000000).toFixed(2) + "M";
+        }
+
         // -- Vulnerable Population --
         gameProgressPanel[1].textContent = findNumberofEffectedPeople()[1] + "/" + findNumberofEffectedPeople()[0];
 
@@ -3196,6 +3202,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
     function changePositionBuilding(row, column) {
 
+        var sRow = selectedBuilding.row;
+        var sCol = selectedBuilding.column;
+
         if (["water", "parking_lot", "road", "building"].includes(groundTiles[row][column].type)) {
             alert("Destination should be empty tile!!!");
             clearSelectedTile();
@@ -3216,6 +3225,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         if (typeof obj === 'object' && isNonInstancing(obj.type)) {
             changePositionofObject(`${sRow}_${sCol}`, x, groundTiles[row][column].elevation, z);
+            // Update the 3D object's externalID so click resolution maps to the new location
+            var ob = scene.getObjectByProperty("externalID", `${sRow}_${sCol}`);
+            if (ob) ob.externalID = `${row}_${column}`;
         } else if (typeof obj === 'object' && obj.type && meshDict[obj.type] && obj.instanceId !== undefined) {
             transform.scale.set(1, 1, 1);
             transform.position.set(x, groundTiles[row][column].elevation, z);
