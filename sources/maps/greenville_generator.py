@@ -3,7 +3,8 @@ import os
 import random
 
 # Ensure output directory exists
-os.makedirs("/Users/campbellendries/Documents/GitHub/FloodGame/sources/maps/greenville", exist_ok=True)
+MAP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "greenville")
+os.makedirs(MAP_DIR, exist_ok=True)
 
 ROWS = 50
 COLS = 50
@@ -199,9 +200,9 @@ for r in range(ROWS):
     surface_v2_grid.append(surface_v2_row)
 
 # Write output files
-path_ground = "/Users/campbellendries/Documents/GitHub/FloodGame/sources/maps/greenville/GroundTiles.json"
-path_surface = "/Users/campbellendries/Documents/GitHub/FloodGame/sources/maps/greenville/SurfaceTiles.json"
-path_surface_v2 = "/Users/campbellendries/Documents/GitHub/FloodGame/sources/maps/greenville/SurfaceTiles_v2.json"
+path_ground = os.path.join(MAP_DIR, "GroundTiles.json")
+path_surface = os.path.join(MAP_DIR, "SurfaceTiles.json")
+path_surface_v2 = os.path.join(MAP_DIR, "SurfaceTiles_v2.json")
 
 with open(path_ground, "w") as f:
     json.dump(ground_grid, f)

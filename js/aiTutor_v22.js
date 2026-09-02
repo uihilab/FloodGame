@@ -1,7 +1,6 @@
 // AI Tutor v25 — Instant Location & Strategy Engine (Universal 0ms / 0MB RAM)
 (function () {
     // ── Chat Log API ────────────────────────────────────────────────────────
-    // Change this URL to the lab server address once Samrat sets it up
     var API_BASE = window.location.hostname === "localhost"
         ? "http://localhost:3005"
         : "https://hydroinformatics.tulane.edu/api/floodgame";

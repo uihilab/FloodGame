@@ -192,7 +192,10 @@ class MinimapManager {
 
     loadSatelliteImage() {
         this.imageLoaded = false;
-        const apiKey = window.GOOGLE_MAPS_API_KEY || "AIzaSyAi9ZclWNZruhG2e3mmR9GtH3p-V0dXgps";
+        const apiKey = window.GOOGLE_MAPS_API_KEY || "";
+        if (!apiKey) {
+            return;
+        }
         let center = "41.6611,-91.5302";
         let zoom = 16;
 

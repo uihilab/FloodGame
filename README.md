@@ -258,6 +258,13 @@ python3 sources/maps/map_generator.py --lat 41.6611 --lon -91.5302 --name custom
    ```
    Open your browser and go to **`http://localhost:3005`**.
 
+4. **Configure Google Maps API Key**:
+   FloodGame runs completely offline out-of-the-box using built-in preview assets and procedural radar minimaps. If you wish to enable live Google Satellite tiles in the minimap and scenario selector during local development:
+   ```bash
+   cp js/config.example.js js/config.js
+   ```
+   Open `js/config.js` and paste your Google Maps Static API key. (`js/config.js` is ignored by git so your private key will never be committed).
+
 ---
 
 ## Backend Server & API
