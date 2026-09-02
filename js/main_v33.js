@@ -138,6 +138,8 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
 
+    var defenseVisualMeshes = {};
+
     var allMitigationsSelects = document.querySelectorAll(".mitigation-option select");
     var allCheckbox = document.querySelectorAll(".mitigation-option [type='checkbox']");
     var allMitigationsCostTexts = document.querySelectorAll(".mitigation-option .mitigation-cost");
@@ -359,6 +361,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
         buttonGUISetUp();
         mitigationsActions();
         guiCostUpdate();
+        syncAllDefenseVisuals();
         totalCostAtTheStart = calculateTotalDamage();
         [initialBuilding, initialEffectedBuilding] = findNumberOfEffectedBuilding();
         [initialCriticalBuilding, initialEffectedCriticalBuilding] = findCriticalBuildingInformations();
@@ -1619,23 +1622,22 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function mitigationFloodLevelPrevention(row, column) {
-
         /*
             This function checks all mitigation options on given tile which
             blocks the water and return the max flood level that it can block.
         */
         var result = 0;
-        if (hasMitigationType(row, column, 1)) {
-            result = surfaceTiles[row][column].elevateStructure;
+        var g = (groundTiles && groundTiles[row]) ? groundTiles[row][column] : null;
+        var s = (surfaceTiles && surfaceTiles[row]) ? surfaceTiles[row][column] : null;
+
+        if (s && typeof s === 'object' && s.elevateStructure && s.elevateStructure > 0) {
+            result = Math.max(result, s.elevateStructure);
         }
-        else if (hasMitigationType(row, column, 2)) {
-            result = groundTiles[row][column].floodWall;
+        if (g && g.floodWall && g.floodWall > 0) {
+            result = Math.max(result, g.floodWall);
         }
-        else if (hasMitigationType(row, column, 3)) {
-            result = surfaceTiles[row][column].sandBag;
-        }
-        else {
-            result = 0;
+        if (s && typeof s === 'object' && s.sandBag && s.sandBag > 0) {
+            result = Math.max(result, s.sandBag);
         }
         return result;
     };
@@ -1744,10 +1746,222 @@ async function main(opts, list_of_files, game_graphics_opt) {
         if (typeof tile !== 'object') return false;
         return tile.type && buildingMetaDict[tile.type];
     }
+
+    // =========================================================================
+    // 3D DEFENSE VISUALS: PROCEDURAL FLOOD WALLS & SANDBAGS
+    // =========================================================================
+    var defenseVisualMeshes = {};
+
+    function createFloodWallMesh(row, column, heightFeet) {
+        var group = new THREE.Group();
+        group.name = "floodwall_" + row + "_" + column;
+
+        var [posX, posZ] = calculatePosition(row, column);
+        var baseElev = (groundTiles[row] && groundTiles[row][column]) ? (groundTiles[row][column].elevation || 0) : 0;
+
+        var wallH = Math.max(8, (heightFeet || 1) * 9); // Scaled height in world units
+        var wallThick = 4.5;
+        var wallLen = 94; // Perimeter inset inside 100x100 tile
+        var halfLen = wallLen / 2;
+
+        var wallMat = new THREE.MeshLambertMaterial({ color: 0x7c8c99 });
+        var capMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
+        var pillarMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+
+        // Wall geometries
+        var nsGeom = new THREE.BoxGeometry(wallLen, wallH, wallThick);
+        var ewGeom = new THREE.BoxGeometry(wallThick, wallH, wallLen);
+
+        // North wall
+        var northWall = new THREE.Mesh(nsGeom, wallMat);
+        northWall.position.set(0, wallH / 2, -halfLen);
+        group.add(northWall);
+
+        // South wall
+        var southWall = new THREE.Mesh(nsGeom, wallMat);
+        southWall.position.set(0, wallH / 2, halfLen);
+        group.add(southWall);
+
+        // West wall
+        var westWall = new THREE.Mesh(ewGeom, wallMat);
+        westWall.position.set(-halfLen, wallH / 2, 0);
+        group.add(westWall);
+
+        // East wall
+        var eastWall = new THREE.Mesh(ewGeom, wallMat);
+        eastWall.position.set(halfLen, wallH / 2, 0);
+        group.add(eastWall);
+
+        // 4 Corner Pillars
+        var pillarSize = wallThick * 1.5;
+        var pillarGeom = new THREE.BoxGeometry(pillarSize, wallH + 2, pillarSize);
+        var corners = [
+            [-halfLen, -halfLen],
+            [halfLen, -halfLen],
+            [-halfLen, halfLen],
+            [halfLen, halfLen]
+        ];
+        corners.forEach(function(c) {
+            var pillar = new THREE.Mesh(pillarGeom, pillarMat);
+            pillar.position.set(c[0], (wallH + 2) / 2, c[1]);
+            group.add(pillar);
+        });
+
+        // Top Coping Cap
+        var capThick = wallThick * 1.25;
+        var capH = 1.8;
+        var nsCapGeom = new THREE.BoxGeometry(wallLen, capH, capThick);
+        var ewCapGeom = new THREE.BoxGeometry(capThick, capH, wallLen);
+
+        var nCap = new THREE.Mesh(nsCapGeom, capMat);
+        nCap.position.set(0, wallH + capH / 2, -halfLen);
+        group.add(nCap);
+
+        var sCap = new THREE.Mesh(nsCapGeom, capMat);
+        sCap.position.set(0, wallH + capH / 2, halfLen);
+        group.add(sCap);
+
+        var wCap = new THREE.Mesh(ewCapGeom, capMat);
+        wCap.position.set(-halfLen, wallH + capH / 2, 0);
+        group.add(wCap);
+
+        var eCap = new THREE.Mesh(ewCapGeom, capMat);
+        eCap.position.set(halfLen, wallH + capH / 2, 0);
+        group.add(eCap);
+
+        group.position.set(posX, baseElev, posZ);
+        return group;
+    }
+
+    function createSandbagMesh(row, column, heightFeet) {
+        var group = new THREE.Group();
+        group.name = "sandbag_" + row + "_" + column;
+
+        var [posX, posZ] = calculatePosition(row, column);
+        var baseElev = (groundTiles[row] && groundTiles[row][column]) ? (groundTiles[row][column].elevation || 0) : 0;
+
+        var tiers = Math.max(1, Math.min(4, heightFeet || 1));
+        var bagColors = [0xc89666, 0xb88656, 0xa67449];
+
+        // Ring dimensions hugging building foundation
+        var baseSize = 68;
+        var bagL = 10;
+        var bagW = 5.5;
+        var bagH = 3.6;
+
+        for (var t = 0; t < tiers; t++) {
+            var tierElev = t * (bagH * 0.85);
+            var tierSize = baseSize - (t * 2.5); // Slight pyramidal inward taper
+            var halfS = tierSize / 2;
+            var numBagsX = Math.max(2, Math.floor(tierSize / bagL));
+            var numBagsZ = Math.max(2, Math.floor(tierSize / bagL));
+
+            var bagMat = new THREE.MeshLambertMaterial({
+                color: bagColors[t % bagColors.length],
+                roughness: 0.9
+            });
+            var bagGeomX = new THREE.BoxGeometry(bagL * 0.92, bagH, bagW);
+            var bagGeomZ = new THREE.BoxGeometry(bagW, bagH, bagL * 0.92);
+
+            // North & South rows
+            var startX = -halfS + bagL / 2;
+            for (var i = 0; i < numBagsX; i++) {
+                var bx = startX + i * bagL;
+                var nBag = new THREE.Mesh(bagGeomX, bagMat);
+                nBag.position.set(bx, tierElev + bagH / 2, -halfS);
+                group.add(nBag);
+
+                var sBag = new THREE.Mesh(bagGeomX, bagMat);
+                sBag.position.set(bx, tierElev + bagH / 2, halfS);
+                group.add(sBag);
+            }
+
+            // East & West rows
+            var startZ = -halfS + bagL / 2;
+            for (var j = 0; j < numBagsZ; j++) {
+                var bz = startZ + j * bagL;
+                var wBag = new THREE.Mesh(bagGeomZ, bagMat);
+                wBag.position.set(-halfS, tierElev + bagH / 2, bz);
+                group.add(wBag);
+
+                var eBag = new THREE.Mesh(bagGeomZ, bagMat);
+                eBag.position.set(halfS, tierElev + bagH / 2, bz);
+                group.add(eBag);
+            }
+        }
+
+        group.position.set(posX, baseElev, posZ);
+        return group;
+    }
+
+    function syncDefenseVisual(row, column) {
+        if (!defenseVisualMeshes) defenseVisualMeshes = {};
+        if (row === undefined || column === undefined || row < 0 || column < 0) return;
+
+        var fwKey = "floodwall_" + row + "_" + column;
+        var sbKey = "sandbag_" + row + "_" + column;
+
+        var fwHeight = (groundTiles[row] && groundTiles[row][column] && groundTiles[row][column].floodWall) ? groundTiles[row][column].floodWall : 0;
+        var sbHeight = (surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] !== 0 && surfaceTiles[row][column].sandBag) ? surfaceTiles[row][column].sandBag : 0;
+
+        // Sync Flood Wall
+        if (fwHeight > 0) {
+            if (defenseVisualMeshes[fwKey] && defenseVisualMeshes[fwKey].userData.height === fwHeight) {
+                // Height is unchanged
+            } else {
+                if (defenseVisualMeshes[fwKey]) {
+                    scene.remove(defenseVisualMeshes[fwKey]);
+                    delete defenseVisualMeshes[fwKey];
+                }
+                var fwMesh = createFloodWallMesh(row, column, fwHeight);
+                fwMesh.userData = { height: fwHeight, type: 'floodwall', row: row, column: column };
+                scene.add(fwMesh);
+                defenseVisualMeshes[fwKey] = fwMesh;
+            }
+        } else {
+            if (defenseVisualMeshes[fwKey]) {
+                scene.remove(defenseVisualMeshes[fwKey]);
+                delete defenseVisualMeshes[fwKey];
+            }
+        }
+
+        // Sync Sandbags
+        if (sbHeight > 0) {
+            if (defenseVisualMeshes[sbKey] && defenseVisualMeshes[sbKey].userData.height === sbHeight) {
+                // Height is unchanged
+            } else {
+                if (defenseVisualMeshes[sbKey]) {
+                    scene.remove(defenseVisualMeshes[sbKey]);
+                    delete defenseVisualMeshes[sbKey];
+                }
+                var sbMesh = createSandbagMesh(row, column, sbHeight);
+                sbMesh.userData = { height: sbHeight, type: 'sandbag', row: row, column: column };
+                scene.add(sbMesh);
+                defenseVisualMeshes[sbKey] = sbMesh;
+            }
+        } else {
+            if (defenseVisualMeshes[sbKey]) {
+                scene.remove(defenseVisualMeshes[sbKey]);
+                delete defenseVisualMeshes[sbKey];
+            }
+        }
+    }
+
+    function syncAllDefenseVisuals() {
+        for (var r = 0; r < numberOfRows; r++) {
+            for (var c = 0; c < numberOfColumns; c++) {
+                syncDefenseVisual(r, c);
+            }
+        }
+    }
+
     function onMitigationChanged() {
         updateFloodInformation();
         updateGameProgressPanel();
         updateGoalsPanel();
+        if (selectedTile && selectedTile.isSelected) {
+            syncDefenseVisual(selectedTile.row, selectedTile.column);
+        }
         if (typeof borderSegments !== 'undefined' && borderSegments.visible) {
             changeColorofRiskyAreas();
         }
@@ -1776,23 +1990,32 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         // Flood Wall
         allMitigationsSelects[2].onchange = function () {
-            //allMitigationsCostTexts[2].textContent = "$" + mitigationMetaData[
-            //"flood_wall"]["opts_values"][parseInt(allMitigationsSelects[2].value)]["cost"];
-
+            var newH = parseInt(allMitigationsSelects[2].value) || 1;
             if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
-                allMitigationsCostTexts[2].textContent = "$" + nFormatter(mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
+                allMitigationsCostTexts[2].textContent = "$" + nFormatter(mitigationMetaDataNew["Floodwall"]["cost"][newH]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
             }
             else {
-                allMitigationsCostTexts[2].textContent = "$" + nFormatter(mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * 500, 1);
+                allMitigationsCostTexts[2].textContent = "$" + nFormatter(mitigationMetaDataNew["Floodwall"]["cost"][newH]["Cost"] * 500, 1);
             };
+            // If flood wall is already active on this tile, live-update height and 3D mesh
+            if (selectedTile && selectedTile.isSelected && groundTiles[selectedTile.row][selectedTile.column].floodWall > 0) {
+                groundTiles[selectedTile.row][selectedTile.column].floodWall = newH;
+                syncDefenseVisual(selectedTile.row, selectedTile.column);
+                onMitigationChanged();
+            }
         };
 
         //Sand Bag
         allMitigationsSelects[3].onchange = function () {
-            //allMitigationsCostTexts[3].textContent = "$" + mitigationMetaData[
-            //"sand_bag"]["opts_values"][parseInt(allMitigationsSelects[3].value)]["cost"];
+            var newH = parseInt(allMitigationsSelects[3].value) || 1;
             if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
-                allMitigationsCostTexts[3].textContent = "$" + nFormatter(mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
+                allMitigationsCostTexts[3].textContent = "$" + nFormatter(mitigationMetaDataNew["Sandbag"]["cost"][newH]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
+                // If sandbag is already active on this structure, live-update height and 3D mesh
+                if (selectedTile && selectedTile.isSelected && surfaceTiles[selectedTile.row][selectedTile.column].sandBag > 0) {
+                    surfaceTiles[selectedTile.row][selectedTile.column].sandBag = newH;
+                    syncDefenseVisual(selectedTile.row, selectedTile.column);
+                    onMitigationChanged();
+                }
             } else {
                 allMitigationsCostTexts[3].textContent = "$0";
             }
@@ -1813,8 +2036,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
         }
         // Wet Floodproofing
         allMitigationsSelects[4].onchange = function () {
-            //allMitigationsCostTexts[3].textContent = "$" + mitigationMetaData[
-            //"sand_bag"]["opts_values"][parseInt(allMitigationsSelects[3].value)]["cost"];
             if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
                 allMitigationsCostTexts[8].textContent = "$" + nFormatter(mitigationMetaDataNew["Wetfloodproofing"]["cost"][parseInt(allMitigationsSelects[4].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
             } else {
@@ -1824,8 +2045,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         // Dry Floodproofing
         allMitigationsSelects[5].onchange = function () {
-            //allMitigationsCostTexts[3].textContent = "$" + mitigationMetaData[
-            //"sand_bag"]["opts_values"][parseInt(allMitigationsSelects[3].value)]["cost"];
             if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
                 allMitigationsCostTexts[9].textContent = "$" + nFormatter(mitigationMetaDataNew["Dryfloodproofing"]["cost"][parseInt(allMitigationsSelects[5].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
             } else {
@@ -2665,15 +2884,47 @@ async function main(opts, list_of_files, game_graphics_opt) {
                         expenses += cost;
                         totalAvailableMoney -= cost;
                     } else if (activeTool === "prevention") {
-                        var selectVal = parseInt(document.querySelector("#flood_wall_mit select").value);
-                        var cost = (surfaceTiles[row][column] != 0)
-                            ? mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * buildingMetaDict[surfaceTiles[row][column]["type"]]["Perimeter"]
-                            : mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * 500;
-                        if (totalAvailableMoney < cost) { alert("Not enough budget!"); return; }
-                        groundTiles[row][column].floodWall = selectVal;
-                        expenses += cost;
-                        totalAvailableMoney -= cost;
-                        updateTileOptions(row, column);
+                        var fwCheckbox = document.querySelector("#flood_wall_mit input[type='checkbox']");
+                        var sbCheckbox = document.querySelector("#sand_bag_mit input[type='checkbox']");
+                        var isFwChecked = fwCheckbox && fwCheckbox.checked;
+                        var isSbChecked = sbCheckbox && sbCheckbox.checked;
+
+                        if (isSbChecked && isBuildingStructure(row, column)) {
+                            // Paint Sandbags on clicked building
+                            var sbVal = parseInt(document.querySelector("#sand_bag_mit select").value) || 1;
+                            var type = surfaceTiles[row][column]["type"];
+                            var perim = (buildingMetaDict && buildingMetaDict[type]) ? buildingMetaDict[type]["Perimeter"] : 100;
+                            var cost = (mitigationMetaDataNew && mitigationMetaDataNew["Sandbag"] && mitigationMetaDataNew["Sandbag"]["cost"][sbVal]) ? mitigationMetaDataNew["Sandbag"]["cost"][sbVal]["Cost"] * perim : 3300;
+                            if (totalAvailableMoney < cost) { alert("Not enough budget for sandbags!"); return; }
+                            surfaceTiles[row][column].sandBag = sbVal;
+                            expenses += cost;
+                            totalAvailableMoney -= cost;
+                            updateTileOptions(row, column);
+                            onMitigationChanged();
+                        } else if (isFwChecked) {
+                            // Paint Flood Wall
+                            var selectVal = parseInt(document.querySelector("#flood_wall_mit select").value) || 1;
+                            var isBld = isBuildingStructure(row, column);
+                            var cost = isBld
+                                ? mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * (buildingMetaDict[surfaceTiles[row][column]["type"]] ? buildingMetaDict[surfaceTiles[row][column]["type"]]["Perimeter"] : 100)
+                                : mitigationMetaDataNew["Floodwall"]["cost"][selectVal]["Cost"] * 500;
+                            if (totalAvailableMoney < cost) { alert("Not enough budget for flood wall!"); return; }
+                            groundTiles[row][column].floodWall = selectVal;
+                            expenses += cost;
+                            totalAvailableMoney -= cost;
+                            updateTileOptions(row, column);
+                            onMitigationChanged();
+                        } else {
+                            // Select tile to allow choosing Sandbags, Flood Wall, or other defenses from the sidebar
+                            var eventObj = { clientX: clientX, clientY: clientY };
+                            fillSelectedTile(row, column, eventObj);
+                            if (isBuildingStructure(row, column)) {
+                                fillSelectedBuilding(row, column);
+                            } else {
+                                clearSelectedBuilding();
+                            }
+                            return;
+                        }
                     }
 
                     // Update common UI and HUD stats
@@ -2840,17 +3091,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
         if (leftPanel) {
             leftPanel.classList.remove("is-hidden");
         }
-
-        // 3. Switch to 'Tile Info' tab and make it visible
-        const infoTab = document.querySelector(".hud-tab-btn[data-target='tile-information']");
-        const abilitiesTab = document.querySelector(".hud-tab-btn[data-target='mitigation-options']");
-        if (infoTab) infoTab.classList.add("is-active");
-        if (abilitiesTab) abilitiesTab.classList.remove("is-active");
-
-        const tileInfo = document.getElementById("tile-information");
-        const mitOpts = document.getElementById("mitigation-options");
-        if (tileInfo) tileInfo.classList.remove("is-hidden");
-        if (mitOpts) mitOpts.classList.add("is-hidden");
     };
 
     function convertFloodWallHeighttoSelectedIndex(value) {
@@ -2966,92 +3206,78 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
         /* Flood Wall */
-        if (temp_mit_id == 2) {
+        if (hasMitigationType(row, column, 2)) {
             checkMitigationStatus(mitigation_opts[2]);
-            allMitigationsSelects[2].selectedIndex = convertFloodWallHeighttoSelectedIndex(tempGroundTiles1.floodWall);
+            var fwVal = (tempGroundTiles1 && tempGroundTiles1.floodWall) ? tempGroundTiles1.floodWall : 0;
+            allMitigationsSelects[2].selectedIndex = convertFloodWallHeighttoSelectedIndex(fwVal);
             disableMitigationValue(mitigation_opts[2]);
         } else {
             uncheckMitigationStatus(mitigation_opts[2]);
             allMitigationsSelects[2].selectedIndex = convertFloodWallHeighttoSelectedIndex(0);
-            hideMitigationOptionbyDOMParent(mitigation_opts[2]);
+            enableMitigationValue(mitigation_opts[2]);
         };
 
-
         /* Sand Bag */
-        if (temp_mit_id == 3) {
+        if (hasMitigationType(row, column, 3)) {
             checkMitigationStatus(mitigation_opts[3]);
-            allMitigationsSelects[3].selectedIndex = convertSandBagHeighttoSelectedIndex(
-                (surfaceTiles[row][column] && surfaceTiles[row][column] !== 0) ? surfaceTiles[row][column].sandBag : 0
-            );
+            var sbVal = (surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] !== 0) ? (surfaceTiles[row][column].sandBag || 0) : 0;
+            allMitigationsSelects[3].selectedIndex = convertSandBagHeighttoSelectedIndex(sbVal);
             disableMitigationValue(mitigation_opts[3]);
         } else {
             uncheckMitigationStatus(mitigation_opts[3]);
             allMitigationsSelects[3].selectedIndex = convertSandBagHeighttoSelectedIndex(0);
-            hideMitigationOptionbyDOMParent(mitigation_opts[3]);
+            enableMitigationValue(mitigation_opts[3]);
         };
-
 
         /* Insurance */
-        if (temp_mit_id == 4) {
+        if (hasMitigationType(row, column, 4)) {
             checkMitigationStatus(mitigation_opts[4]);
+            disableMitigationValue(mitigation_opts[4]);
         } else {
             uncheckMitigationStatus(mitigation_opts[4]);
-            hideMitigationOptionbyDOMParent(mitigation_opts[4]);
+            enableMitigationValue(mitigation_opts[4]);
         };
-
 
         /* Relocate Structure */
-        if (temp_mit_id == 10) {
-
-        } else {
-            uncheckMitigationStatus(mitigation_opts[5]);
-            hideMitigationOptionbyDOMParent(mitigation_opts[5]);
-        };
-
+        uncheckMitigationStatus(mitigation_opts[5]);
 
         /* Remove Structure */
-        if (temp_mit_id == 10) {
-
-        } else {
-            uncheckMitigationStatus(mitigation_opts[6]);
-            hideMitigationOptionbyDOMParent(mitigation_opts[6]);
-        };
-
+        uncheckMitigationStatus(mitigation_opts[6]);
 
         /* Elevate Structure */
-        if (temp_mit_id == 1) {
+        if (hasMitigationType(row, column, 1)) {
             checkMitigationStatus(mitigation_opts[7]);
-            elevateStructureSlider[0].value = surfaceTiles[selectedTile.row][selectedTile.column].elevateStructure;
+            elevateStructureSlider[0].value = (surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] !== 0) ? (surfaceTiles[row][column].elevateStructure || 1) : 1;
             disableMitigationValue(mitigation_opts[7]);
         } else {
             uncheckMitigationStatus(mitigation_opts[7]);
             elevateStructureSlider[0].value = 1;
-            hideMitigationOptionbyDOMParent(mitigation_opts[7]);
+            enableMitigationValue(mitigation_opts[7]);
         };
 
-        // Dry floodproofing
-        if (temp_mit_id == 5) {
-            //console.log("checkk dry")
-            checkMitigationStatus(mitigation_opts[9]);
-            allMitigationsSelects[5].selectedIndex = convertSandBagHeighttoSelectedIndex(surfaceTiles[row][column].Dryfloodproofing);
-            disableMitigationValue(mitigation_opts[9]);
-        } else {
-            uncheckMitigationStatus(mitigation_opts[9]);
-            allMitigationsSelects[5].selectedIndex = convertSandBagHeighttoSelectedIndex(0);
-            hideMitigationOptionbyDOMParent(mitigation_opts[9]);
-        }
-
-        // Wet floodproofing
-        if (temp_mit_id == 6) {
+        /* Wet floodproofing */
+        if (hasMitigationType(row, column, 6)) {
             checkMitigationStatus(mitigation_opts[8]);
-            allMitigationsSelects[4].selectedIndex = convertSandBagHeighttoSelectedIndex(surfaceTiles[row][column].Wetfloodproofing);
+            var wfVal = (surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] !== 0) ? (surfaceTiles[row][column].Wetfloodproofing || 0) : 0;
+            allMitigationsSelects[4].selectedIndex = convertSandBagHeighttoSelectedIndex(wfVal);
             disableMitigationValue(mitigation_opts[8]);
         } else {
             uncheckMitigationStatus(mitigation_opts[8]);
             allMitigationsSelects[4].selectedIndex = convertSandBagHeighttoSelectedIndex(0);
-            hideMitigationOptionbyDOMParent(mitigation_opts[8]);
+            enableMitigationValue(mitigation_opts[8]);
+        };
 
-        }
+        /* Dry floodproofing */
+        if (hasMitigationType(row, column, 5)) {
+            checkMitigationStatus(mitigation_opts[9]);
+            var dfVal = (surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] !== 0) ? (surfaceTiles[row][column].Dryfloodproofing || 0) : 0;
+            allMitigationsSelects[5].selectedIndex = convertSandBagHeighttoSelectedIndex(dfVal);
+            disableMitigationValue(mitigation_opts[9]);
+        } else {
+            uncheckMitigationStatus(mitigation_opts[9]);
+            allMitigationsSelects[5].selectedIndex = convertSandBagHeighttoSelectedIndex(0);
+            enableMitigationValue(mitigation_opts[9]);
+        };
 
 
     };
@@ -3072,7 +3298,6 @@ async function main(opts, list_of_files, game_graphics_opt) {
         clearSelectedBuilding();
         //moveWireFrame_2(2, 0, 0);
         moveWireFrame_3(2, 0, 0);
-        tileInformationPanelTabButtons[0].click();
 
         // Hide left panel if no active tool is selected
         var activeToolBtn = document.querySelector(".hud-circle-btn-container.active-tool");
@@ -3195,16 +3420,41 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function changePositionBuilding(row, column) {
+        var sRow = (selectedBuilding.row >= 0) ? selectedBuilding.row : selectedTile.row;
+        var sCol = (selectedBuilding.column >= 0) ? selectedBuilding.column : selectedTile.column;
 
-        if (["water", "parking_lot", "road", "building"].includes(groundTiles[row][column].type)) {
-            alert("Destination should be empty tile!!!");
+        // Reset move state immediately so subsequent clicks don't get trapped in isMove
+        selectedBuilding.isMove = false;
+
+        if (sRow < 0 || sCol < 0 || !surfaceTiles || !surfaceTiles[sRow] || !surfaceTiles[sRow][sCol] || surfaceTiles[sRow][sCol] === 0) {
+            console.error("Relocate failed: No source building found at", sRow, sCol);
+            clearSelectedTile();
+            return;
+        }
+
+        if (row === sRow && column === sCol) {
+            alert("Destination cannot be the same building!");
             clearSelectedTile();
             return;
         }
 
         var gtType = (groundTiles[row] && groundTiles[row][column]) ? groundTiles[row][column].type : "";
-        if (["water", "parking_lot", "road", "building"].includes(gtType) || (surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] !== 0)) {
-            alert("Destination should be an empty land tile!");
+        if (gtType === "water") {
+            alert("Destination cannot be on water! Please select an open park, grass, or vacant lot.");
+            clearSelectedTile();
+            return;
+        }
+
+        var s2 = (surfaceTiles_v2 && surfaceTiles_v2[row]) ? surfaceTiles_v2[row][column] : 0;
+        var isRoad = gtType === "road" || (s2 && typeof s2 === "object" && s2.type && s2.type.startsWith("road"));
+        if (isRoad) {
+            alert("Destination cannot be on a road! Please select an open park, grass, or vacant lot.");
+            clearSelectedTile();
+            return;
+        }
+
+        if (isBuildingStructure(row, column)) {
+            alert("Destination already has a building! Please select an open park, grass, or vacant lot.");
             clearSelectedTile();
             return;
         }
@@ -3238,6 +3488,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
         // Clear 3D graphics on old tile and create park background
         clearTileForBuilding(sRow, sCol);
         createPark(sRow, sCol);
+
+        syncDefenseVisual(sRow, sCol);
+        syncDefenseVisual(row, column);
 
         clearSelectedTile();
         fillSelectedTile(row, column);
@@ -3799,6 +4052,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         };
         surfaceTiles[selectedBuilding.row][selectedBuilding.column] = 0;
+        syncDefenseVisual(selectedBuilding.row, selectedBuilding.column);
     };
 
 
@@ -4407,28 +4661,23 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function hasMitigation(row, column) {
-        /*
-            It checks whether the tile has mitigation or not.
-            Inputs: position of tile as row and column 
-        */
+        var g = (groundTiles && groundTiles[row]) ? groundTiles[row][column] : null;
+        var s = (surfaceTiles && surfaceTiles[row]) ? surfaceTiles[row][column] : null;
 
-        var result = false;
+        if (g && g.floodWall && g.floodWall > 0) {
+            return true;
+        }
 
-        if (groundTiles[row][column].floodWall != 0) {
-            result = true;
-        };
-
-        if (surfaceTiles[row][column] != 0) {
-            if (surfaceTiles[row][column].floodInsurance != 0 ||
-                surfaceTiles[row][column].elevateStructure != 0 ||
-                surfaceTiles[row][column].Dryfloodproofing != 0 ||
-                surfaceTiles[row][column].Wetfloodproofing != 0 ||
-                surfaceTiles[row][column].sandBag != 0) {
-                result = true;
+        if (s && typeof s === 'object' && s !== 0) {
+            if ((s.floodInsurance && s.floodInsurance !== 0 && s.floodInsurance !== false) ||
+                (s.elevateStructure && s.elevateStructure > 0) ||
+                (s.Dryfloodproofing && s.Dryfloodproofing > 0) ||
+                (s.Wetfloodproofing && s.Wetfloodproofing > 0) ||
+                (s.sandBag && s.sandBag > 0)) {
+                return true;
             }
-
-        };
-        return result;
+        }
+        return false;
     }
 
     function hasMitigationType(row, column, type) {
@@ -4442,86 +4691,42 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 4 = Insurance
                 5 = Dryfloodproofing
                 6 = Wetfloodproofing
-
         */
+        var g = (groundTiles && groundTiles[row]) ? groundTiles[row][column] : null;
+        var s = (surfaceTiles && surfaceTiles[row]) ? surfaceTiles[row][column] : null;
 
-        var result = false;
         if (type == 0) {
-            if (groundTiles[row][column].floodWall != 0) {
-                result = true;
-            };
-
-            if (surfaceTiles[row][column] != 0) {
-                if (surfaceTiles[row][column].floodInsurance != 0 ||
-                    surfaceTiles[row][column].elevateStructure != 0 ||
-                    surfaceTiles[row][column].Dryfloodproofing != 0 ||
-                    surfaceTiles[row][column].Wetfloodproofing != 0 ||
-                    surfaceTiles[row][column].sandBag != 0) {
-                    result = true;
-                };
-
-            };
+            return hasMitigation(row, column);
         } else if (type == 1) {
             // Check Elevate Structure
-            if (surfaceTiles[row][column] != 0) {
-                if (surfaceTiles[row][column].elevateStructure != 0) {
-                    result = true;
-                };
-            }
+            return !!(s && typeof s === 'object' && s.elevateStructure && s.elevateStructure > 0);
         } else if (type == 2) {
             // Check Flood Wall
-            if (groundTiles[row][column].floodWall != 0) {
-                result = true;
-            };
-
+            return !!(g && g.floodWall && g.floodWall > 0);
         } else if (type == 3) {
-            // Check sandbag
-            if (surfaceTiles[row][column] != 0) {
-                if (surfaceTiles[row][column].sandBag != 0) {
-                    result = true;
-                };
-            }
+            // Check Sandbag
+            return !!(s && typeof s === 'object' && s.sandBag && s.sandBag > 0);
         } else if (type == 4) {
-            if (surfaceTiles[row][column] != 0) {
-                if (surfaceTiles[row][column].floodInsurance != 0) {
-                    result = true;
-                };
-            }
+            // Check Insurance
+            return !!(s && typeof s === 'object' && s.floodInsurance && s.floodInsurance !== false);
         } else if (type == 5) {
-            if (surfaceTiles[row][column] != 0) {
-                if (surfaceTiles[row][column].Dryfloodproofing != 0) {
-                    result = true;
-                };
-            }
-
+            // Check Dry Floodproofing
+            return !!(s && typeof s === 'object' && s.Dryfloodproofing && s.Dryfloodproofing > 0);
         } else if (type == 6) {
-            if (surfaceTiles[row][column] != 0) {
-                if (surfaceTiles[row][column].Wetfloodproofing != 0) {
-                    result = true;
-                };
-            }
-
-        } else {
-            result = false
-        };
-
-        return result;
+            // Check Wet Floodproofing
+            return !!(s && typeof s === 'object' && s.Wetfloodproofing && s.Wetfloodproofing > 0);
+        }
+        return false;
     };
 
 
     function whichMitigationType(row, column) {
-        /*
-            It returns applied mitigation type on given position.
-            Mitigation type numbers are same with hasMitigationType 
-            function.
-            Inputs: position of tile as row and column
-        */
-
         for (var i = 1; i < 7; i++) {
             if (hasMitigationType(row, column, i)) {
-                return i
-            };
-        };
+                return i;
+            }
+        }
+        return 0;
     };
 
 
@@ -4716,83 +4921,76 @@ async function main(opts, list_of_files, game_graphics_opt) {
             // Update Main Game Panel
             // Unchecked checkbox
             uncheckMitigationStatus(mitigation_opts[1]);
-        };
-
-        // Flood Wall
+        };        // Flood Wall
         allCheckbox[2].onclick = function () {
-            // Flood wall is applied 
-            console.log("[FloodWall] checkbox clicked, checked=", this.checked, "tile=", selectedTile.row, selectedTile.column, "budget before=", totalAvailableMoney);
             if (this.checked) {
-                // Update tile information
-                groundTiles[selectedTile.row][selectedTile.column].floodWall = parseInt(allMitigationsSelects[2].value);
-                if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
-                    var fwCost = mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    console.log("[FloodWall] building tile cost=", fwCost);
-                    expenses += fwCost;
-                    totalAvailableMoney -= fwCost;
+                var val = parseInt(allMitigationsSelects[2].value) || 1;
+                var isBld = isBuildingStructure(selectedTile.row, selectedTile.column);
+                var perim = (isBld && surfaceTiles[selectedTile.row][selectedTile.column] && buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]) ? buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"] : 500;
+                var fwCost = isBld
+                    ? mitigationMetaDataNew["Floodwall"]["cost"][val]["Cost"] * perim
+                    : mitigationMetaDataNew["Floodwall"]["cost"][val]["Cost"] * 500;
+
+                if (totalAvailableMoney < fwCost) {
+                    alert("Not enough budget for flood wall!");
+                    this.checked = false;
+                    return;
                 }
-                else {
-                    var fwCost = mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * 500;
-                    console.log("[FloodWall] ground tile cost=", fwCost);
-                    expenses += fwCost;
-                    totalAvailableMoney -= fwCost;
-                }
-                // Update Main Game Panel
+                groundTiles[selectedTile.row][selectedTile.column].floodWall = val;
+                expenses += fwCost;
+                totalAvailableMoney -= fwCost;
                 updateTileOptions(selectedTile.row, selectedTile.column);
                 updateTileInformationPanel();
-            }
-            // Flood wall is removed
-            else {
-                // Update tile information
+            } else {
+                var oldVal = groundTiles[selectedTile.row][selectedTile.column].floodWall || parseInt(allMitigationsSelects[2].value) || 1;
+                var isBld = isBuildingStructure(selectedTile.row, selectedTile.column);
+                var perim = (isBld && surfaceTiles[selectedTile.row][selectedTile.column] && buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]) ? buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"] : 500;
+                var fwCost = isBld
+                    ? mitigationMetaDataNew["Floodwall"]["cost"][oldVal]["Cost"] * perim
+                    : mitigationMetaDataNew["Floodwall"]["cost"][oldVal]["Cost"] * 500;
                 groundTiles[selectedTile.row][selectedTile.column].floodWall = 0;
-                if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
-                    var fwCost = mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    expenses -= fwCost;
-                    totalAvailableMoney += fwCost;
-                }
-                else {
-                    var fwCost = mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * 500;
-                    expenses -= fwCost;
-                    totalAvailableMoney += fwCost;
-                }
-                // Update Main Game Panel
+                expenses -= fwCost;
+                totalAvailableMoney += fwCost;
                 updateTileOptions(selectedTile.row, selectedTile.column);
                 updateTileInformationPanel();
             };
-            console.log("[FloodWall] budget after=", totalAvailableMoney);
             onMitigationChanged();
         };
 
 
         // Sand Bag
         allCheckbox[3].onclick = function () {
-            // Sand bag is applied
             if (this.checked) {
-                // Update tile information
                 if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
-                    surfaceTiles[selectedTile.row][selectedTile.column].sandBag = parseInt(allMitigationsSelects[3].value);
-                    // Add Cost
-                    expenses += mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    // Calculate Remaining Budget
-                    totalAvailableMoney -= mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    // Update Main Game Panel
+                    var val = parseInt(allMitigationsSelects[3].value) || 1;
+                    var type = surfaceTiles[selectedTile.row][selectedTile.column]["type"];
+                    var perim = (buildingMetaDict && buildingMetaDict[type]) ? buildingMetaDict[type]["Perimeter"] : 100;
+                    var cost = (mitigationMetaDataNew && mitigationMetaDataNew["Sandbag"] && mitigationMetaDataNew["Sandbag"]["cost"][val]) ? mitigationMetaDataNew["Sandbag"]["cost"][val]["Cost"] * perim : 3300;
+
+                    if (totalAvailableMoney < cost) {
+                        alert("Not enough budget for sandbags!");
+                        this.checked = false;
+                        return;
+                    }
+                    surfaceTiles[selectedTile.row][selectedTile.column].sandBag = val;
+                    expenses += cost;
+                    totalAvailableMoney -= cost;
                     updateTileOptions(selectedTile.row, selectedTile.column);
                     updateTileInformationPanel();
-                    // Disables Dropdown Menu
-                    // disableMitigationValue(mitigation_opts[3]);
+                } else {
+                    alert("Sandbags can only be placed around building perimeters! Please select a building tile.");
+                    this.checked = false;
+                    return;
                 }
-
-            }
-            // Sand bag is removed
-            else {
-                // Update tile information
+            } else {
                 if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
+                    var oldVal = surfaceTiles[selectedTile.row][selectedTile.column].sandBag || parseInt(allMitigationsSelects[3].value) || 1;
+                    var type = surfaceTiles[selectedTile.row][selectedTile.column]["type"];
+                    var perim = (buildingMetaDict && buildingMetaDict[type]) ? buildingMetaDict[type]["Perimeter"] : 100;
+                    var cost = (mitigationMetaDataNew && mitigationMetaDataNew["Sandbag"] && mitigationMetaDataNew["Sandbag"]["cost"][oldVal]) ? mitigationMetaDataNew["Sandbag"]["cost"][oldVal]["Cost"] * perim : 3300;
                     surfaceTiles[selectedTile.row][selectedTile.column].sandBag = 0;
-                    // Add Cost
-                    expenses -= mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    // Calculate Remaining Budget
-                    totalAvailableMoney += mitigationMetaDataNew["Sandbag"]["cost"][parseInt(allMitigationsSelects[3].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"];
-                    // Update Main Game Panel
+                    expenses -= cost;
+                    totalAvailableMoney += cost;
                     updateTileOptions(selectedTile.row, selectedTile.column);
                     updateTileInformationPanel();
                 }
