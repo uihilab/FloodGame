@@ -29,8 +29,8 @@ export function createMeshes(countMap){
 
 
 texFilesDict_building["Bank"] = [
-	"models/polyModels/Models/SPB/SPB_Bank.obj",
-	"models/polyModels/Models/SPB/SPB_Bank.mtl",
+	"models/polyModels/Models/SPB_Bank.obj",
+	"models/polyModels/Models/SPB_Bank.mtl",
 	"models/polyModels/Textures/SPB_Bank.png"];
 
 texFilesDict_building["Chu"] = [
@@ -232,25 +232,25 @@ texFilesDict_building["Com"] = [
 ]
 
 texFilesDict_building["Shel1"] = [
-	"models/polyModels/Models/SPW_Urban_Bldg_01.obj",
-	"models/polyModels/Models/SPW_Urban_Bldg_01.mtl",
-	"models/polyModels/Textures/SPW_Urban_Bldg_01_Color02.png"];
+	"models/polyModels/Models/SPW_Urban_Bldg_15.obj",
+	"models/polyModels/Models/SPW_Urban_Bldg_15.mtl",
+	"models/polyModels/Textures/SPW_Urban_Bldg_15.png"];
 texFilesDict_building["Shel2"] = [
-	"models/polyModels/Models/SPW_Urban_Bldg_01.obj",
-	"models/polyModels/Models/SPW_Urban_Bldg_01.mtl",
-	"models/polyModels/Textures/SPW_Urban_Bldg_01_Color02.png"];
+	"models/polyModels/Models/SPB_Court House.obj",
+	"models/polyModels/Models/SPB_Court House.mtl",
+	"models/polyModels/Textures/SPB_Court House.png"];
 texFilesDict_building["Shel3"] = [
-	"models/polyModels/Models/SPW_Urban_Bldg_01.obj",
-	"models/polyModels/Models/SPW_Urban_Bldg_01.mtl",
-	"models/polyModels/Textures/SPW_Urban_Bldg_01_Color02.png"];
+	"models/polyModels/Models/SPB_City Hall.obj",
+	"models/polyModels/Models/SPB_City Hall.mtl",
+	"models/polyModels/Textures/SPB_City Hall.png"];
 
 
 
-	texFilesDict_ground["water"] = ["#012e51", "#012e51", "#014b84", "#014b84", "#012e51", "#012e51", "#014b84", "#014b84", "#012e51", "#012e51", "#014b84", "#014b84", "#012e51", "#012e51", "#014b84", "#014b84", "#0168b7", "#0168b7", "#0168b7", "#0168b7"];
-	texFilesDict_ground["building"] = ["#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B", "#41472B"];
-	texFilesDict_ground["parks"] = ["#031c0b", "#031c0b", "#094a1b", "#094a1b", "#031c0b", "#031c0b", "#094a1b", "#094a1b", "#031c0b", "#031c0b", "#094a1b", "#094a1b", "#031c0b", "#031c0b", "#094a1b", "#094a1b", "#0f772b", "#0f772b", "#0f772b", "#0f772b"];
-	texFilesDict_ground["parking_lot"] = ["#27272b", "#27272b", "#71717b", "#71717b", "#27272b", "#27272b", "#71717b", "#71717b", "#27272b", "#27272b", "#71717b", "#71717b", "#27272b", "#27272b", "#71717b", "#71717b", "#c0c0c5", "#c0c0c5", "#c0c0c5", "#c0c0c5"];
-	texFilesDict_ground["road"] = ["#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646", "#464646"];
+	texFilesDict_ground["water"] = ["#005b96", "#005b96", "#0077b6", "#0077b6", "#005b96", "#005b96", "#0077b6", "#0077b6", "#005b96", "#005b96", "#0077b6", "#0077b6", "#005b96", "#005b96", "#0077b6", "#0077b6", "#0096c7", "#0096c7", "#0096c7", "#0096c7"];
+	texFilesDict_ground["building"] = ["#38761d", "#38761d", "#2e6b18", "#2e6b18", "#38761d", "#38761d", "#2e6b18", "#2e6b18", "#38761d", "#38761d", "#2e6b18", "#2e6b18", "#38761d", "#38761d", "#2e6b18", "#2e6b18", "#488b25", "#488b25", "#488b25", "#488b25"];
+	texFilesDict_ground["parks"] = ["#1b5e20", "#1b5e20", "#2e7d32", "#2e7d32", "#1b5e20", "#1b5e20", "#2e7d32", "#2e7d32", "#1b5e20", "#1b5e20", "#2e7d32", "#2e7d32", "#1b5e20", "#1b5e20", "#2e7d32", "#2e7d32", "#43a047", "#43a047", "#43a047", "#43a047"];
+	texFilesDict_ground["parking_lot"] = ["#374151", "#374151", "#4b5563", "#4b5563", "#374151", "#374151", "#4b5563", "#4b5563", "#374151", "#374151", "#4b5563", "#4b5563", "#374151", "#374151", "#4b5563", "#4b5563", "#6b7280", "#6b7280", "#6b7280", "#6b7280"];
+	texFilesDict_ground["road"] = ["#334155", "#334155", "#334155", "#334155", "#334155", "#334155", "#334155", "#334155", "#334155", "#334155", "#334155", "#334155", "#334155", "#334155", "#334155", "#334155", "#475569", "#475569", "#475569", "#475569"];
 
 	//texFilesDict_ground["p1"] = ["#091709", "#091709", "#358533", "#358533", "#091709", "#091709", "#358533", "#358533", "#091709", "#091709", "#358533", "#358533", "#091709", "#091709", "#358533", "#358533", "#bae4b9", "#bae4b9", "#bae4b9", "#bae4b9"];
 	//texFilesDict_ground["r1"] = ["#8a2f19", "#8a2f19", "#e1755c", "#e1755c", "#8a2f19", "#8a2f19", "#e1755c", "#e1755c", "#8a2f19", "#8a2f19", "#e1755c", "#e1755c", "#8a2f19", "#8a2f19", "#e1755c", "#e1755c", "#f1bfb2", "#f1bfb2", "#f1bfb2", "#f1bfb2"];
@@ -487,9 +487,11 @@ function returnInstancedMeshModel(obj, mtl, tex, count, divide, name){
 	var position = [];
 
 	geometry = new THREE.BufferGeometry();
-	material = new THREE.MeshLambertMaterial({
+	material = new THREE.MeshStandardMaterial({
 		map:textureReturn(tex),
-		flatShading: true
+		roughness: 0.75,
+		metalness: 0.05,
+		flatShading: false
 	});
 
 	mtlLoader.load(mtl, function (materials){
@@ -549,7 +551,11 @@ function returnInstancedMeshModel(obj, mtl, tex, count, divide, name){
 
 	mesh = new THREE.InstancedMesh(geometry, material, count);
 	mesh.matrixAutoUpdate = false;
-	mesh.castShadow = true;
+	if (name && (name.startsWith("road") || name === "parking")) {
+		mesh.castShadow = false;
+	} else {
+		mesh.castShadow = true;
+	}
 	mesh.receiveShadow = true;
 	return mesh;
 };

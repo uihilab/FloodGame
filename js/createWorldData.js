@@ -120,6 +120,9 @@ async function readExternalJSON(filepath){
         This function reads and return the json
         file at given path.
     */
+    if (typeof filepath === "object" && filepath !== null) {
+        return filepath;
+    }
 
     var data;
 

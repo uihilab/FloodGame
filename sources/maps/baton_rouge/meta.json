@@ -1,0 +1,25 @@
+{
+  "name": "baton_rouge",
+  "center_lat": 30.4494155,
+  "center_lon": -91.1869659,
+  "rotation_deg": 5.0,
+  "flood_edge": "south",
+  "water_tile_count": 5,
+  "building_counts": {
+    "School": 5,
+    "Chu": 5,
+    "Res1": 114,
+    "Res3": 129,
+    "Res2": 122,
+    "Com": 80,
+    "Htl": 4,
+    "Chse": 2,
+    "Bank": 1,
+    "Com2": 31,
+    "Hos": 1,
+    "Pol": 1,
+    "Fire": 1,
+    "Wat": 1
+  },
+  "location_query": "Baton Rouge, LA"
+}
