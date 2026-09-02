@@ -3465,6 +3465,23 @@ async function main(opts, list_of_files, game_graphics_opt) {
             return;
         }
 
+        var st = surfaceTiles[sRow][sCol];
+        var bType = (typeof st === 'object') ? st.type : st;
+        var area = (buildingMetaDict && buildingMetaDict[bType]) ? (buildingMetaDict[bType]["Area"] || 100) : 100;
+        var unitCost = (mitigationMetaDataNew && mitigationMetaDataNew["Relocate"]) ? (mitigationMetaDataNew["Relocate"]["cost"] || 81) : 81;
+        var cost = unitCost * area;
+
+        if (totalAvailableMoney < cost) {
+            alert("Not enough budget to relocate this structure! Cost: $" + nFormatter(cost, 1));
+            uncheckMitigationStatus(mitigation_opts[5]);
+            clearSelectedTile();
+            return;
+        }
+
+        expenses += cost;
+        totalAvailableMoney -= cost;
+        uncheckMitigationStatus(mitigation_opts[5]);
+
         var obj = surfaceTiles[sRow][sCol];
         var [x, z] = calculatePosition(row, column);
 
@@ -5039,21 +5056,20 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         // Relocate Structure
         allCheckbox[5].onclick = function () {
-            if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
-                selectedBuilding.isMove = true;
-                selectedBuilding.row = selectedTile.row;
-                selectedBuilding.column = selectedTile.column;
-                fillSelectedBuilding(selectedTile.row, selectedTile.column);
-
-                var st = surfaceTiles[selectedTile.row][selectedTile.column];
-                var bType = (typeof st === 'object') ? st.type : st;
-                var area = (buildingMetaDict && buildingMetaDict[bType]) ? (buildingMetaDict[bType]["Area"] || 100) : 100;
-                var unitCost = (mitigationMetaDataNew && mitigationMetaDataNew["Relocate"]) ? (mitigationMetaDataNew["Relocate"]["cost"] || 500) : 500;
-                var cost = unitCost * area;
-
-                expenses += cost;
-                totalAvailableMoney -= cost;
-                onMitigationChanged();
+            if (this.checked) {
+                if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
+                    selectedBuilding.isMove = true;
+                    selectedBuilding.row = selectedTile.row;
+                    selectedBuilding.column = selectedTile.column;
+                    fillSelectedBuilding(selectedTile.row, selectedTile.column);
+                } else {
+                    alert("Please select a building structure to relocate!");
+                    this.checked = false;
+                    selectedBuilding.isMove = false;
+                }
+            } else {
+                selectedBuilding.isMove = false;
+                clearSelectedBuilding();
             }
         };
         // Remove Structure
