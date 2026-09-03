@@ -66,12 +66,11 @@ for r in range(ROWS):
             g_type = "parks"
             # Low elevation at breach point (cols 20 to 25)
             if 20 <= c <= 25:
-                elev = 50
+                elev = 45
             else:
-                elev = 75
+                elev = 72
         # Town at other rows
         else:
-            elev = 50
             if c in vertical_roads or r in horizontal_roads:
                 g_type = "road"
             else:
@@ -83,6 +82,9 @@ for r in range(ROWS):
                     g_type = "parking_lot"
                 else:
                     g_type = "parks"
+            # Gradient based on distance from breach (r=39, c=22)
+            dist = math.sqrt((r - 39)**2 + (abs(c - 22) * 0.6)**2)
+            elev = max(46, min(68, int(46 + (dist / 35.0) * 20)))
         
         # Ground Tile JSON
         g_id = ground_counters[g_type]
