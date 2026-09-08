@@ -256,8 +256,68 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     init();
-    //onWindowResize();
     animate();
+
+    function selectTile(row, column) {
+        fillSelectedTile(row, column);
+    }
+
+    window.THREE = THREE;
+    window.debugElevate = {
+        scene: scene,
+        camera: camera,
+        cameraControls: cameraControls,
+        meshDict: meshDict,
+        meshDictIndex: meshDictIndex,
+        surfaceTiles: surfaceTiles,
+        groundTiles: groundTiles,
+        selectedTile: selectedTile,
+        syncDefenseVisual: syncDefenseVisual,
+        createElevateStructureMesh: createElevateStructureMesh,
+        getElevateStructureCost: getElevateStructureCost,
+        getChangeTileCost: getChangeTileCost,
+        getFloodInsuranceCost: getFloodInsuranceCost,
+        changeTileType: changeTileType,
+        selectTile: selectTile,
+        updateTileOptions: updateTileOptions,
+        updateTileInformationPanel: updateTileInformationPanel,
+        isBuildingStructure: isBuildingStructure,
+        hasMitigationType: hasMitigationType,
+        defenseVisualMeshes: defenseVisualMeshes,
+        get totalAvailableMoney() { return totalAvailableMoney; },
+        get expenses() { return expenses; }
+    };
+    window.surfaceTiles = surfaceTiles;
+    window.groundTiles = groundTiles;
+    window.selectTile = selectTile;
+    window.updateTileOptions = updateTileOptions;
+    window.updateTileInformationPanel = updateTileInformationPanel;
+    window.isBuildingStructure = isBuildingStructure;
+    window.hasMitigationType = hasMitigationType;
+    window.getChangeTileCost = getChangeTileCost;
+    window.getFloodInsuranceCost = getFloodInsuranceCost;
+    window.changeTileType = changeTileType;
+    window.defenseVisualMeshes = defenseVisualMeshes;
+    Object.defineProperty(window, 'totalAvailableMoney', {
+        get: function() { return totalAvailableMoney; },
+        set: function(v) { totalAvailableMoney = v; },
+        configurable: true
+    });
+    Object.defineProperty(window, 'expenses', {
+        get: function() { return expenses; },
+        set: function(v) { expenses = v; },
+        configurable: true
+    });
+
+    window.testElevate = function(r, c, h) {
+        if (surfaceTiles && surfaceTiles[r] && surfaceTiles[r][c]) {
+            surfaceTiles[r][c].elevateStructure = h;
+            syncDefenseVisual(r, c);
+            console.log("testElevate completed for", r, c, "height:", h);
+        } else {
+            console.error("No surfaceTile at", r, c);
+        }
+    };
 
     const overlay = document.getElementById("sim-loading-overlay");
     if (overlay) {
@@ -474,9 +534,19 @@ async function main(opts, list_of_files, game_graphics_opt) {
         return groundTiles[clampR][clampC].elevation;
     }
 
-    function createWorld() {
-
-        var x, z;
+    function buildSmoothTerrain() {
+        // Remove previous smoothTerrain meshes
+        var toRemove = [];
+        for (var i = 0; i < scene.children.length; i++) {
+            var child = scene.children[i];
+            if (child && child.name === "smoothTerrain") {
+                toRemove.push(child);
+            }
+        }
+        for (var i = 0; i < toRemove.length; i++) {
+            scene.remove(toRemove[i]);
+            if (toRemove[i].geometry) toRemove[i].geometry.dispose();
+        }
 
         // Generate smooth discontinuous terrain geometries for land and water separately
         var geomLand = new THREE.BufferGeometry();
@@ -665,6 +735,12 @@ async function main(opts, list_of_files, game_graphics_opt) {
             underMesh.name = "smoothTerrain";
             scene.add(underMesh);
         }
+    }
+
+    function createWorld() {
+        var x, z;
+        // Build smooth terrain dynamically
+        buildSmoothTerrain();
 
         // Keep the old loop to record instance matrices but scale them to 0 so they don't render blocky boxes
         for (var row = 0; row < numberOfRows; row++) {
@@ -1443,6 +1519,13 @@ async function main(opts, list_of_files, game_graphics_opt) {
         */
         var ob = scene.getObjectByProperty("externalID", externalID);
         removeObject3D(ob);
+        if (externalID && defenseVisualMeshes) {
+            var elevKey = "elevatestructure_" + externalID;
+            if (defenseVisualMeshes[elevKey]) {
+                scene.remove(defenseVisualMeshes[elevKey]);
+                delete defenseVisualMeshes[elevKey];
+            }
+        }
     };
 
     function changePositionofObject(externalID, x, y, z) {
@@ -1452,7 +1535,11 @@ async function main(opts, list_of_files, game_graphics_opt) {
         */
 
         var ob = scene.getObjectByProperty("externalID", externalID);
-        ob.position.set(x, y, z);
+        if (ob) {
+            ob.userData = ob.userData || {};
+            ob.userData.baseY = y;
+            ob.position.set(x, y, z);
+        }
     };
 
 
@@ -1748,9 +1835,61 @@ async function main(opts, list_of_files, game_graphics_opt) {
     }
 
     // =========================================================================
-    // 3D DEFENSE VISUALS: PROCEDURAL FLOOD WALLS & SANDBAGS
+    // 3D DEFENSE VISUALS: PROCEDURAL FLOOD WALLS, SANDBAGS & ELEVATED STRUCTURES
     // =========================================================================
-    var defenseVisualMeshes = {};
+    function getChangeTileCost(val) {
+        if (mitigationMetaData && mitigationMetaData["change_tile"] && mitigationMetaData["change_tile"]["opts_values"]) {
+            var opt = mitigationMetaData["change_tile"]["opts_values"][val];
+            if (opt && typeof opt.cost === 'number') {
+                return opt.cost;
+            }
+        }
+        var fallbacks = {
+            "w1": 160000,
+            "water": 160000,
+            "c1": 260000,
+            "concrete": 260000,
+            "parking_lot": 260000,
+            "g1": 360000,
+            "parks": 360000,
+            "grass": 360000,
+            "road1": 200000,
+            "road2": 200000,
+            "road": 200000
+        };
+        return fallbacks[val] || 200000;
+    }
+
+    function getFloodInsuranceCost(bType) {
+        if (!bType || !buildingMetaDict || !buildingMetaDict[bType]) return 0;
+        var meta = buildingMetaDict[bType];
+        var valSum = (meta.Str_val || 0) + (meta.Cont_val || 0);
+        var rate = 0.01;
+        if (mitigationMetaDataNew && mitigationMetaDataNew["Insurance"] && mitigationMetaDataNew["Insurance"]["cost"]) {
+            var c = mitigationMetaDataNew["Insurance"]["cost"][bType];
+            if (typeof c === 'number') {
+                rate = c;
+            } else if (bType === "Hos" && typeof mitigationMetaDataNew["Insurance"]["cost"]["Hospital"] === 'number') {
+                rate = mitigationMetaDataNew["Insurance"]["cost"]["Hospital"];
+            } else if (["Com", "Com2", "Ind", "Htl", "Bank", "Chu", "Chse", "Gas", "Hll", "Hos"].includes(bType)) {
+                rate = 0.005;
+            } else {
+                rate = 0.01;
+            }
+        }
+        return Math.round(rate * valSum);
+    }
+
+    function getElevateStructureCost(bType, height) {
+        if (!bType || !buildingMetaDict || !buildingMetaDict[bType]) return 0;
+        var area = buildingMetaDict[bType]["Area"] || 1000;
+        var h = Math.max(1, Math.min(10, parseInt(height) || 1));
+        var unitCost = 50;
+        if (mitigationMetaDataNew && mitigationMetaDataNew["ElevateStructure"] && mitigationMetaDataNew["ElevateStructure"]["cost"] && mitigationMetaDataNew["ElevateStructure"]["cost"][h]) {
+            unitCost = mitigationMetaDataNew["ElevateStructure"]["cost"][h]["Cost"];
+        }
+        return unitCost * area;
+    }
 
     function createFloodWallMesh(row, column, heightFeet) {
         var group = new THREE.Group();
@@ -1894,15 +2033,456 @@ async function main(opts, list_of_files, game_graphics_opt) {
         return group;
     }
 
-    function syncDefenseVisual(row, column) {
+    // =========================================================================
+    // ELEVATE STRUCTURE VISUAL COMPONENT (3D PROCEDURAL STILTS & UI SYNC)
+    // =========================================================================
+
+    function updateElevateUI(val) {
+        var heightFeet = parseInt(val) || 1;
+        var bubble = document.querySelector("#elevate_structure_mit output.bubble");
+        if (bubble) bubble.textContent = heightFeet + " ft";
+
+        var pill = document.getElementById("elevate-height-pill");
+        if (pill) pill.textContent = "+" + heightFeet + " ft Elevation";
+
+        var statusTxt = document.getElementById("elevate-status-text");
+        if (statusTxt) {
+            if (heightFeet <= 2) statusTxt.textContent = "Low Foundation Stilts";
+            else if (heightFeet <= 5) statusTxt.textContent = "Open Pilings & X-Braces";
+            else if (heightFeet <= 8) statusTxt.textContent = "High Coastal Stilts";
+            else statusTxt.textContent = "Max Storm Surge Pilings";
+        }
+
+        // Update SVG cross-section schematic
+        var svgHouse = document.getElementById("elevate-svg-house");
+        var gaugeMarker = document.getElementById("svg-gauge-marker");
+        var gaugeText = document.getElementById("svg-gauge-text");
+
+        // Dynamic lift shift: at 1ft shift is 0, at 10ft shift is -24px
+        var shiftY = (heightFeet - 1) * 2.6;
+        var deckY = 58 - shiftY;
+
+        if (svgHouse) {
+            svgHouse.setAttribute("transform", `translate(0, ${-shiftY})`);
+        }
+
+        var p1 = document.getElementById("svg-post-1");
+        var p2 = document.getElementById("svg-post-2");
+        var p3 = document.getElementById("svg-post-3");
+        if (p1) p1.setAttribute("y2", deckY + 2);
+        if (p2) p2.setAttribute("y2", deckY + 2);
+        if (p3) p3.setAttribute("y2", deckY + 2);
+
+        var x1 = document.getElementById("svg-x-1");
+        var x2 = document.getElementById("svg-x-2");
+        var x3 = document.getElementById("svg-x-3");
+        var x4 = document.getElementById("svg-x-4");
+        if (x1) x1.setAttribute("y2", deckY + 2);
+        if (x2) x2.setAttribute("y2", deckY + 2);
+        if (x3) x3.setAttribute("y2", deckY + 2);
+        if (x4) x4.setAttribute("y2", deckY + 2);
+
+        var stairs = document.getElementById("svg-stairs");
+        if (stairs) {
+            stairs.setAttribute("y1", deckY + 2);
+            stairs.setAttribute("x2", Math.min(220, 160 + (80 - deckY) * 1.1));
+        }
+
+        if (gaugeMarker) {
+            gaugeMarker.setAttribute("cy", deckY + 2);
+        }
+        if (gaugeText) {
+            gaugeText.setAttribute("y", deckY + 5);
+            gaugeText.textContent = "+" + heightFeet + "ft";
+        }
+    }
+
+    function createElevateStructureMesh(row, column, heightFeet) {
+        var group = new THREE.Group();
+        group.name = "elevatestructure_" + row + "_" + column;
+
+        var [posX, posZ] = calculatePosition(row, column);
+        var bld = scene.getObjectByProperty("externalID", `${row}_${column}`);
+        var sTile = (surfaceTiles && surfaceTiles[row]) ? surfaceTiles[row][column] : null;
+        var gTile = (groundTiles && groundTiles[row]) ? groundTiles[row][column] : null;
+
+        var centerX = posX;
+        var centerZ = posZ;
+        var baseElev = (gTile && gTile.elevation !== undefined) ? gTile.elevation : 0;
+        var bldW = 44;
+        var bldD = 44;
+
+        if (bld) {
+            // Individual Object3D (Res1, Res2, Res3, Hos, School, Pol, Com, Fire)
+            centerX = bld.position.x;
+            centerZ = bld.position.z;
+            if (bld.userData && bld.userData.baseY !== undefined) {
+                baseElev = bld.userData.baseY;
+            } else {
+                bld.userData = bld.userData || {};
+                bld.userData.baseY = bld.position.y;
+                baseElev = bld.position.y;
+            }
+
+            var box = new THREE.Box3().setFromObject(bld);
+            var sz = new THREE.Vector3();
+            box.getSize(sz);
+            if (sz.x > 10 && sz.x < 95) bldW = sz.x;
+            if (sz.z > 10 && sz.z < 95) bldD = sz.z;
+        } else if (sTile && sTile !== 0 && sTile.instanceId !== undefined && meshDict && meshDict[sTile.type]) {
+            // InstancedMesh (Htl, Com2, Bank, Chu, Chse, Gas, Hll, Ind, Shel1, Shel2, Shel3, etc.)
+            var instMesh = meshDict[sTile.type];
+            var mat = new THREE.Matrix4();
+            instMesh.getMatrixAt(sTile.instanceId, mat);
+            var pos = new THREE.Vector3();
+            var quat = new THREE.Quaternion();
+            var sc = new THREE.Vector3();
+            mat.decompose(pos, quat, sc);
+
+            if (sTile.baseY !== undefined) {
+                baseElev = sTile.baseY;
+            } else {
+                sTile.baseY = (gTile && gTile.elevation !== undefined) ? (gTile.elevation + 0.5) : pos.y;
+                baseElev = sTile.baseY;
+            }
+
+            centerX = pos.x;
+            centerZ = pos.z;
+
+            if (instMesh.geometry) {
+                if (!instMesh.geometry.boundingBox) {
+                    instMesh.geometry.computeBoundingBox();
+                }
+                if (instMesh.geometry.boundingBox) {
+                    var bb = instMesh.geometry.boundingBox;
+                    var localCenter = new THREE.Vector3(
+                        (bb.min.x + bb.max.x) / 2 * sc.x,
+                        0,
+                        (bb.min.z + bb.max.z) / 2 * sc.z
+                    );
+                    localCenter.applyQuaternion(quat);
+                    centerX += localCenter.x;
+                    centerZ += localCenter.z;
+
+                    var localSizeX = (bb.max.x - bb.min.x) * sc.x;
+                    var localSizeZ = (bb.max.z - bb.min.z) * sc.z;
+                    var vX = new THREE.Vector3(localSizeX, 0, 0).applyQuaternion(quat);
+                    var vZ = new THREE.Vector3(0, 0, localSizeZ).applyQuaternion(quat);
+                    var effW = Math.abs(vX.x) + Math.abs(vZ.x);
+                    var effD = Math.abs(vX.z) + Math.abs(vZ.z);
+                    if (effW > 10 && effW < 95) bldW = effW;
+                    if (effD > 10 && effD < 95) bldD = effD;
+                }
+            }
+        }
+
+        var liftH = Math.max(7.5, (heightFeet || 1) * 7.5);
+        var platW = Math.max(26, Math.min(86, bldW * 1.05));
+        var platD = Math.max(26, Math.min(86, bldD * 1.05));
+        var halfW = platW / 2;
+        var halfD = platD / 2;
+
+        // Architectural Materials
+        var timberMat = new THREE.MeshLambertMaterial({ color: 0x5c3e28 });
+        var darkTimberMat = new THREE.MeshLambertMaterial({ color: 0x3d2716 });
+        var deckPlankMat = new THREE.MeshLambertMaterial({ color: 0x7a5538 });
+        var concreteMat = new THREE.MeshLambertMaterial({ color: 0x8291a0 });
+        var braceMat = new THREE.MeshLambertMaterial({ color: 0x6e492d });
+        var stairMat = new THREE.MeshLambertMaterial({ color: 0x8a623f });
+        var railMat = new THREE.MeshLambertMaterial({ color: 0x4a3220 });
+        var gaugeMat = new THREE.MeshLambertMaterial({ color: 0xf8fafc });
+        var stripeMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+        var badgeMat = new THREE.MeshStandardMaterial({
+            color: 0x0284c7,
+            emissive: 0x00f0ff,
+            emissiveIntensity: 0.45,
+            roughness: 0.2
+        });
+
+        // 1. Concrete Footing Pedestals (Foundation Pads) at ground
+        var footW = 5.0;
+        var footH = 2.2;
+        var footingGeom = new THREE.BoxGeometry(footW, footH, footW);
+
+        // 2. Heavy Pilings / Stilts
+        var postW = 3.2;
+        var postGeom = new THREE.BoxGeometry(postW, liftH, postW);
+
+        var pilings = [
+            [-halfW * 0.88, -halfD * 0.88],
+            [ halfW * 0.88, -halfD * 0.88],
+            [-halfW * 0.88,  halfD * 0.88],
+            [ halfW * 0.88,  halfD * 0.88]
+        ];
+        if (platW >= 65) {
+            pilings.push([-halfW * 0.3, -halfD * 0.88]);
+            pilings.push([ halfW * 0.3, -halfD * 0.88]);
+            pilings.push([-halfW * 0.3,  halfD * 0.88]);
+            pilings.push([ halfW * 0.3,  halfD * 0.88]);
+        } else if (platW >= 40) {
+            pilings.push([0, -halfD * 0.88]);
+            pilings.push([0,  halfD * 0.88]);
+        }
+        if (platD >= 65) {
+            pilings.push([-halfW * 0.88, -halfD * 0.3]);
+            pilings.push([-halfW * 0.88,  halfD * 0.3]);
+            pilings.push([ halfW * 0.88, -halfD * 0.3]);
+            pilings.push([ halfW * 0.88,  halfD * 0.3]);
+        } else if (platD >= 40) {
+            pilings.push([-halfW * 0.88, 0]);
+            pilings.push([ halfW * 0.88, 0]);
+        }
+
+        pilings.forEach(function (pt) {
+            var pad = new THREE.Mesh(footingGeom, concreteMat);
+            pad.position.set(pt[0], footH / 2, pt[1]);
+            pad.castShadow = true;
+            pad.receiveShadow = true;
+            group.add(pad);
+
+            var post = new THREE.Mesh(postGeom, timberMat);
+            post.position.set(pt[0], liftH / 2, pt[1]);
+            post.castShadow = true;
+            post.receiveShadow = true;
+            group.add(post);
+        });
+
+        // 3. Structural Underfloor Deck & Joist Beam Frame
+        var deckThick = 2.0;
+        var deckGeom = new THREE.BoxGeometry(platW, deckThick, platD);
+        var deck = new THREE.Mesh(deckGeom, deckPlankMat);
+        deck.position.set(0, liftH - (deckThick / 2), 0);
+        deck.castShadow = true;
+        deck.receiveShadow = true;
+        group.add(deck);
+
+        var beamThick = 2.4;
+        var beamH = 3.0;
+        var nsBeamGeom = new THREE.BoxGeometry(platW + 0.6, beamH, beamThick);
+        var ewBeamGeom = new THREE.BoxGeometry(beamThick, beamH, platD + 0.6);
+
+        var nBeam = new THREE.Mesh(nsBeamGeom, darkTimberMat);
+        nBeam.position.set(0, liftH - (beamH / 2), -halfD);
+        group.add(nBeam);
+
+        var sBeam = new THREE.Mesh(nsBeamGeom, darkTimberMat);
+        sBeam.position.set(0, liftH - (beamH / 2), halfD);
+        group.add(sBeam);
+
+        var wBeam = new THREE.Mesh(ewBeamGeom, darkTimberMat);
+        wBeam.position.set(-halfW, liftH - (beamH / 2), 0);
+        group.add(wBeam);
+
+        var eBeam = new THREE.Mesh(ewBeamGeom, darkTimberMat);
+        eBeam.position.set(halfW, liftH - (beamH / 2), 0);
+        group.add(eBeam);
+
+        // 4. Diagonal Cross-Bracing (X-Bracing) between corner pilings
+        function addXBrace(p1, p2) {
+            var dx = p2[0] - p1[0];
+            var dz = p2[1] - p1[1];
+            var horizDist = Math.sqrt(dx * dx + dz * dz);
+            if (horizDist < 1) return;
+
+            var braceH = liftH - footH;
+            var braceLen = Math.sqrt(horizDist * horizDist + braceH * braceH);
+            var braceGeom = new THREE.BoxGeometry(1.6, braceLen, 1.6);
+
+            var midX = (p1[0] + p2[0]) / 2;
+            var midZ = (p1[1] + p2[1]) / 2;
+            var midY = footH + braceH / 2;
+            var yaw = Math.atan2(dx, dz);
+            var pitch = Math.atan2(horizDist, braceH);
+
+            var s1 = new THREE.Mesh(braceGeom, braceMat);
+            s1.position.set(midX, midY, midZ);
+            s1.rotation.y = yaw;
+            s1.rotation.x = pitch;
+            s1.castShadow = true;
+            group.add(s1);
+
+            var s2 = new THREE.Mesh(braceGeom, braceMat);
+            s2.position.set(midX, midY, midZ);
+            s2.rotation.y = yaw;
+            s2.rotation.x = -pitch;
+            s2.castShadow = true;
+            group.add(s2);
+        }
+
+        var cNW = [-halfW * 0.88, -halfD * 0.88];
+        var cNE = [ halfW * 0.88, -halfD * 0.88];
+        var cSW = [-halfW * 0.88,  halfD * 0.88];
+        var cSE = [ halfW * 0.88,  halfD * 0.88];
+
+        addXBrace(cNW, cNE);
+        addXBrace(cSW, cSE);
+        addXBrace(cNW, cSW);
+        addXBrace(cNE, cSE);
+
+        // 5. Access Staircase (Leading from Ground to Platform Deck)
+        var stairRun = Math.max(8, Math.min(14, 48 - (halfD + 1.0)));
+        var stairW = Math.min(7.5, platW * 0.22);
+        var numSteps = Math.max(4, Math.round(liftH / 3.8));
+        var stairStartX = halfW * 0.85;
+        var stairStartZ = halfD + 0.8;
+
+        for (var s = 0; s < numSteps; s++) {
+            var prog = (s + 1) / numSteps;
+            var stepY = prog * liftH;
+            var stepZ = stairStartZ + (1 - prog) * stairRun;
+            var stepGeom = new THREE.BoxGeometry(stairW, 1.0, (stairRun / numSteps) * 1.15);
+            var stepMesh = new THREE.Mesh(stepGeom, stairMat);
+            stepMesh.position.set(stairStartX, stepY - 0.5, stepZ);
+            stepMesh.castShadow = true;
+            stepMesh.receiveShadow = true;
+            group.add(stepMesh);
+        }
+
+        var stringerLen = Math.sqrt(stairRun * stairRun + liftH * liftH);
+        var stringerGeom = new THREE.BoxGeometry(1.2, stringerLen, 2.0);
+        var stringerPitch = Math.atan2(liftH, stairRun);
+
+        var leftStringer = new THREE.Mesh(stringerGeom, darkTimberMat);
+        leftStringer.position.set(stairStartX - stairW / 2, liftH / 2, stairStartZ + stairRun / 2);
+        leftStringer.rotation.x = stringerPitch;
+        group.add(leftStringer);
+
+        var rightStringer = new THREE.Mesh(stringerGeom, darkTimberMat);
+        rightStringer.position.set(stairStartX + stairW / 2, liftH / 2, stairStartZ + stairRun / 2);
+        rightStringer.rotation.x = stringerPitch;
+        group.add(rightStringer);
+
+        var railPostGeom = new THREE.BoxGeometry(1.0, 5.0, 1.0);
+        var pTop = new THREE.Mesh(railPostGeom, railMat);
+        pTop.position.set(stairStartX + stairW / 2, liftH + 2.5, stairStartZ);
+        group.add(pTop);
+        var pBot = new THREE.Mesh(railPostGeom, railMat);
+        pBot.position.set(stairStartX + stairW / 2, 2.5, stairStartZ + stairRun);
+        group.add(pBot);
+
+        var handrailGeom = new THREE.BoxGeometry(1.2, stringerLen, 1.2);
+        var handrail = new THREE.Mesh(handrailGeom, railMat);
+        handrail.position.set(stairStartX + stairW / 2, liftH / 2 + 5.0, stairStartZ + stairRun / 2);
+        handrail.rotation.x = stringerPitch;
+        group.add(handrail);
+
+        // 6. Survey Flood Depth Gauge Marker Post
+        var gaugeTotalH = liftH + 6.0;
+        var gaugePost = new THREE.Mesh(new THREE.BoxGeometry(1.8, gaugeTotalH, 1.8), gaugeMat);
+        var gaugePosX = -halfW * 0.88 - 3.5;
+        var gaugePosZ = halfD * 0.88 + 3.5;
+        gaugePost.position.set(gaugePosX, gaugeTotalH / 2, gaugePosZ);
+        gaugePost.castShadow = true;
+        group.add(gaugePost);
+
+        var numStripes = Math.floor(gaugeTotalH / 3.5);
+        var stripeGeom = new THREE.BoxGeometry(2.0, 1.4, 2.0);
+        for (var k = 1; k < numStripes; k += 2) {
+            var strp = new THREE.Mesh(stripeGeom, stripeMat);
+            strp.position.set(gaugePosX, k * 3.5, gaugePosZ);
+            group.add(strp);
+        }
+
+        var capMesh = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 1.8, 12), badgeMat);
+        capMesh.position.set(gaugePosX, gaugeTotalH + 0.9, gaugePosZ);
+        group.add(capMesh);
+
+        group.position.set(centerX, baseElev, centerZ);
+        return group;
+    }
+
+    function createInsuranceMesh(row, column) {
+        var group = new THREE.Group();
+        group.name = "insurance_" + row + "_" + column;
+
+        var [centerX, centerZ] = calculatePosition(row, column);
+        var baseElev = (groundTiles[row] && groundTiles[row][column]) ? (groundTiles[row][column].elevation || 0) : 0;
+        var s = (surfaceTiles && surfaceTiles[row]) ? surfaceTiles[row][column] : null;
+        var bType = (s && typeof s === 'object') ? s.type : null;
+        var bldHeight = 22;
+        if (bType && buildingMetaDict && buildingMetaDict[bType] && buildingMetaDict[bType].height) {
+            bldHeight = buildingMetaDict[bType].height;
+        } else if (bType && typeof modelSize !== 'undefined' && modelSize[bType]) {
+            bldHeight = modelSize[bType] * 1.8;
+        }
+        var elevH = (s && s.elevateStructure) ? s.elevateStructure * 7.5 : 0;
+        var hoverY = baseElev + bldHeight + elevH + 12.0;
+
+        // 1. Sleek Floating Insurance Shield Badge
+        var shieldShape = new THREE.Shape();
+        shieldShape.moveTo(0, 6.0);
+        shieldShape.lineTo(4.8, 4.2);
+        shieldShape.quadraticCurveTo(4.8, 0.0, 0.0, -5.2);
+        shieldShape.quadraticCurveTo(-4.8, 0.0, -4.8, 4.2);
+        shieldShape.lineTo(0, 6.0);
+
+        var extrudeSettings = { depth: 1.0, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.3, bevelThickness: 0.3 };
+        var shieldGeom = new THREE.ExtrudeGeometry(shieldShape, extrudeSettings);
+        shieldGeom.center();
+
+        var shieldMat = new THREE.MeshStandardMaterial({
+            color: 0x00a8e8, // Vibrant azure insurance blue
+            metalness: 0.85,
+            roughness: 0.18,
+            emissive: 0x004369,
+            emissiveIntensity: 0.6
+        });
+        var shieldMesh = new THREE.Mesh(shieldGeom, shieldMat);
+        shieldMesh.castShadow = true;
+        group.add(shieldMesh);
+
+        // 2. White Policy Cross / Checkmark Embellishment on Shield Face
+        var crossHGeom = new THREE.BoxGeometry(3.6, 1.0, 1.4);
+        var crossVGeom = new THREE.BoxGeometry(1.0, 3.6, 1.4);
+        var crossMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            metalness: 0.5,
+            roughness: 0.2,
+            emissive: 0xffffff,
+            emissiveIntensity: 0.3
+        });
+        var crossH = new THREE.Mesh(crossHGeom, crossMat);
+        var crossV = new THREE.Mesh(crossVGeom, crossMat);
+        crossH.position.z = 0.3;
+        crossV.position.z = 0.3;
+        group.add(crossH);
+        group.add(crossV);
+
+        // 3. Floating Glowing Ring Halo
+        var haloGeom = new THREE.RingGeometry(5.2, 6.4, 24);
+        var haloMat = new THREE.MeshBasicMaterial({
+            color: 0x38bdf8,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.45
+        });
+        var halo = new THREE.Mesh(haloGeom, haloMat);
+        halo.rotation.x = Math.PI / 2;
+        halo.position.y = -5.5;
+        group.add(halo);
+
+        group.position.set(centerX, hoverY, centerZ);
+        return group;
+    }
+
+    function syncDefenseVisual(row, column, overrideElevHeight) {
         if (!defenseVisualMeshes) defenseVisualMeshes = {};
         if (row === undefined || column === undefined || row < 0 || column < 0) return;
 
         var fwKey = "floodwall_" + row + "_" + column;
         var sbKey = "sandbag_" + row + "_" + column;
+        var elevKey = "elevatestructure_" + row + "_" + column;
 
         var fwHeight = (groundTiles[row] && groundTiles[row][column] && groundTiles[row][column].floodWall) ? groundTiles[row][column].floodWall : 0;
         var sbHeight = (surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] !== 0 && surfaceTiles[row][column].sandBag) ? surfaceTiles[row][column].sandBag : 0;
+        var elevHeight = (overrideElevHeight !== undefined) ? overrideElevHeight : ((surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] !== 0 && surfaceTiles[row][column].elevateStructure) ? surfaceTiles[row][column].elevateStructure : 0);
+
+        var bld = scene.getObjectByProperty("externalID", `${row}_${column}`);
+        if (bld) {
+            if (bld.userData.baseY === undefined) {
+                bld.userData.baseY = bld.position.y;
+            }
+        }
 
         // Sync Flood Wall
         if (fwHeight > 0) {
@@ -1945,6 +2525,94 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 delete defenseVisualMeshes[sbKey];
             }
         }
+
+        // Sync Elevate Structure (Physical Building Elevation + 3D Stilts)
+        var liftWorldUnits = elevHeight * 7.5;
+
+        // 1. Lift / Lower individual Object3D (Res1, Res2, Res3, Hos, School, Pol, Com, Fire)
+        if (bld) {
+            if (elevHeight > 0) {
+                bld.position.y = bld.userData.baseY + liftWorldUnits;
+                bld.userData.targetY = bld.userData.baseY + liftWorldUnits;
+            } else if (bld.userData.baseY !== undefined) {
+                bld.position.y = bld.userData.baseY;
+                bld.userData.targetY = bld.userData.baseY;
+            }
+        }
+
+        // 2. Lift / Lower InstancedMesh (Htl, Com2, Bank, Chu, Chse, Gas, Hll, Ind, Shel1, Shel2, Shel3, etc.)
+        var sTile = (surfaceTiles && surfaceTiles[row]) ? surfaceTiles[row][column] : null;
+        if (sTile && sTile !== 0 && sTile.instanceId !== undefined && meshDict && meshDict[sTile.type]) {
+            var instMesh = meshDict[sTile.type];
+            var mat = new THREE.Matrix4();
+            instMesh.getMatrixAt(sTile.instanceId, mat);
+            var pos = new THREE.Vector3();
+            var quat = new THREE.Quaternion();
+            var sc = new THREE.Vector3();
+            mat.decompose(pos, quat, sc);
+
+            if (sTile.baseY === undefined) {
+                var gTile = (groundTiles && groundTiles[row]) ? groundTiles[row][column] : null;
+                sTile.baseY = (gTile && gTile.elevation !== undefined) ? (gTile.elevation + 0.5) : pos.y;
+            }
+
+            if (elevHeight > 0) {
+                pos.y = sTile.baseY + liftWorldUnits;
+            } else {
+                pos.y = sTile.baseY;
+            }
+
+            mat.compose(pos, quat, sc);
+            instMesh.setMatrixAt(sTile.instanceId, mat);
+            instMesh.instanceMatrix.needsUpdate = true;
+            if (instMesh.geometry) {
+                instMesh.geometry.computeBoundingSphere();
+                instMesh.geometry.computeBoundingBox();
+            }
+        }
+
+        // 3. Create or Remove 3D Stilt / Piling Mesh Group
+        if (elevHeight > 0) {
+            if (defenseVisualMeshes[elevKey] && defenseVisualMeshes[elevKey].userData.height === elevHeight) {
+                // Height is unchanged
+            } else {
+                if (defenseVisualMeshes[elevKey]) {
+                    scene.remove(defenseVisualMeshes[elevKey]);
+                    delete defenseVisualMeshes[elevKey];
+                }
+                var elevMesh = createElevateStructureMesh(row, column, elevHeight);
+                elevMesh.userData = { height: elevHeight, type: 'elevatestructure', row: row, column: column };
+                scene.add(elevMesh);
+                defenseVisualMeshes[elevKey] = elevMesh;
+            }
+        } else {
+            if (defenseVisualMeshes[elevKey]) {
+                scene.remove(defenseVisualMeshes[elevKey]);
+                delete defenseVisualMeshes[elevKey];
+            }
+        }
+
+        // 4. Create or Remove 3D Insurance Shield Badge
+        var insKey = "insurance_" + row + "_" + column;
+        var gTile = (groundTiles && groundTiles[row]) ? groundTiles[row][column] : null;
+        var isInsured = !!((sTile && sTile !== 0 && sTile.floodInsurance) || (gTile && gTile.floodInsurance));
+        if (isInsured && sTile && sTile !== 0) {
+            if (!defenseVisualMeshes[insKey]) {
+                var insMesh = createInsuranceMesh(row, column);
+                if (insMesh) {
+                    scene.add(insMesh);
+                    defenseVisualMeshes[insKey] = insMesh;
+                }
+            } else {
+                var curHoverY = (gTile ? gTile.elevation : 0) + 22 + (sTile.elevateStructure ? sTile.elevateStructure * 7.5 : 0) + 12;
+                defenseVisualMeshes[insKey].position.y = curHoverY;
+            }
+        } else {
+            if (defenseVisualMeshes[insKey]) {
+                scene.remove(defenseVisualMeshes[insKey]);
+                delete defenseVisualMeshes[insKey];
+            }
+        }
     }
 
     function syncAllDefenseVisuals() {
@@ -1984,8 +2652,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         // Change Tile
         allMitigationsSelects[1].onchange = function () {
-            allMitigationsCostTexts[1].textContent = "$" + nFormatter(mitigationMetaData[
-                "change_tile"]["opts_values"][(allMitigationsSelects[1].value)]["cost"], 1);
+            allMitigationsCostTexts[1].textContent = "$" + nFormatter(getChangeTileCost(this.value), 1);
         };
 
         // Flood Wall
@@ -2027,13 +2694,59 @@ async function main(opts, list_of_files, game_graphics_opt) {
         // Remove Structure
 
         // Elevate Structure
-        elevateStructureSlider[0].onchange = function () {
-            if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
-                allMitigationsCostTexts[7].textContent = "$" + nFormatter(mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"], 1);
+        elevateStructureSlider[0].oninput = function () {
+            var hVal = Math.max(1, Math.min(10, parseInt(this.value) || 1));
+            updateElevateUI(hVal);
+            if (selectedTile && selectedTile.isSelected && isBuildingStructure(selectedTile.row, selectedTile.column)) {
+                var bType = surfaceTiles[selectedTile.row][selectedTile.column]["type"];
+                var cost = getElevateStructureCost(bType, hVal);
+                allMitigationsCostTexts[7].textContent = "$" + nFormatter(cost, 1);
+                // Live preview 3D visual if active without mutating budget during dragging
+                if (allCheckbox[7].checked) {
+                    syncDefenseVisual(selectedTile.row, selectedTile.column, hVal);
+                }
             } else {
                 allMitigationsCostTexts[7].textContent = "$0";
             }
-        }
+        };
+
+        elevateStructureSlider[0].onchange = function () {
+            var newH = Math.max(1, Math.min(10, parseInt(this.value) || 1));
+            updateElevateUI(newH);
+            if (!selectedTile || !selectedTile.isSelected || !isBuildingStructure(selectedTile.row, selectedTile.column)) {
+                allMitigationsCostTexts[7].textContent = "$0";
+                return;
+            }
+            var r = selectedTile.row;
+            var c = selectedTile.column;
+            var sTile = surfaceTiles[r][c];
+            var bType = sTile["type"];
+            var newCost = getElevateStructureCost(bType, newH);
+            allMitigationsCostTexts[7].textContent = "$" + nFormatter(newCost, 1);
+
+            if (allCheckbox[7].checked) {
+                var appliedH = sTile.elevateStructure || 1;
+                if (appliedH !== newH) {
+                    var oldCost = getElevateStructureCost(bType, appliedH);
+                    var costDiff = newCost - oldCost;
+                    if (costDiff > 0 && totalAvailableMoney < costDiff) {
+                        alert("Insufficient funds to elevate structure to " + newH + "ft!");
+                        this.value = appliedH;
+                        updateElevateUI(appliedH);
+                        syncDefenseVisual(r, c);
+                        allMitigationsCostTexts[7].textContent = "$" + nFormatter(oldCost, 1);
+                        return;
+                    }
+                    expenses += costDiff;
+                    totalAvailableMoney -= costDiff;
+                    sTile.elevateStructure = newH;
+                    syncDefenseVisual(r, c);
+                    onMitigationChanged();
+                    updateTileInformationPanel();
+                    updateTileOptions(r, c);
+                }
+            }
+        };
         // Wet Floodproofing
         allMitigationsSelects[4].onchange = function () {
             if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
@@ -2064,13 +2777,15 @@ async function main(opts, list_of_files, game_graphics_opt) {
         /*
             It updates the cost value on mitigation panel
             when a new building tile is selected.
-
         */
         if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
+            var bType = surfaceTiles[selectedTile.row][selectedTile.column].type;
             // Insurance
-            allMitigationsCostTexts[4].textContent = "$" + nFormatter(mitigationMetaDataNew["Insurance"]["cost"][surfaceTiles[selectedTile.row][selectedTile.column].type] * (buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Str_val"] + buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Cont_val"]), 1);
+            allMitigationsCostTexts[4].textContent = "$" + nFormatter(getFloodInsuranceCost(bType), 1);
             // Relocate Structure
-            allMitigationsCostTexts[5].textContent = "$" + nFormatter(mitigationMetaDataNew["Relocate"]["cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column].type]["Area"], 1);
+            var relocUnit = (mitigationMetaDataNew && mitigationMetaDataNew["Relocate"]) ? (mitigationMetaDataNew["Relocate"]["cost"] || 81) : 81;
+            var area = (buildingMetaDict && buildingMetaDict[bType]) ? (buildingMetaDict[bType]["Area"] || 1000) : 1000;
+            allMitigationsCostTexts[5].textContent = "$" + nFormatter(relocUnit * area, 1);
         } else {
             allMitigationsCostTexts[4].textContent = "$0";
             allMitigationsCostTexts[5].textContent = "$0";
@@ -2087,6 +2802,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
         allMitigationsCostTexts[0].textContent = "$" + nFormatter(mitigationMetaData[
             "add_structure"]["opts_values"][(allMitigationsSelects[0].value)]["cost"], 1);
 
+        // Change Tile
+        allMitigationsCostTexts[1].textContent = "$" + nFormatter(getChangeTileCost(allMitigationsSelects[1].value), 1);
+
         // FloodWall
         if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
             allMitigationsCostTexts[2].textContent = "$" + nFormatter(mitigationMetaDataNew["Floodwall"]["cost"][parseInt(allMitigationsSelects[2].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Perimeter"], 1);
@@ -2102,10 +2820,21 @@ async function main(opts, list_of_files, game_graphics_opt) {
         }
 
         // Elevate Structure
+        var curElevSliderVal = parseInt(elevateStructureSlider[0].value) || 1;
+        updateElevateUI(curElevSliderVal);
         if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
-            allMitigationsCostTexts[7].textContent = "$" + nFormatter(mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"], 1);
+            var bType = surfaceTiles[selectedTile.row][selectedTile.column]["type"];
+            allMitigationsCostTexts[7].textContent = "$" + nFormatter(getElevateStructureCost(bType, curElevSliderVal), 1);
         } else {
             allMitigationsCostTexts[7].textContent = "$0";
+        }
+
+        // Insurance
+        if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
+            var bType = surfaceTiles[selectedTile.row][selectedTile.column]["type"];
+            allMitigationsCostTexts[4].textContent = "$" + nFormatter(getFloodInsuranceCost(bType), 1);
+        } else {
+            allMitigationsCostTexts[4].textContent = "$0";
         }
 
         // Wet Floodproofing
@@ -2667,9 +3396,15 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
                             buildingHeight = y0 * (1 - u) * (1 - v) + y1 * u * (1 - v) + y2 * (1 - u) * v + y3 * u * v;
                         }
+                        object.userData = object.userData || {};
+                        object.userData.baseY = buildingHeight;
                         object.position.set(x + ox, buildingHeight, z + oz);
                         object.rotation.y = rotY;
                         scene.add(object);
+
+                        if (surfaceTiles && surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column].elevateStructure > 0) {
+                            syncDefenseVisual(row, column);
+                        }
                     });
 
             });
@@ -2878,11 +3613,17 @@ async function main(opts, list_of_files, game_graphics_opt) {
                         totalAvailableMoney -= cost;
                     } else if (activeTool === "zone") {
                         var selectVal = document.querySelector("#change_tile_mit select").value;
-                        var cost = mitigationMetaData["change_tile"]["opts_values"][selectVal]["cost"];
-                        if (totalAvailableMoney < cost) { alert("Not enough budget!"); return; }
+                        var cost = getChangeTileCost(selectVal);
+                        if (totalAvailableMoney < cost) { alert("Not enough budget to change tile!"); return; }
                         changeTileType(selectVal, row, column);
                         expenses += cost;
                         totalAvailableMoney -= cost;
+                        updateGameProgressPanel();
+                        updateGoalsPanel();
+                        onMitigationChanged();
+                        selectTile(row, column);
+                        updateTileOptions(row, column);
+                        updateTileInformationPanel();
                     } else if (activeTool === "parks") {
                         var cost = mitigationMetaData["add_structure"]["opts_values"]["t1"]["cost"];
                         if (totalAvailableMoney < cost) { alert("Not enough budget!"); return; }
@@ -3175,41 +3916,26 @@ async function main(opts, list_of_files, game_graphics_opt) {
             } else {
                 showBuildingTileGUI(false);
                 showEmptyTileGUI(true);
-                if (surfaceTiles_v2[row][column].type != "tree" && surfaceTiles_v2[row][column].type != "tree2") {
-                    showEmptyTileGUI(false);
-                    showMitigationOption(mitigationMetaData["flood_wall"]["id"]);
-                }
-                else {
-                    showEmptyTileGUI(false);
-                    showMitigationOption(mitigationMetaData["flood_wall"]["id"]);
-                    showMitigationOption(mitigationMetaData["add_structure"]["id"]);
-
-                }
             };
+            allMitigationsCostTexts[1].textContent = "$" + nFormatter(getChangeTileCost(allMitigationsSelects[1].value), 1);
+            if (isBuildingStructure(row, column)) {
+                allMitigationsCostTexts[4].textContent = "$" + nFormatter(getFloodInsuranceCost(surfaceTiles[row][column].type), 1);
+            } else {
+                allMitigationsCostTexts[4].textContent = "$0";
+            }
             return;
         };
 
         /* Find which mitigation option is already applied*/
         var temp_mit_id = whichMitigationType(row, column);
 
-        //console.log(temp_mit_id)
         /* Add Structure */
-        if (temp_mit_id == 10) {
-
-        } else {
-            uncheckMitigationStatus(mitigation_opts[0]);
-            hideMitigationOptionbyDOMParent(mitigation_opts[0]);
-        };
-
+        uncheckMitigationStatus(mitigation_opts[0]);
 
         /* Change Tile */
-        if (temp_mit_id == 10) {
-
-        } else {
-            uncheckMitigationStatus(mitigation_opts[1]);
-            hideMitigationOptionbyDOMParent(mitigation_opts[1]);
-        };
-
+        uncheckMitigationStatus(mitigation_opts[1]);
+        enableMitigationValue(mitigation_opts[1]);
+        allMitigationsCostTexts[1].textContent = "$" + nFormatter(getChangeTileCost(allMitigationsSelects[1].value), 1);
 
         /* Flood Wall */
         if (hasMitigationType(row, column, 2)) {
@@ -3238,11 +3964,16 @@ async function main(opts, list_of_files, game_graphics_opt) {
         /* Insurance */
         if (hasMitigationType(row, column, 4)) {
             checkMitigationStatus(mitigation_opts[4]);
-            disableMitigationValue(mitigation_opts[4]);
+            enableMitigationValue(mitigation_opts[4]);
         } else {
             uncheckMitigationStatus(mitigation_opts[4]);
             enableMitigationValue(mitigation_opts[4]);
         };
+        if (isBuildingStructure(row, column)) {
+            allMitigationsCostTexts[4].textContent = "$" + nFormatter(getFloodInsuranceCost(surfaceTiles[row][column].type), 1);
+        } else {
+            allMitigationsCostTexts[4].textContent = "$0";
+        }
 
         /* Relocate Structure */
         uncheckMitigationStatus(mitigation_opts[5]);
@@ -3253,11 +3984,14 @@ async function main(opts, list_of_files, game_graphics_opt) {
         /* Elevate Structure */
         if (hasMitigationType(row, column, 1)) {
             checkMitigationStatus(mitigation_opts[7]);
-            elevateStructureSlider[0].value = (surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] !== 0) ? (surfaceTiles[row][column].elevateStructure || 1) : 1;
-            disableMitigationValue(mitigation_opts[7]);
+            var curTileElev = (surfaceTiles[row] && surfaceTiles[row][column] && surfaceTiles[row][column] !== 0) ? (surfaceTiles[row][column].elevateStructure || 1) : 1;
+            elevateStructureSlider[0].value = curTileElev;
+            updateElevateUI(curTileElev);
+            enableMitigationValue(mitigation_opts[7]);
         } else {
             uncheckMitigationStatus(mitigation_opts[7]);
             elevateStructureSlider[0].value = 1;
+            updateElevateUI(1);
             enableMitigationValue(mitigation_opts[7]);
         };
 
@@ -3285,7 +4019,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
             enableMitigationValue(mitigation_opts[9]);
         };
 
-
+        guiCostUpdateOnTileChanged();
     };
 
 
@@ -3808,9 +4542,28 @@ async function main(opts, list_of_files, game_graphics_opt) {
     };
 
 
-    function changeTileType(type, row, column) {
-        // If zoning to grass, water, or concrete, delete surface tiles first to prevent Z-fighting/glitching
-        if (type !== "building") {
+    function changeTileType(requestedType, row, column) {
+        if (row === undefined || column === undefined || !groundTiles || !groundTiles[row] || !groundTiles[row][column]) return;
+
+        // 1. Normalize type mapping
+        var typeMap = {
+            "w1": "water",
+            "water": "water",
+            "c1": "parking_lot",
+            "concrete": "parking_lot",
+            "parking_lot": "parking_lot",
+            "g1": "parks",
+            "grass": "parks",
+            "parks": "parks",
+            "road1": "road",
+            "road2": "road",
+            "road": "road",
+            "building": "building"
+        };
+        var groundType = typeMap[requestedType] || requestedType;
+
+        // 2. Clear any surface structures / vegetation on this tile
+        if (groundType !== "building") {
             var s2 = surfaceTiles_v2[row][column];
             if (s2 && s2 !== 0) {
                 transform.scale.set(0, 0, 0);
@@ -3821,21 +4574,27 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     var ids = dictSurfacePositiontoInstancedId[meshName][[row, column]];
                     if (Array.isArray(ids)) {
                         for (var i = 0; i < ids.length; i++) {
-                            meshDict[meshName].setMatrixAt(ids[i], transform.matrix);
-                            meshDictIndex[meshName][1].push(ids[i]);
+                            if (meshDict[meshName]) {
+                                meshDict[meshName].setMatrixAt(ids[i], transform.matrix);
+                                meshDictIndex[meshName][1].push(ids[i]);
+                            }
                             delete dictInstancedIdtoSurfacePosition[meshName][ids[i]];
                         }
                     } else {
-                        meshDict[meshName].setMatrixAt(ids, transform.matrix);
-                        meshDictIndex[meshName][1].push(ids);
+                        if (meshDict[meshName]) {
+                            meshDict[meshName].setMatrixAt(ids, transform.matrix);
+                            meshDictIndex[meshName][1].push(ids);
+                        }
                         delete dictInstancedIdtoSurfacePosition[meshName][ids];
                     }
                     delete dictSurfacePositiontoInstancedId[meshName][[row, column]];
-                } else if (s2.instanceId !== undefined) {
+                } else if (s2.instanceId !== undefined && meshDict[meshName]) {
                     meshDict[meshName].setMatrixAt(s2.instanceId, transform.matrix);
                     meshDictIndex[meshName][1].push(s2.instanceId);
                 }
-                meshDict[meshName].instanceMatrix.needsUpdate = true;
+                if (meshDict[meshName]) {
+                    meshDict[meshName].instanceMatrix.needsUpdate = true;
+                }
                 surfaceTiles_v2[row][column] = 0;
             }
 
@@ -3848,7 +4607,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                     transform.updateMatrix();
                     if (isNonInstancing(meshName)) {
                         deleteObjectFromScene(row + "_" + column);
-                    } else {
+                    } else if (meshDict[meshName]) {
                         if (Array.isArray(s1)) {
                             for (var i = 0; i < s1.length; i++) {
                                 meshDict[meshName].setMatrixAt(s1[i].instanceId, transform.matrix);
@@ -3863,42 +4622,64 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 }
                 surfaceTiles[row][column] = 0;
             }
+
+            // Clear visual defense meshes for this cell
+            var fwKey = "floodwall_" + row + "_" + column;
+            var sbKey = "sandbag_" + row + "_" + column;
+            var elevKey = "elevatestructure_" + row + "_" + column;
+            var insKey = "insurance_" + row + "_" + column;
+            [fwKey, sbKey, elevKey, insKey].forEach(function (k) {
+                if (defenseVisualMeshes && defenseVisualMeshes[k]) {
+                    scene.remove(defenseVisualMeshes[k]);
+                    delete defenseVisualMeshes[k];
+                }
+            });
         }
 
-        // Delete tile from meshdict -- function is needed
-        transform.scale.set(0, 0, 0);
-        transform.position.set(-10, -10, -10);
-        transform.updateMatrix();
-        meshDict[groundTiles[row][column]["type"]].setMatrixAt(groundTiles[row][column].instanceId, transform.matrix);
-        meshDictIndex[groundTiles[row][column]["type"]][1].push(groundTiles[row][column].instanceId);
-        meshDict[groundTiles[row][column]["type"]].instanceMatrix.needsUpdate = true;
+        // 3. Clear existing mitigations on this cell if zoned to non-building
+        if (groundType !== "building") {
+            groundTiles[row][column].floodWall = 0;
+            groundTiles[row][column].floodInsurance = false;
+        }
 
-        // new tile is created
-        groundTiles[row][column].type = type;
-        obj = groundTiles[row][column];
+        // 4. Hide old ground instanced mesh if present
+        var oldType = groundTiles[row][column].type;
+        if (meshDict[oldType] && groundTiles[row][column].instanceId !== undefined) {
+            transform.scale.set(0, 0, 0);
+            transform.position.set(-10, -10, -10);
+            transform.updateMatrix();
+            meshDict[oldType].setMatrixAt(groundTiles[row][column].instanceId, transform.matrix);
+            if (meshDictIndex[oldType] && meshDictIndex[oldType][1]) {
+                meshDictIndex[oldType][1].push(groundTiles[row][column].instanceId);
+            }
+            meshDict[oldType].instanceMatrix.needsUpdate = true;
+        }
 
-        var [x, z] = calculatePosition(row, column);
+        // 5. Update ground tile properties
+        groundTiles[row][column].type = groundType;
+        if (groundType === "water") {
+            groundTiles[row][column].elevation = 0;
+        }
 
+        // 6. If target ground mesh exists in meshDict, update its instance
+        if (meshDict[groundType] && meshDictIndex[groundType]) {
+            var [x, z] = calculatePosition(row, column);
+            transform.scale.set(tileSize, groundTiles[row][column].elevation, tileSize);
+            transform.position.set(x, groundTiles[row][column].elevation / 2, z);
+            transform.updateMatrix();
+            meshDict[groundType].setMatrixAt(meshDictIndex[groundType][0]++, transform.matrix);
+            meshDict[groundType].instanceMatrix.needsUpdate = true;
+            groundTiles[row][column].instanceId = meshDictIndex[groundType][0] - 1;
+        }
 
+        // 7. Rebuild 3D smooth terrain to reflect new ground color & geometry
+        buildSmoothTerrain();
 
-        transform.scale.set(
-            tileSize,
-            obj.elevation,
-            tileSize);
+        // 8. Update flood modeling
+        updateFloodInformation();
 
-        transform.position.set(
-            x,
-            obj.elevation / 2,
-            z);
-        transform.updateMatrix();
-
-        meshDict[type].setMatrixAt(meshDictIndex[type][0]++, transform.matrix);
-        meshDict[type].instanceMatrix.needsUpdate = true;
-
-        groundTiles[row][column].instanceId = meshDictIndex[type][0] - 1;
-
-
-
+        // 9. Sync defense visual meshes
+        syncAllDefenseVisuals();
     };
 
 
@@ -4734,7 +5515,9 @@ async function main(opts, list_of_files, game_graphics_opt) {
             return !!(s && typeof s === 'object' && s.sandBag && s.sandBag > 0);
         } else if (type == 4) {
             // Check Insurance
-            return !!(s && typeof s === 'object' && s.floodInsurance && s.floodInsurance !== false);
+            var insS = !!(s && typeof s === 'object' && (s.floodInsurance || s.insurance) && s.floodInsurance !== false);
+            var insG = !!(g && g.floodInsurance && g.floodInsurance !== false);
+            return insS || insG;
         } else if (type == 5) {
             // Check Dry Floodproofing
             return !!(s && typeof s === 'object' && s.Dryfloodproofing && s.Dryfloodproofing > 0);
@@ -4811,8 +5594,10 @@ async function main(opts, list_of_files, game_graphics_opt) {
             if (s.sandBag && s.sandBag > 0) mitigations.push("Sandbags (" + s.sandBag + "ft)");
             if (s.Dryfloodproofing && s.Dryfloodproofing != 0) mitigations.push("Dry Floodproof (" + s.Dryfloodproofing + "ft)");
             if (s.Wetfloodproofing && s.Wetfloodproofing != 0) mitigations.push("Wet Floodproof (" + s.Wetfloodproofing + "ft)");
-            if (s.insurance) mitigations.push("Flood Insurance");
+            if (s.floodInsurance || s.insurance) mitigations.push("Flood Insurance");
             if (s.elevateStructure && s.elevateStructure > 0) mitigations.push("Elevated +" + s.elevateStructure + "ft");
+        } else if (groundTiles[row][column].floodInsurance) {
+            mitigations.push("Flood Insurance");
         }
         var mitText = (mitigations.length > 0) ? mitigations.join(", ") : "None";
 
@@ -4929,25 +5714,40 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         // Change Tile
         allCheckbox[1].onclick = function () {
-            // Change Tile
-            changeTileType(
-                allMitigationsSelects[1].value,
-                selectedTile.row,
-                selectedTile.column
-            );
-            // Clear Selected Tile
-            clearSelectedTile();
-            // Add Cost
-            expenses += mitigationMetaData["change_tile"]["opts_values"][allMitigationsSelects[1].value]["cost"];
-            // Calculate Remaining Budget
-            totalAvailableMoney -= mitigationMetaData["change_tile"]["opts_values"][allMitigationsSelects[1].value]["cost"];
-            // Update Quick Facts Panel
+            if (!selectedTile || !selectedTile.isSelected) return;
+            var r = selectedTile.row;
+            var c = selectedTile.column;
+            var selectedVal = allMitigationsSelects[1].value;
+            var cost = getChangeTileCost(selectedVal);
+
+            if (totalAvailableMoney < cost) {
+                alert("Not enough budget to change tile!");
+                this.checked = false;
+                return;
+            }
+
+            // Execute tile change
+            changeTileType(selectedVal, r, c);
+
+            // Deduct cost and add expenses
+            expenses += cost;
+            totalAvailableMoney -= cost;
+
+            // Update Quick Facts Panel & Goals Panel
             updateGameProgressPanel();
             updateGoalsPanel();
-            // Update Main Game Panel
-            // Unchecked checkbox
+
+            // Uncheck checkbox
             uncheckMitigationStatus(mitigation_opts[1]);
-        };        // Flood Wall
+
+            // Re-select and refresh inspector
+            selectTile(r, c);
+            updateTileOptions(r, c);
+            updateTileInformationPanel();
+            onMitigationChanged();
+        };
+
+        // Flood Wall
         allCheckbox[2].onclick = function () {
             if (this.checked) {
                 var val = parseInt(allMitigationsSelects[2].value) || 1;
@@ -5022,36 +5822,51 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 }
             };
             onMitigationChanged();
-        };
-
-        // Insurance
+        };        // Insurance
         allCheckbox[4].onclick = function () {
+            if (!selectedTile || !selectedTile.isSelected) return;
+            var r = selectedTile.row;
+            var c = selectedTile.column;
+            var isBld = isBuildingStructure(r, c);
+            if (!isBld) {
+                alert("Flood Insurance can only be applied to building structures!");
+                this.checked = false;
+                return;
+            }
+            var bType = surfaceTiles[r][c]["type"];
+            var cost = getFloodInsuranceCost(bType);
+
             // Insurance is applied
             if (this.checked) {
+                if (totalAvailableMoney < cost) {
+                    alert("Not enough budget for Flood Insurance!");
+                    this.checked = false;
+                    return;
+                }
                 // Update tile information
-                groundTiles[selectedTile.row][selectedTile.column].floodInsurance = true;
+                surfaceTiles[r][c].floodInsurance = true;
+                groundTiles[r][c].floodInsurance = true;
                 // Add Cost
-                expenses += mitigationMetaData["insurance"]["cost"];
+                expenses += cost;
                 // Calculate Remaining Budget
-                totalAvailableMoney -= mitigationMetaData["insurance"]["cost"];
-                // Update Quick Facts Panel
-                updateGameProgressPanel();
-                updateGoalsPanel();
-                // Update Main Game Panel
+                totalAvailableMoney -= cost;
             }
             // Insurance is removed
             else {
                 // Update tile information
-                groundTiles[selectedTile.row][selectedTile.column].floodInsurance = false;
-                // Add Cost
-                expenses -= mitigationMetaData["insurance"]["cost"];
-                // Calculate Remaining Budget
-                totalAvailableMoney += mitigationMetaData["insurance"]["cost"];
-                // Update Quick Facts Panel
-                updateGameProgressPanel();
-                updateGoalsPanel();
-                // Update Main Game Panel
-            };
+                surfaceTiles[r][c].floodInsurance = false;
+                groundTiles[r][c].floodInsurance = false;
+                // Refund Cost
+                expenses -= cost;
+                totalAvailableMoney += cost;
+            }
+
+            // Update Panels & HUD
+            updateGameProgressPanel();
+            updateGoalsPanel();
+            updateTileOptions(r, c);
+            updateTileInformationPanel();
+            onMitigationChanged();
         };
 
         // Relocate Structure
@@ -5091,31 +5906,47 @@ async function main(opts, list_of_files, game_graphics_opt) {
         };
         // Elevate Structure
         allCheckbox[7].onclick = function () {
-            if (this.checked) {
-                if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
-                    surfaceTiles[selectedTile.row][selectedTile.column].elevateStructure = parseInt(elevateStructureSlider[0].value);
-
-                    expenses += mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"];
-                    totalAvailableMoney -= mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"];
-
-                    updateTileOptions(selectedTile.row, selectedTile.column);
-                    updateTileInformationPanel();
-
-                }
+            if (!selectedTile || !isBuildingStructure(selectedTile.row, selectedTile.column)) {
+                this.checked = false;
+                return;
             }
-            else {
-                if (isBuildingStructure(selectedTile.row, selectedTile.column)) {
-                    surfaceTiles[selectedTile.row][selectedTile.column].elevateStructure = 0;
+            var r = selectedTile.row;
+            var c = selectedTile.column;
+            var sTile = surfaceTiles[r][c];
+            var bType = sTile["type"];
 
-                    expenses -= mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"];
-                    totalAvailableMoney += mitigationMetaDataNew["ElevateStructure"]["cost"][parseInt(elevateStructureSlider[0].value)]["Cost"] * buildingMetaDict[surfaceTiles[selectedTile.row][selectedTile.column]["type"]]["Area"];
+            if (this.checked) {
+                var sliderH = Math.max(1, Math.min(10, parseInt(elevateStructureSlider[0].value) || 1));
+                var cost = getElevateStructureCost(bType, sliderH);
 
-                    updateTileOptions(selectedTile.row, selectedTile.column);
-                    updateTileInformationPanel();
+                if (totalAvailableMoney < cost) {
+                    alert("Insufficient funds to elevate structure!");
+                    this.checked = false;
+                    return;
                 }
+
+                expenses += cost;
+                totalAvailableMoney -= cost;
+                sTile.elevateStructure = sliderH;
+
+                syncDefenseVisual(r, c);
+                updateTileOptions(r, c);
+                updateTileInformationPanel();
+            } else {
+                var appliedH = sTile.elevateStructure || 0;
+                if (appliedH > 0) {
+                    var refund = getElevateStructureCost(bType, appliedH);
+                    expenses -= refund;
+                    totalAvailableMoney += refund;
+                }
+                sTile.elevateStructure = 0;
+
+                syncDefenseVisual(r, c);
+                updateTileOptions(r, c);
+                updateTileInformationPanel();
             }
             onMitigationChanged();
-        }
+        };
         // Wet Floodproofing
 
         allCheckbox[8].onclick = function () {
@@ -5218,60 +6049,70 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
 
     function calculateTotalDamage() {
-
         /*
-            It calculates the total damage in terms of money
+            It calculates the total damage in terms of money.
+            Insured structures receive insurance coverage/reimbursement,
+            reducing net unrecovered damage by 85%.
         */
-
-        var totalBuilding = 0;
         var total = 0;
         var h = 0;
         updateFloodInformation();
         for (var row = 0; row < numberOfRows; row++) {
             for (var column = 0; column < numberOfColumns; column++) {
-                obj = floodTiles[row][column];
-                if (obj != 0) {
-                    if (isABuilding(surfaceTiles[row][column]["type"])) {
+                var obj = floodTiles[row][column];
+                if (obj != 0 && obj.water_level > 0) {
+                    var sTile = surfaceTiles[row][column];
+                    if (sTile && isABuilding(sTile.type)) {
                         h = Math.min(Math.round(obj.water_level), 24);
-                        total += buildingMetaDict[surfaceTiles[row][column]["type"]]["Str_val"] * buildingMetaDict[surfaceTiles[row][column]["type"]]["str_func"][h] * 0.01;
-                        total += buildingMetaDict[surfaceTiles[row][column]["type"]]["Cont_val"] * buildingMetaDict[surfaceTiles[row][column]["type"]]["cont_func"][h] * 0.01;
+                        var sMeta = buildingMetaDict[sTile.type];
+                        if (sMeta) {
+                            var strDamage = (sMeta["Str_val"] || 0) * (sMeta["str_func"][h] || 0) * 0.01;
+                            var contDamage = (sMeta["Cont_val"] || 0) * (sMeta["cont_func"][h] || 0) * 0.01;
+                            var tileDamage = strDamage + contDamage;
 
+                            // If building has flood insurance, 85% of damages are covered/reimbursed by policy!
+                            var gTile = groundTiles[row][column];
+                            if ((sTile && sTile.floodInsurance) || (gTile && gTile.floodInsurance)) {
+                                tileDamage = tileDamage * 0.15;
+                            }
+
+                            total += tileDamage;
+                        }
                     };
                 };
             };
         };
 
         return total;
-
     };
 
 
     function calculateInsurancedMoney() {
         /*
-            It calculates the total money that
-            will be received from the insurance in the system.
+            It calculates the total payout money that
+            is reimbursed by flood insurance for flooded insured buildings.
         */
-        var totalBuilding = 0;
-        var total = 0;
+        var totalInsurancePayout = 0;
         updateFloodInformation();
         for (var row = 0; row < numberOfRows; row++) {
             for (var column = 0; column < numberOfColumns; column++) {
-                obj = floodTiles[row][column];
-                if (obj != 0) {
-                    if (obj.height > 0) {
-                        if (groundTiles[row][column].floodInsurance) {
-                            total++;
-                            if (surfaceTiles[row][column] != 0) {
-                                if (surfaceTiles[row][column].floodInsurance) {
-                                    totalBuilding++;
-                                };
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        return totalBuilding * 200 + total * 200;
+                var obj = floodTiles[row][column];
+                if (obj != 0 && obj.water_level > 0) {
+                    var sTile = surfaceTiles[row][column];
+                    var gTile = groundTiles[row][column];
+                    if (sTile && isABuilding(sTile.type) && (sTile.floodInsurance || (gTile && gTile.floodInsurance))) {
+                        var h = Math.min(Math.round(obj.water_level), 24);
+                        var sMeta = buildingMetaDict[sTile.type];
+                        if (sMeta) {
+                            var strDamage = (sMeta["Str_val"] || 0) * (sMeta["str_func"][h] || 0) * 0.01;
+                            var contDamage = (sMeta["Cont_val"] || 0) * (sMeta["cont_func"][h] || 0) * 0.01;
+                            totalInsurancePayout += (strDamage + contDamage) * 0.85;
+                        }
+                    }
+                }
+            }
+        }
+        return Math.round(totalInsurancePayout);
     };
 
     function findNumberofEffectedPeople() {
