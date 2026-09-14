@@ -742,6 +742,69 @@ html, body {
     cursor: pointer;
 }
 
+/* === Elevate Structure Visual Component === */
+.elevate-visual-component {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 8px;
+    padding: 8px;
+    margin: 4px 0 2px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.25s ease;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.elevate-visual-component:hover {
+    border-color: rgba(56, 189, 248, 0.5);
+    background: rgba(15, 23, 42, 0.8);
+}
+
+.elevate-schematic-wrap {
+    width: 100%;
+    height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 6px;
+    background: #090e17;
+}
+
+.elevate-schematic-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.elevate-badge-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 4px 0 4px;
+}
+
+.elevate-height-pill {
+    background: rgba(56, 189, 248, 0.16);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.elevate-status-text {
+    font-size: 0.74rem;
+    color: #cbd5e1;
+    font-style: italic;
+}
+
+
 /* 3. Right HUD Panel (AI Tutor Chat Drawer) */
 .right-hud-panel {
     position: absolute;

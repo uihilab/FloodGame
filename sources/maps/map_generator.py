@@ -89,11 +89,20 @@ def fetch_elevations(lat_min, lat_max, lon_min, lon_max):
     return elevations
 
 
-def normalize_elevation(raw, emin, emax):
+ELEV_MIN_LAND = 46
+ELEV_MAX_LAND = 72
+
+
+def normalize_elevation(raw, emin, emax, dist_to_water=None):
+    if emax - emin < 2.0 and dist_to_water is not None:
+        if dist_to_water <= 5:
+            return int(46 + (max(0, dist_to_water - 1) / 4.0) * 7)
+        else:
+            return int(56 + min(1.0, (dist_to_water - 5) / 10.0) * 14)
     if emax == emin:
-        return 55
+        return 60
     norm = (raw - emin) / (emax - emin)
-    return int(ELEV_MIN_GAME + norm * (ELEV_MAX_GAME - ELEV_MIN_GAME))
+    return int(ELEV_MIN_LAND + norm * (ELEV_MAX_LAND - ELEV_MIN_LAND))
 
 
 def fetch_osm(lat_min, lat_max, lon_min, lon_max):
@@ -509,6 +518,20 @@ def main():
     print(f"   Buildings: {building_counts}")
 
     print("\n[Step 9] Building output arrays...")
+    from collections import deque
+    dist_map = [[999] * COLS for _ in range(ROWS)]
+    q = deque()
+    for (wr, wc) in water_cells:
+        dist_map[wr][wc] = 0
+        q.append((wr, wc))
+    while q:
+        cr, cc = q.popleft()
+        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nr, nc = cr + dr, cc + dc
+            if 0 <= nr < ROWS and 0 <= nc < COLS and dist_map[nr][nc] > dist_map[cr][cc] + 1:
+                dist_map[nr][nc] = dist_map[cr][cc] + 1
+                q.append((nr, nc))
+
     ground_counters = {"water":0,"parks":0,"road":0,"building":0,"parking_lot":0}
     surface_counters = {k:0 for k in PEOPLE_MAP}
     ground_grid, surface_grid, surface_v2_grid = [], [], []
@@ -517,10 +540,12 @@ def main():
         ground_row, surface_row, v2_row = [], [], []
         for c in range(COLS):
             idx = r * COLS + c
-            elev = normalize_elevation(elevations[idx], emin, emax)
             g_type = grid_class[r][c]
             if g_type == "water":
                 elev = ELEV_MIN_GAME
+            else:
+                d_val = dist_map[r][c] if water_cells else None
+                elev = normalize_elevation(elevations[idx], emin, emax, d_val)
             g_id = ground_counters.get(g_type, 0)
             ground_counters[g_type] = g_id + 1
             ground_row.append({"row":r,"column":c,"elevation":elev,"type":g_type,"instanceId":g_id,"floodWall":0})

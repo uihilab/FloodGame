@@ -121,25 +121,65 @@
         },
         "change_tile": {
             "opts": true,
-            "cost": 250,
+            "cost": 250000,
             "ground_tile": true,
-            "structure_tile": false,
+            "structure_tile": true,
             "id": "change_tile_mit",
             "opts_values": {
                 "w1": {
                     "value": "w1",
                     "text": "Water",
-                    "cost": 160
+                    "cost": 160000
+                },
+                "water": {
+                    "value": "water",
+                    "text": "Water",
+                    "cost": 160000
                 },
                 "c1": {
                     "value": "c1",
                     "text": "Concrete",
-                    "cost": 260
+                    "cost": 260000
+                },
+                "parking_lot": {
+                    "value": "parking_lot",
+                    "text": "Concrete",
+                    "cost": 260000
+                },
+                "concrete": {
+                    "value": "concrete",
+                    "text": "Concrete",
+                    "cost": 260000
                 },
                 "g1": {
                     "value": "g1",
                     "text": "Grass",
-                    "cost": 360
+                    "cost": 360000
+                },
+                "parks": {
+                    "value": "parks",
+                    "text": "Grass",
+                    "cost": 360000
+                },
+                "grass": {
+                    "value": "grass",
+                    "text": "Grass",
+                    "cost": 360000
+                },
+                "road1": {
+                    "value": "road1",
+                    "text": "Road",
+                    "cost": 200000
+                },
+                "road2": {
+                    "value": "road2",
+                    "text": "Road",
+                    "cost": 200000
+                },
+                "road": {
+                    "value": "road",
+                    "text": "Road",
+                    "cost": 200000
                 }
 
             }
@@ -203,8 +243,8 @@
         },
         "insurance": {
             "opts": false,
-            "cost": 250,
-            "ground_tile": true,
+            "cost": 5000,
+            "ground_tile": false,
             "structure_tile": true,
             "id": "insurance_mit"
         },

@@ -291,22 +291,20 @@ for r in range(ROWS):
         idx = r * COLS + c
         raw_elev = elevations[idx]
         
-        # Scale elevation relative to sea level (0 meters)
-        elev = int(50 + (raw_elev - 0) * 3)
-        elev = max(40, min(80, elev))
-        
         g_type = grid_class[r][c]
         
-        if g_type == "levee":
+        if g_type == "water":
+            elev = 40
+        elif g_type == "levee":
             g_type = "parks"
             # Detonation crevasse point is modeled in the middle of the vertical levee (rows 20 to 24)
             if 20 <= r <= 24:
-                elev = 50  
+                elev = 45  
             else:
                 elev = 72  
-                
-        if g_type == "water":
-            elev = 40
+        else:
+            dist = math.sqrt((c - 14)**2 + (abs(r - 22) * 0.6)**2)
+            elev = max(46, min(68, int(46 + (dist / 32.0) * 20)))
             
         g_id = ground_counters.get(g_type, 0)
         ground_counters[g_type] = g_id + 1
