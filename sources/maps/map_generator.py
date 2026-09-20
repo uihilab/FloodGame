@@ -21,6 +21,7 @@ import random
 import argparse
 import time
 import sys
+import ssl
 
 ROWS = 50
 COLS = 50
@@ -29,7 +30,10 @@ ELEV_MIN_GAME = 40
 ELEV_MAX_GAME = 80
 
 
-def fetch_url(url, post_data=None, is_json=False, retries=3):
+def fetch_url(url, post_data=None, is_json=False, retries=2, timeout=15):
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
     for attempt in range(retries):
         try:
             req = urllib.request.Request(url)
@@ -43,12 +47,12 @@ def fetch_url(url, post_data=None, is_json=False, retries=3):
                 else:
                     req.add_header('Content-Type', 'application/x-www-form-urlencoded')
                     data = post_data.encode('utf-8')
-            with urllib.request.urlopen(req, data=data, timeout=30) as r:
+            with urllib.request.urlopen(req, data=data, timeout=timeout, context=ctx) as r:
                 return r.read().decode('utf-8')
         except Exception as e:
             print(f"   Attempt {attempt+1} failed: {e}")
             if attempt < retries - 1:
-                time.sleep(2)
+                time.sleep(1)
     raise Exception(f"All {retries} attempts failed for {url}")
 
 
@@ -75,17 +79,52 @@ def compute_bbox(clat, clon, meters=AREA_METERS):
 
 def fetch_elevations(lat_min, lat_max, lon_min, lon_max):
     print(f"   Querying {ROWS*COLS} elevation points...")
-    locations = []
+    SAMPLE_DIM = 8
+
+    # Strategy 1: OpenTopodata Mapzen dataset (8x8 grid -> bilinear interpolation)
+    try:
+        sample_coords = []
+        for sr in range(SAMPLE_DIM):
+            lat = lat_max - (sr / (SAMPLE_DIM - 1)) * (lat_max - lat_min)
+            for sc in range(SAMPLE_DIM):
+                lon = lon_min + (sc / (SAMPLE_DIM - 1)) * (lon_max - lon_min)
+                sample_coords.append((lat, lon))
+
+        locations_str = '|'.join(f'{round(lat, 5)},{round(lon, 5)}' for lat, lon in sample_coords)
+        url = f'https://api.opentopodata.org/v1/mapzen?locations={locations_str}'
+        res_text = fetch_url(url, retries=2, timeout=12)
+        data = json.loads(res_text)
+        results = data.get('results', [])
+        if len(results) == SAMPLE_DIM * SAMPLE_DIM:
+            samples = [res['elevation'] if res.get('elevation') is not None else 35.0 for res in results]
+            sample_grid = [[samples[sr * SAMPLE_DIM + sc] for sc in range(SAMPLE_DIM)] for sr in range(SAMPLE_DIM)]
+            elevations = []
+            for r in range(ROWS):
+                rf = (r / (ROWS - 1)) * (SAMPLE_DIM - 1)
+                r0 = int(math.floor(rf))
+                r1 = min(r0 + 1, SAMPLE_DIM - 1)
+                dr = rf - r0
+                for c in range(COLS):
+                    cf = (c / (COLS - 1)) * (SAMPLE_DIM - 1)
+                    c0 = int(math.floor(cf))
+                    c1 = min(c0 + 1, SAMPLE_DIM - 1)
+                    dc = cf - c0
+                    top = sample_grid[r0][c0] * (1 - dc) + sample_grid[r0][c1] * dc
+                    bottom = sample_grid[r1][c0] * (1 - dc) + sample_grid[r1][c1] * dc
+                    elevations.append(round(top * (1 - dr) + bottom * dr, 2))
+            print(f"   Got {len(elevations)} elevation points from OpenTopodata. Range: {min(elevations):.1f}m - {max(elevations):.1f}m")
+            return elevations
+    except Exception as e:
+        print(f"   OpenTopodata query failed ({e}). Trying fallback...")
+
+    # Strategy 2: Procedural natural elevation gradient
+    print("   Using smooth procedural elevation fallback...")
+    elevations = []
     for r in range(ROWS):
-        lat = lat_max - (r / (ROWS-1)) * (lat_max - lat_min)
         for c in range(COLS):
-            lon = lon_min + (c / (COLS-1)) * (lon_max - lon_min)
-            locations.append({"latitude": round(lat,5), "longitude": round(lon,5)})
-    url = "https://api.open-elevation.com/api/v1/lookup"
-    body = json.dumps({"locations": locations})
-    res = json.loads(fetch_url(url, body, is_json=True))
-    elevations = [r["elevation"] for r in res["results"]]
-    print(f"   Got {len(elevations)} points. Range: {min(elevations):.1f}m - {max(elevations):.1f}m")
+            val = 48.0 + 7.0 * math.sin(r / 11.0) + 5.0 * math.cos(c / 13.0) + random.uniform(-0.3, 0.3)
+            elevations.append(round(val, 2))
+    print(f"   Generated {len(elevations)} procedural elevation points. Range: {min(elevations):.1f}m - {max(elevations):.1f}m")
     return elevations
 
 
@@ -126,15 +165,15 @@ out geom;
 """
     post_data = urllib.parse.urlencode({"data": query})
     endpoints = [
-        "https://overpass-api.de/api/interpreter",
         "https://overpass.openstreetmap.fr/api/interpreter",
         "https://overpass.kumi.systems/api/interpreter",
         "https://lz4.overpass-api.de/api/interpreter",
+        "https://overpass-api.de/api/interpreter",
     ]
     for url in endpoints:
         try:
             print(f"   Trying: {url.split('/')[2]}")
-            result = json.loads(fetch_url(url, post_data))
+            result = json.loads(fetch_url(url, post_data, timeout=12, retries=1))
             elements = result.get("elements", [])
             print(f"   Got {len(elements)} OSM features.")
             return elements
@@ -204,19 +243,17 @@ def detect_water_tiles(elements, rotate_fn, lat_min, lat_max, lon_min, lon_max):
                 r, c = get_grid_coord(el["lat"], el["lon"], rotate_fn, lat_min, lat_max, lon_min, lon_max)
                 water_cells.add((r, c))
             continue
-        pts = [(pt["lat"], pt["lon"]) for pt in geom]
-        for lat, lon in pts:
-            r, c = get_grid_coord(lat, lon, rotate_fn, lat_min, lat_max, lon_min, lon_max)
-            water_cells.add((r, c))
-        # Widen rivers
-        if tags.get("waterway") in ("river","canal"):
-            extra = set()
-            for (wr, wc) in list(water_cells):
-                for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
-                    nr, nc = wr+dr, wc+dc
-                    if 0 <= nr < ROWS and 0 <= nc < COLS:
-                        extra.add((nr, nc))
-            water_cells.update(extra)
+        coords = [get_grid_coord(pt["lat"], pt["lon"], rotate_fn, lat_min, lat_max, lon_min, lon_max) for pt in geom]
+        el_cells = set()
+        for i in range(len(coords) - 1):
+            r0, c0 = coords[i]
+            r1, c1 = coords[i+1]
+            for r, c in bresenham_line(r0, c0, r1, c1):
+                el_cells.add((r, c))
+        if len(coords) == 1:
+            el_cells.add(coords[0])
+
+        water_cells.update(el_cells)
 
     # Filter out small isolated water cells (like private pools or fountains) that create holes in the terrain mesh
     if water_cells:

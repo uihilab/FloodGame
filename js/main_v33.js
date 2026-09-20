@@ -398,6 +398,11 @@ async function main(opts, list_of_files, game_graphics_opt) {
         createWorld();
         createWireframes();
 
+        // Initialize Dynamic Atmospheric Weather System
+        if (window.WeatherSystem) {
+            window.WeatherSystem.init(scene, camera, dirLight, light);
+        }
+
         cameraControls = new CameraControls(camera, renderer.domElement);
         cameraControls.setBoundary(bb);
         cameraControls.mouseButtons.left = CameraControls.ACTION.TRUCK;
@@ -3453,6 +3458,11 @@ async function main(opts, list_of_files, game_graphics_opt) {
             floodAction();
         };
 
+        // Update dynamic atmospheric weather system (rain particles, storm lighting, wind)
+        if (window.WeatherSystem) {
+            window.WeatherSystem.update(delta, elapsed);
+        }
+
         // Update low-poly cars and boats
         updateCars(delta);
         updateBoats(elapsed);
@@ -6371,13 +6381,26 @@ function generateCustomMap() {
                 }
             }
 
+            // Read scenario & weather preset from DOM options
+            let weatherPreset = 'clear';
+            let scenarioMode = 'live';
+            for (let r of document.querySelectorAll('input[name="scenario-unified"]')) {
+                if (r.checked) {
+                    if (r.value === 'rain_live') weatherPreset = 'rain';
+                    else if (r.value === 'hurricane_live') weatherPreset = 'hurricane';
+                    else weatherPreset = 'clear';
+                }
+            }
+            window.selectedWeatherPreset = weatherPreset;
+            window.selectedScenarioMode = scenarioMode;
+
             setTimeout(() => {
                 if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-cog"></i> Generate'; }
                 if (status) status.textContent = "";
                 input.value = "";
 
                 // Kick off game load via the official pipeline
-                startGame([0, 'custom', graphics]);
+                startGame([0, 'custom', graphics, scenarioMode, weatherPreset]);
             }, 500);
         })
         .catch(err => {
@@ -6434,6 +6457,18 @@ function startGame(name) {
     // Update real-world aerial minimap location
     if (window.Minimap) {
         window.Minimap.setLocation(mapKey, displayName);
+    }
+
+    // Update real-time USGS river gauge telemetry & disaster scenario
+    var scenarioMode = (name && name[3]) || window.selectedScenarioMode || 'live';
+    var weatherPreset = (name && name[4]) || window.selectedWeatherPreset || 'clear';
+
+    if (window.RiverTelemetry) {
+        window.RiverTelemetry.loadForCity(mapKey, scenarioMode);
+    }
+
+    if (window.WeatherSystem) {
+        window.WeatherSystem.setWeather(weatherPreset);
     }
 
     // Show top, bottom HUD bars, and minimap radar

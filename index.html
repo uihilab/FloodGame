@@ -29,6 +29,8 @@
     window.GOOGLE_MAPS_API_KEY = window.GOOGLE_MAPS_API_KEY || "";
   </script>
   <script defer src="./js/aiTutor_v22.js"></script>
+  <script src="./js/weather.js"></script>
+  <script src="./js/riverTelemetry.js"></script>
   <script src="./js/minimap.js?v=radar_v12"></script>
   <script type="module" src="./js/main_v33.js?v=defense_v18"></script>
   <script src="./js/location_ai_knowledge.js"></script>
@@ -74,6 +76,21 @@
           <div class="hud-card-value hud-city-name-text" id="hud-city-name"
             style="font-size: 0.92rem; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px;">
             Iowa City, IA</div>
+        </div>
+      </div>
+
+      <!-- Real-Time USGS River Telemetry & Flood Stage Badge -->
+      <div id="river-telemetry-hud" class="hud-card-item river-telemetry is-hidden">
+        <!-- Dynamically rendered by riverTelemetry.js -->
+      </div>
+
+      <!-- Quick Weather Atmosphere Switcher Button -->
+      <div class="hud-card-item weather-hud-control" onclick="cycleWeatherAtmosphere()" title="Click to cycle atmosphere (Clear / Rainstorm / Cat 4 Hurricane)">
+        <div class="hud-card-text">
+          <div class="hud-card-label" style="font-size: 0.6rem; color: #94a3b8; letter-spacing: 0.5px;">ATMOSPHERE:</div>
+          <div id="weather-hud-badge" class="weather-badge-pill">
+            <i class="fas fa-sun" style="color: #f59e0b;"></i> Clear
+          </div>
         </div>
       </div>
 
@@ -1465,8 +1482,8 @@
           const customTab = document.getElementById("tab-custom");
           const grid = document.getElementById("map-selection-grid-container");
           const sandbox = document.getElementById("custom_city_section");
-          const settings = document.querySelector(".menu-settings-row");
           const launchBtn = document.getElementById("start-map-init");
+          const histOpt = document.getElementById("historic-disaster-option");
 
           if (mode === "predefined") {
             if (predefinedTab) predefinedTab.classList.add("is-active");
@@ -1474,7 +1491,6 @@
 
             if (grid) grid.classList.remove("is-hidden");
             if (sandbox) sandbox.classList.add("is-hidden");
-            if (settings) settings.classList.remove("is-hidden");
             if (launchBtn) launchBtn.classList.remove("is-hidden");
           } else {
             if (predefinedTab) predefinedTab.classList.remove("is-active");
@@ -1482,8 +1498,15 @@
 
             if (grid) grid.classList.add("is-hidden");
             if (sandbox) sandbox.classList.remove("is-hidden");
-            if (settings) settings.classList.add("is-hidden");
             if (launchBtn) launchBtn.classList.add("is-hidden");
+
+            // Custom cities don't have curated historical disaster benchmarks
+            if (histOpt) histOpt.style.display = "none";
+            const histRadio = document.querySelector('input[name="scenario-unified"][value="historical"]');
+            if (histRadio && histRadio.checked) {
+              const clearRadio = document.querySelector('input[name="scenario-unified"][value="clear_live"]');
+              if (clearRadio) clearRadio.checked = true;
+            }
           }
         }
       </script>
@@ -1500,6 +1523,29 @@
           <label>
             <input type="radio" name="game-graphics" value="0">
             Optimized (Fast)
+          </label>
+        </div>
+      </div>
+
+      <!-- Unified Scenario Selector -->
+      <div class="menu-settings-row" style="margin-top: 14px;">
+        <span class="settings-label">Scenario:</span>
+        <div class="graphics-radio-group scenario-unified-group" id="scenario-unified-group">
+          <label title="Sunny day — see what the real river looks like right now">
+            <input type="radio" name="scenario-unified" value="clear_live" checked>
+            <i class="fas fa-sun" style="color: #f59e0b;"></i> Clear &amp; Sunny
+          </label>
+          <label title="Simulate a heavy rainstorm flooding the city">
+            <input type="radio" name="scenario-unified" value="rain_live">
+            <i class="fas fa-cloud-showers-heavy" style="color: #38bdf8;"></i> Rainstorm
+          </label>
+          <label title="Simulate a category 4 hurricane hitting the city">
+            <input type="radio" name="scenario-unified" value="hurricane_live">
+            <i class="fas fa-wind" style="color: #ef4444;"></i> Cat 4 Hurricane
+          </label>
+          <label id="historic-disaster-option" title="Replay the most famous real flood disaster at this location, with real weather data" style="display:none;">
+            <input type="radio" name="scenario-unified" value="historical">
+            <i class="fas fa-bolt" style="color: #a855f7;"></i> Famous Disaster
           </label>
         </div>
       </div>
@@ -2572,37 +2618,90 @@
 
   };
 
+  function cycleWeatherAtmosphere() {
+    if (!window.WeatherSystem) return;
+    const modes = ['clear', 'rain', 'hurricane'];
+    const current = window.WeatherSystem.currentMode;
+    const nextIndex = (modes.indexOf(current) + 1) % modes.length;
+    window.WeatherSystem.setWeather(modes[nextIndex]);
+  }
+
   function sendStartInformation() {
-    var graphics = 1
+    var graphics = 1;
     for (let radiobtn of document.querySelectorAll('input[name="game-graphics"]')) {
       if (radiobtn.checked) {
         graphics = radiobtn.value;
       };
     };
 
-    if (!document.getElementById("map-selection-grid-container").classList.contains("is-hidden")) {
-      var idOfMap = document.querySelector(".selected-map").id;
-      return [0, idOfMap, graphics]
-    }
-    else {
-      return [1, rectangle.getBounds().getCenter().toString(), graphics]
+    // Decode unified scenario into scenarioMode + weatherPreset
+    var scenarioUnified = "clear_live";
+    for (let r of document.querySelectorAll('input[name="scenario-unified"]')) {
+      if (r.checked) scenarioUnified = r.value;
     }
 
+    var scenarioMode, weatherPreset;
+    if (scenarioUnified === 'historical') {
+      scenarioMode = 'historical';
+      // Look up the matching weather for this city's disaster so it applies right away
+      var selectedMapId = '';
+      var selMap = document.querySelector('.selected-map');
+      if (selMap) selectedMapId = selMap.id;
+      var disasterWeatherMap = {
+        'st_bernard': 'hurricane',
+        'cedar_rapids': 'rain',
+        'iowa_city': 'rain',
+        'davenport': 'rain',
+        'des_moines': 'rain',
+        'greenville': 'rain'
+      };
+      weatherPreset = disasterWeatherMap[selectedMapId] || 'rain';
+    } else {
+      scenarioMode = 'live';
+      weatherPreset = scenarioUnified.replace('_live', ''); // 'clear', 'rain', or 'hurricane'
+    }
+
+    window.selectedScenarioMode = scenarioMode;
+    window.selectedWeatherPreset = weatherPreset;
+
+    if (!document.getElementById("map-selection-grid-container").classList.contains("is-hidden")) {
+      var idOfMap = document.querySelector(".selected-map").id;
+      return [0, idOfMap, graphics, scenarioMode, weatherPreset];
+    }
+    else {
+      return [1, rectangle.getBounds().getCenter().toString(), graphics, scenarioMode, weatherPreset];
+    }
   }
+
+  // Cities that have a famous historical disaster defined
+  var citiesWithDisasters = ['iowa_city', 'cedar_rapids', 'des_moines', 'davenport', 'greenville', 'st_bernard'];
 
   function changeColorOfPredefinedMaps(elem) {
     var predefinedmaps = document.querySelectorAll(".map-option");
+    const historicOption = document.getElementById("historic-disaster-option");
+
     if (elem.classList.contains("selected-map")) {
       elem.classList.remove("selected-map");
       clearStartMapInitButton();
+      // Hide historic option & reset to clear on deselect
+      if (historicOption) historicOption.style.display = 'none';
+      const clearRadio = document.querySelector('input[name="scenario-unified"][value="clear_live"]');
+      if (clearRadio) clearRadio.checked = true;
     } else {
       for (let i = 0; i < predefinedmaps.length; i++) {
         predefinedmaps[i].classList.remove("selected-map");
       }
       elem.classList.add("selected-map");
       activateStartMapInitButton();
-    }
 
+      // Show/hide Famous Disaster option based on city
+      const hasDisaster = citiesWithDisasters.includes(elem.id);
+      if (historicOption) historicOption.style.display = hasDisaster ? 'inline-flex' : 'none';
+
+      // Always default to Clear & Sunny for all cities
+      const clearRadio = document.querySelector('input[name="scenario-unified"][value="clear_live"]');
+      if (clearRadio) clearRadio.checked = true;
+    }  // closes else
   };
 
   function activateStartMapInitButton() {
@@ -2635,6 +2734,151 @@
   .disabledbutton {
     pointer-events: none;
     opacity: 0.4;
+  }
+
+  /* Live River Telemetry HUD Badge */
+  .hud-card-item.river-telemetry {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-radius: 12px;
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    backdrop-filter: blur(8px);
+    cursor: default;
+    transition: all 0.25s ease;
+  }
+  .hud-card-item.river-telemetry:hover {
+    border-color: rgba(56, 189, 248, 0.7);
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
+  }
+  .telemetry-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+  }
+  .telemetry-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .telemetry-pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: telePulse 2s infinite;
+  }
+  @keyframes telePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+  .telemetry-title {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    color: #94a3b8;
+    text-transform: uppercase;
+  }
+  .telemetry-badge {
+    font-size: 0.58rem;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 6px;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .telemetry-metrics {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: #e2e8f0;
+    font-weight: 700;
+  }
+  .telemetry-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .telemetry-stat .stat-label {
+    font-size: 0.62rem;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+  .telemetry-stat .stat-val {
+    color: #38bdf8;
+    font-weight: 800;
+  }
+  .telemetry-divider {
+    color: #475569;
+    font-size: 0.7rem;
+  }
+
+  /* Weather HUD Button */
+  .hud-card-item.weather-hud-control {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 12px;
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.25s ease;
+  }
+  .hud-card-item.weather-hud-control:hover {
+    border-color: rgba(245, 158, 11, 0.7);
+    background: rgba(30, 41, 59, 0.9);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+  }
+  .weather-badge-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #ffffff;
+    padding: 2px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    background: rgba(0, 0, 0, 0.2);
+    transition: all 0.2s;
+  }
+
+  /* Scenario & Atmosphere Radios in Map Launch Modal */
+  .scenario-mode-group, .weather-mode-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .scenario-mode-group label, .weather-mode-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #334155;
+    padding: 5px 12px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    transition: all 0.2s ease;
+  }
+  .scenario-mode-group label:hover, .weather-mode-group label:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+  .scenario-mode-group input[type="radio"]:checked + i,
+  .weather-mode-group input[type="radio"]:checked + i {
+    transform: scale(1.1);
   }
 </style>
 <style>
