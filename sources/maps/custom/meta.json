@@ -1,24 +1,21 @@
 {
   "name": "custom",
-  "center_lat": 29.4246002,
-  "center_lon": -98.4951405,
-  "rotation_deg": -5.0,
-  "flood_edge": "east",
-  "water_tile_count": 255,
+  "center_lat": 29.3872254,
+  "center_lon": -94.992736,
+  "rotation_deg": 5.0,
+  "flood_edge": "north",
+  "water_tile_count": 9,
   "building_counts": {
     "School": 2,
-    "Res1": 113,
-    "Res3": 102,
-    "Res2": 97,
-    "Htl": 11,
-    "Hos": 2,
-    "Chse": 4,
-    "Chu": 1,
-    "Com": 81,
-    "Com2": 28,
+    "Res3": 42,
+    "Hos": 1,
     "Pol": 1,
     "Fire": 1,
-    "Wat": 1
+    "Wat": 1,
+    "Res1": 33,
+    "Com": 89,
+    "Res2": 46,
+    "Com2": 33
   },
-  "location_query": "San Antonio, TX"
+  "location_query": "Galveston, TX"
 }

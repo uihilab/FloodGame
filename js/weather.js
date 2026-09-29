@@ -58,6 +58,12 @@ class WeatherSystem {
         this.defaultSkyColor = null;
     }
 
+    _getTHREE() {
+        if (typeof THREE !== 'undefined') return THREE;
+        if (typeof window !== 'undefined' && window.THREE) return window.THREE;
+        return null;
+    }
+
     // ─────────────────────────────────────────────
     // Core init: called once the Three.js scene exists
     // ─────────────────────────────────────────────
@@ -66,19 +72,19 @@ class WeatherSystem {
         this.dirLight = dirLight;
         this.ambientLight = ambientLight;
 
-        // THREE is a module import — exposed as window.THREE by main_v33.js
-        const T = (typeof THREE !== 'undefined') ? THREE : window.THREE;
+        const T = this._getTHREE();
         if (T) this.defaultSkyColor = new T.Color(this.presets.clear.skyHex);
 
         this._createRainCanvas();
 
         // Apply any weather that was queued before scene was ready
         if (this.pendingMode) {
+            console.log('[WeatherSystem] applying queued pending weather:', this.pendingMode);
             this.setWeather(this.pendingMode);
             this.pendingMode = null;
         }
 
-        console.log('[WeatherSystem] initialized.');
+        console.log('[WeatherSystem] initialized. THREE ready:', !!T);
     }
 
     // ─────────────────────────────────────────────
@@ -195,8 +201,7 @@ class WeatherSystem {
             return;
         }
 
-        // THREE is a module import in main_v33.js, exposed as window.THREE
-        const T = (typeof THREE !== 'undefined') ? THREE : window.THREE;
+        const T = this._getTHREE();
         const preset = this.presets[mode] || this.presets.clear;
 
         // --- Sky background ---

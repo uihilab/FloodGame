@@ -1913,6 +1913,21 @@
     }
   }
 
+  // Helper to filter cards inside #mitigation-options based on active tool
+  function filterMitigationCards(activeIds) {
+    const allCards = document.querySelectorAll("#mitigation-options .mitigation-option");
+    allCards.forEach(card => {
+      if (!activeIds || activeIds.includes(card.id)) {
+        card.style.display = "block";
+      } else {
+        card.style.display = "none";
+      }
+    });
+    const mitOpts = document.getElementById("mitigation-options");
+    if (mitOpts) mitOpts.scrollTop = 0;
+  }
+  window.filterMitigationCards = filterMitigationCards;
+
   // Interaction handlers for bottom circular HUD bar
   function clickBottomHUD(type) {
     const buttons = document.querySelectorAll(".hud-circle-btn-container");
@@ -1937,20 +1952,6 @@
           cb.dispatchEvent(new Event('change'));
         }
       });
-    }
-
-    // Helper to filter cards inside #mitigation-options based on active tool
-    function filterMitigationCards(activeIds) {
-      const allCards = document.querySelectorAll("#mitigation-options .mitigation-option");
-      allCards.forEach(card => {
-        if (!activeIds || activeIds.includes(card.id)) {
-          card.style.display = "block";
-        } else {
-          card.style.display = "none";
-        }
-      });
-      const mitOpts = document.getElementById("mitigation-options");
-      if (mitOpts) mitOpts.scrollTop = 0;
     }
 
     const headerSpan = document.querySelector(".left-hud-panel .hud-panel-header span");
@@ -2130,6 +2131,8 @@
     const tabBtns = document.querySelectorAll(".hud-tab-btn");
     if (tabBtns[1]) tabBtns[1].click();
   }
+  window.triggerAbilitiesTab = triggerAbilitiesTab;
+  window.filterMitigationCards = filterMitigationCards;
 </script>
 
 <script>
@@ -2683,10 +2686,13 @@
     if (elem.classList.contains("selected-map")) {
       elem.classList.remove("selected-map");
       clearStartMapInitButton();
-      // Hide historic option & reset to clear on deselect
+      // Hide historic option & fallback to clear only if historical disaster was selected
       if (historicOption) historicOption.style.display = 'none';
-      const clearRadio = document.querySelector('input[name="scenario-unified"][value="clear_live"]');
-      if (clearRadio) clearRadio.checked = true;
+      const histRadio = document.querySelector('input[name="scenario-unified"][value="historical"]');
+      if (histRadio && histRadio.checked) {
+        const clearRadio = document.querySelector('input[name="scenario-unified"][value="clear_live"]');
+        if (clearRadio) clearRadio.checked = true;
+      }
     } else {
       for (let i = 0; i < predefinedmaps.length; i++) {
         predefinedmaps[i].classList.remove("selected-map");
@@ -2698,9 +2704,12 @@
       const hasDisaster = citiesWithDisasters.includes(elem.id);
       if (historicOption) historicOption.style.display = hasDisaster ? 'inline-flex' : 'none';
 
-      // Always default to Clear & Sunny for all cities
-      const clearRadio = document.querySelector('input[name="scenario-unified"][value="clear_live"]');
-      if (clearRadio) clearRadio.checked = true;
+      // If Famous Disaster was selected but this map doesn't have one, fallback to Clear & Sunny
+      const histRadio = document.querySelector('input[name="scenario-unified"][value="historical"]');
+      if (histRadio && histRadio.checked && !hasDisaster) {
+        const clearRadio = document.querySelector('input[name="scenario-unified"][value="clear_live"]');
+        if (clearRadio) clearRadio.checked = true;
+      }
     }  // closes else
   };
 
