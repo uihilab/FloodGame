@@ -364,18 +364,7 @@ This work is supported by the **National Science Foundation (NSF)** under the Pa
 
 If you use FloodGame in your research, software, or teaching, please cite the official journal publication:
 
-```bibtex
-@article{demiray2025floodgame,
-  title={FloodGame: An interactive 3D serious game on flood mitigation for disaster awareness and education},
-  author={Demiray, B. Z. and Sermet, Y. and Yildirim, E. and Demir, I.},
-  journal={Environmental Modelling \& Software},
-  volume={188},
-  pages={106418},
-  year={2025},
-  publisher={Elsevier},
-  doi={10.1016/j.envsoft.2025.106418}
-}
-```
+* **Demiray, B. Z., Yusuf, S., Enes, Y., & Ibrahim, D. (2025).** FloodGame: An interactive 3D serious game on flood mitigation for disaster awareness and education. Environmental Modelling & Software, 188(1364–8152), 106418. [https://doi.org/10.1016/j.envsoft.2025.106418]
 
 ### Related Lab Publications
 * **Demiray, B. Z., Sermet, Y., Yildirim, E., & Demir, I. (2025).** FloodGame: An interactive 3D serious game on flood mitigation for disaster awareness and education. *Environmental Modelling & Software*, 188, 106418. [https://doi.org/10.1016/j.envsoft.2025.106418](https://doi.org/10.1016/j.envsoft.2025.106418)
