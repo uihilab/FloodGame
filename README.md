@@ -19,7 +19,10 @@ Developed by the [Hydroinformatics Lab (IHI Lab) at Tulane University](https://h
   * [📦 Real-World Maps & Terrain (GIS)](#-real-world-maps--terrain-gis)
   * [⚙️ Flood & Damage Simulation](#️-flood--damage-simulation)
   * [🌐 3D Graphics & Satellite Minimap](#-3d-graphics--satellite-minimap)
+  * [🌊 Real-Time USGS Streamflow Telemetry & Flood Stages](#-real-time-usgs-streamflow-telemetry--flood-stages)
+  * [⛈️ Dynamic Atmospheric Weather & Scenarios](#️-dynamic-atmospheric-weather--scenarios)
   * [🏛️ AI Advisor & Classroom Logging](#️-ai-advisor--classroom-logging)
+  * [📊 Economic & Financial Report & PDF Export](#-economic--financial-report--pdf-export)
 * [System Architecture](#system-architecture)
 * [Mitigation Defenses & Costs](#mitigation-defenses--costs)
 * [Building Types & Vulnerability](#building-types--vulnerability)
@@ -38,10 +41,11 @@ Developed by the [Hydroinformatics Lab (IHI Lab) at Tulane University](https://h
 **FloodGame** is an educational, interactive 3D simulation game designed to teach students, community leaders, and emergency planners how flood defense and disaster management work in the real world.
 
 As the emergency manager of a city, you are given a budget and a countdown timer before a major river or coastal flood crests. Your mission is to:
-1. **Analyze the terrain**: Spot low-lying neighborhoods, rivers, and vital buildings (hospitals, water plants, fire stations, schools, and homes).
-2. **Choose your defense strategy**: Spend your budget on concrete flood walls, temporary sandbags, raising buildings on stilts, wet/dry floodproofing, emergency shelters, or flood insurance.
-3. **Get guidance from an AI Advisor**: Ask questions to a built-in AI tutor about what to prioritize, how to budget, or how different engineering solutions work.
-4. **Survive the flood**: Watch the floodwaters rise in real-time 3D, see which barriers hold, and review an after-action report showing how many lives and buildings you saved.
+1. **Analyze the terrain & streamflow**: Spot low-lying neighborhoods, rivers, live USGS gauge heights, and vital buildings (hospitals, water plants, fire stations, schools, and homes).
+2. **Configure disaster conditions**: Pick live atmospheric weather (Clear & Sunny, Rainstorm, Category 4 Hurricane, or Famous Historical Disaster).
+3. **Choose your defense strategy**: Spend your budget on concrete flood walls, temporary sandbags, raising buildings on stilts, wet/dry floodproofing, emergency shelters, or flood insurance.
+4. **Get guidance from an AI Advisor**: Ask questions to a built-in AI tutor about what to prioritize, how to budget, or how different engineering solutions work.
+5. **Survive the flood**: Watch the floodwaters rise in real-time 3D, see which barriers hold, and review an after-action report showing how many lives and buildings you saved.
 
 The entire game runs directly in your web browser—no extra software or downloads required.
 
@@ -50,26 +54,27 @@ The entire game runs directly in your web browser—no extra software or downloa
 ## How to Play
 
 ```
-   1. Pick a City           2. Inspect Risk           3. Place Defenses          4. Run Simulation
- ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
- │ Choose from 6   │  ──►  │ Hover on tiles, │  ──►  │ Click tiles to  │  ──►  │ Hit 'Start' or  │
- │ historical maps │       │ check elevation │       │ buy walls, bags,│       │ let timer run.  │
- │ or generate any │       │ & toggle Risk   │       │ elevate homes,  │       │ Watch flood &   │
- │ US city!        │       │ Overlay (grid). │       │ or buy policies.│       │ review report.  │
- └─────────────────┘       └─────────────────┘       └─────────────────┘       └─────────────────┘
+   1. Pick City & Weather      2. Inspect Risk & Telemetry    3. Place Defenses          4. Run Simulation
+ ┌─────────────────────────┐   ┌───────────────────────────┐  ┌─────────────────────┐   ┌────────────────────────┐
+ │ Choose from 6 historical│   │ Hover on tiles, inspect   │  │ Click tiles to buy  │   │ Hit 'Start' or wait    │
+ │ maps (or generate any   ├──►│ USGS river gauge telemetry│─►│ walls, sandbags,    ├──►│ for countdown. Watch   │
+ │ US city) & pick weather │   │ & toggle 3D Risk Overlay. │  │ elevate homes, etc. │   │ flood rise in 3D &     │
+ │ (Clear, Rain, Hurricane)│   │                           │  │                     │   │ export PDF report.     │
+ └─────────────────────────┘   └───────────────────────────┘  └─────────────────────┘   └────────────────────────┘
 ```
 
 1. **Launch the Game**: Open the link in any modern browser (Chrome, Firefox, Safari, or Edge).
-2. **Select a Location**:
-   * Choose one of the **6 built-in historical scenarios** (like Des Moines, IA or St. Bernard Parish, LA).
-   * Or switch to the **Custom Location** tab and type in any US city or town (e.g. *Seattle, WA* or *Syracuse, NY*) to automatically generate a 3D map from real elevation and street data.
-3. **Inspect the Map**:
+2. **Select a Location & Weather Scenario**:
+   * Choose one of the **6 built-in historical scenarios** (like Des Moines, IA or St. Bernard Parish, LA) or generate a **Custom Location** anywhere in the US.
+   * Pick your **Weather & Scenario**: **Clear & Sunny**, **Rainstorm**, **Cat 4 Hurricane**, or **Famous Disaster** (weather selections seamlessly carry over regardless of whether you select weather or map first).
+3. **Inspect the Map & Live Telemetry**:
+   * Observe the **Live USGS River Telemetry Badge** at the top of the HUD to check real-time streamflow discharge (cfs) and gauge height (ft) compared against Action and Flood Stages.
    * Hover over any tile to see its ground height, structure type, and risk level.
    * Click the **Risk Overlay** button to color-code the map: red tiles are at high risk of flooding first, yellow is medium risk, and white is high ground.
 4. **Deploy Defenses**: Click on any land or building tile to open the mitigation menu and spend your budget.
 5. **Chat with the AI Advisor**: Click the AI Tutor button in the bottom right if you want tips on how to defend the city or budget wisely.
 6. **Watch the Flood**: Click **Start** (or wait for the countdown timer to reach zero). The water will rise in 3D across the city.
-7. **Check Your Score**: At the end, an After-Action Report shows how much money was saved, how many homes were protected, and what percentage of the population stayed safe.
+7. **Check Your Score & Export Report**: At the end, an Economic & Financial Results Report details damages prevented, ROI, and population saved, with a one-click button to **Export as PDF**.
 
 ---
 
@@ -82,6 +87,7 @@ FloodGame creates realistic 50×50 game maps using real geospatial data sources:
 | :--- | :--- | :--- |
 | **Street & Building Data** | OpenStreetMap (Overpass API) | Downloads real building outlines, roads, and waterways for any selected area. |
 | **Topography & Elevation** | Open-Elevation & USGS APIs | Pulls real elevation data to create the 3D ground heightmap. |
+| **River Streamflow & Gauges** | USGS NWIS Continuous Values API | Polls live river stage height (ft) and discharge (cfs) to calibrate flood risk. |
 | **City Search & Geocoding** | Nominatim (OSM) | Turns city/town names into geographic coordinates and bounding boxes. |
 | **Damage Curves** | FEMA HAZUS-MH standard | Uses real-world depth-damage curves to calculate repair costs based on water depth. |
 
@@ -96,16 +102,17 @@ The simulation runs locally in the browser to calculate water flow and damages:
 | **Population Safety** | Calculates how many residents were kept safe in protected buildings or evacuated to shelters. |
 | **Financial Ledger** | Tracks remaining budget, money spent on defenses, post-flood repairs, and insurance payouts. |
 
-### 🌐 3D Graphics & Satellite Minimap
+### 🌐 3D Graphics & Visual Atmosphere
 Built with Three.js for interactive 3D rendering:
 
 | Visual Feature | Description |
 | :--- | :--- |
 | **3D World View** | Smooth isometric 3D controls—rotate, pan, zoom, and click on any individual tile. |
 | **Animated Water** | Realistic water mesh that rises, crests at peak flood stage, and gradually recedes. |
-| **Live Satellite Minimap** | Real Google Maps satellite view showing an overview of the city and where your camera is pointing. |
+| **Dynamic Weather Engine** | Screen-space 2D canvas rainfall, atmospheric lighting, storm fog, and randomized lightning flashes. |
+| **Live Satellite Minimap & Radar** | Real Google Maps satellite & procedural radar view with active camera orientation frustum. |
 | **Risk Heatmap** | One-click button to highlight flood-prone areas in red and yellow. |
-| **Scoreboard & Report** | Clean breakdown modal summarizing your strategy's return on investment (ROI). |
+| **Scoreboard & Report** | Clean breakdown modal summarizing damages, ROI, and one-click PDF report export. |
 
 ### 🏛️ AI Advisor & Classroom Logging
 Designed for both self-guided play and structured university/school classes:
@@ -125,8 +132,10 @@ flowchart TD
     subgraph Browser ["Web Browser (Client)"]
         UI["Game Interface & HUD\n(Controls, Budget, Population)"]
         ThreeJS["3D Game Canvas\n(Three.js Viewport)"]
-        MiniMap["Satellite Minimap\n(Google Maps Hybrid View)"]
+        Weather["Weather & Atmosphere Engine\n(weather.js - Rain & Lightning)"]
+        MiniMap["Satellite Minimap & Radar\n(Google Maps & Frustum)"]
         Sim["Flood & Damage Engine\n(HAZUS Curves & Water Model)"]
+        RiverMgr["USGS River Telemetry\n(riverTelemetry.js)"]
         AI["AI Flood Advisor\n(Instant Strategy & City History)"]
     end
 
@@ -136,14 +145,18 @@ flowchart TD
         DB[(PostgreSQL / PostgREST\nAnonymous Session Logs)]
     end
 
-    subgraph External ["Free Open GIS APIs"]
+    subgraph External ["Free Open GIS & Hydrologic APIs"]
         OSM["OpenStreetMap (Buildings & Roads)"]
         DEM["Open-Elevation (Terrain Heights)"]
+        USGS["USGS NWIS API (Live Stage & Flow)"]
     end
 
     UI --> ThreeJS
     UI --> Sim
     ThreeJS --> MiniMap
+    ThreeJS --> Weather
+    RiverMgr --> UI
+    USGS --> RiverMgr
     AI <--> Sim
     AI -.->|Optional Chat Telemetry| Server
     Server --> DB
@@ -209,6 +222,54 @@ FloodGame comes with 6 historical US flood disaster scenarios:
   Has no permanent concrete sea wall, choosing instead to keep its riverfront open with parks and temporary barriers. In 2019, temporary barriers breached, flooding downtown for 51 straight days. *Strategy: Use temporary sandbags and floodproofing.*
 * **Greenville, Mississippi (Great 1927 Flood)**:
   A historic Mississippi Delta town at the site of the famous 1927 levee breach that flooded 27,000 square miles. *Strategy: Protect river ports and grain storage facilities.*
+
+---
+
+## 🌊 Real-Time USGS Streamflow Telemetry & Flood Stages
+
+FloodGame integrates directly with the **United States Geological Survey (USGS) National Water Information System (NWIS)** to bring real-time, live hydrologic data into the simulation:
+
+* **Live Streamflow API**: The game queries the USGS NWIS Instantaneous Values REST API (`https://waterservices.usgs.gov/nwis/iv/`) for live streamflow and water levels:
+  * **Parameter 00065**: Gage height (water depth in feet).
+  * **Parameter 00060**: Discharge (streamflow rate in cubic feet per second, cfs).
+* **Live USGS Gauging Stations**:
+
+| Location | Station ID | River / Basin | Action Stage | Flood Stage | Major Flood |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Iowa City, IA** | `05454500` | Iowa River at Iowa City, IA | 18.0 ft | 22.0 ft | 25.0 ft |
+| **Cedar Rapids, IA** | `05464500` | Cedar River at Cedar Rapids, IA | 10.0 ft | 12.0 ft | 16.0 ft |
+| **Des Moines, IA** | `05485500` | Des Moines River at 2nd Ave, IA | 20.0 ft | 24.0 ft | 27.0 ft |
+| **Davenport, IA** | `05420500` | Mississippi River at Clinton / Quad Cities | 14.0 ft | 15.0 ft | 18.0 ft |
+| **Greenville, MS** | `07289000` | Mississippi River at Vicksburg / Greenville | 40.0 ft | 43.0 ft | 50.0 ft |
+| **St. Bernard, LA** | `07374525` | Lower Mississippi & MRGO at Belle Chasse | 14.0 ft | 16.0 ft | 17.5 ft |
+
+* **Live HUD Telemetry Badge**: The top HUD displays a live telemetry card showing current gauge height, streamflow discharge rate, and color-coded flood category badge (Normal, Action Stage, Minor, Moderate, or Major Flood).
+* **Historical Benchmark Telemetry**: When playing in **Famous Disaster** mode, the badge switches from live gauge polling to the official peak flood record observed during that historic event (e.g. 31.12 ft crest in Cedar Rapids in 2008 or 18.7 ft storm surge during Hurricane Katrina).
+
+---
+
+## ⛈️ Dynamic Atmospheric Weather & Scenarios
+
+FloodGame features a complete atmospheric weather engine (`weather.js`) that transforms the visual environment:
+
+* **Unified Weather & Scenario Presets**:
+  * **☀️ Clear & Sunny**: Warm daylight sun, soft ambient sky, and calm river conditions.
+  * **🌧️ Rainstorm**: Overcast slate skies, cool ambient mist, and continuous screen-space rainfall.
+  * **🌀 Category 4 Hurricane**: Dark stormy atmosphere, dense storm fog, heavy rainfall, high wind streaks, and periodic randomized lightning flashes with ambient light bursts.
+  * **⚡ Famous Disaster**: Replays the curated historical disaster for that specific city, automatically pairing the scenario with its matching storm or hurricane weather.
+* **Persistent Preference Tracking**: Weather presets seamlessly carry over whether the user chooses their weather condition first or picks their city map first.
+* **Optimized 2D Screen-Space Rain Canvas**: Raindrops are simulated using an independent HTML5 canvas particle overlay layered over Three.js. This guarantees a butter-smooth 60 FPS without impacting 3D camera zoom, pan, or rotation performance.
+
+---
+
+## 📊 Economic & Financial Report & PDF Export
+
+At the conclusion of each simulation run, FloodGame opens an automated **Economic & Financial Results Report**:
+
+* **HAZUS-Based Damage Accounting**: Calculates exact repair costs and damages prevented based on FEMA depth-damage curves.
+* **ROI Breakdown**: Compares initial budget, mitigation expenditures, structural savings, and insurance reimbursements.
+* **Humanitarian Metrics**: Quantifies population sheltered and residential safety percentages.
+* **Export as PDF**: Includes a one-click button to export the report as a clean PDF document, making it easy for students to submit class assignments and for researchers to save experiment trials.
 
 ---
 
@@ -303,18 +364,7 @@ This work is supported by the **National Science Foundation (NSF)** under the Pa
 
 If you use FloodGame in your research, software, or teaching, please cite the official journal publication:
 
-```bibtex
-@article{demiray2025floodgame,
-  title={FloodGame: An interactive 3D serious game on flood mitigation for disaster awareness and education},
-  author={Demiray, B. Z. and Sermet, Y. and Yildirim, E. and Demir, I.},
-  journal={Environmental Modelling \& Software},
-  volume={188},
-  pages={106418},
-  year={2025},
-  publisher={Elsevier},
-  doi={10.1016/j.envsoft.2025.106418}
-}
-```
+* **Demiray, B. Z., Yusuf, S., Enes, Y., & Ibrahim, D. (2025).** FloodGame: An interactive 3D serious game on flood mitigation for disaster awareness and education. Environmental Modelling & Software, 188(1364–8152), 106418. [https://doi.org/10.1016/j.envsoft.2025.106418]
 
 ### Related Lab Publications
 * **Demiray, B. Z., Sermet, Y., Yildirim, E., & Demir, I. (2025).** FloodGame: An interactive 3D serious game on flood mitigation for disaster awareness and education. *Environmental Modelling & Software*, 188, 106418. [https://doi.org/10.1016/j.envsoft.2025.106418](https://doi.org/10.1016/j.envsoft.2025.106418)
@@ -329,5 +379,3 @@ If you use FloodGame in your research, software, or teaching, please cite the of
 <div align="center">
     <sub>FloodGame · Hydroinformatics Lab at Tulane University · Open Source · Web-Native · Community-Governed</sub>
 </div>
-
-

@@ -12,7 +12,13 @@ import { MTLLoader } from './../libs/threejs/MTLLoader.js';
 import { OBJLoader } from './../libs/threejs/OBJLoader.js';
 import Stats from './../libs/threejs/stats.module.js';
 
+window.THREE = THREE;
 
+const buildingModelFallback = {
+    "Com2": "Com", "Bank": "Com", "Htl": "Com", "Chse": "Com",
+    "Ind": "Com", "Gas": "Com", "Wat": "Com", "Chu": "School",
+    "Shel1": "Res1", "Shel2": "Res2", "Shel3": "Res3"
+};
 
 async function main(opts, list_of_files, game_graphics_opt) {
 
@@ -397,6 +403,13 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         createWorld();
         createWireframes();
+
+        // Initialize Dynamic Atmospheric Weather System
+        if (window.WeatherSystem) {
+            window.WeatherSystem.init(scene, camera, dirLight, light);
+            var initialWeather = window.selectedWeatherPreset || 'clear';
+            window.WeatherSystem.setWeather(initialWeather);
+        }
 
         cameraControls = new CameraControls(camera, renderer.domElement);
         cameraControls.setBoundary(bb);
@@ -825,10 +838,10 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 obj = surfaceTiles[row][column];
                 if (obj != 0) {
                     [x, z] = calculatePosition(obj.row, obj.column);
-                    if (obj.type == "Res1" || obj.type == "Res2" || obj.type == "Res3" || obj.type == "Hos" || obj.type == "School" || obj.type == "Pol" || obj.type == "Com" || obj.type == "Fire") {
-                        addObjects(x, z, groundTiles[row][column].elevation, obj.type, obj.row, obj.column)
+                    if (isBuildingStructure(row, column) || obj.type == "Res1" || obj.type == "Res2" || obj.type == "Res3" || obj.type == "Hos" || obj.type == "School" || obj.type == "Pol" || obj.type == "Com" || obj.type == "Fire") {
+                        addObjects(x, z, groundTiles[row][column].elevation, obj.type, obj.row, obj.column);
                     }
-                    else {
+                    else if (meshDict[obj.type]) {
                         var offset = 0.5;
                         if (obj.type.startsWith("road") || obj.type === "parking") {
                             offset = 5.0;
@@ -1150,7 +1163,30 @@ async function main(opts, list_of_files, game_graphics_opt) {
         else if (dir === "W") carGroup.rotation.y = Math.PI;
     }
 
+    function removeCars() {
+        if (!activeCars) return;
+        for (var i = 0; i < activeCars.length; i++) {
+            var car = activeCars[i];
+            if (car && car.mesh) {
+                scene.remove(car.mesh);
+                car.mesh.traverse(function (child) {
+                    if (child.geometry) child.geometry.dispose();
+                    if (child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(function (m) { m.dispose(); });
+                        } else {
+                            child.material.dispose();
+                        }
+                    }
+                });
+            }
+        }
+        activeCars = [];
+    }
+
     function spawnCars() {
+        if (isFlood) return;
+        removeCars();
         activeCars = [];
 
         // Find all road tiles
@@ -1230,6 +1266,12 @@ async function main(opts, list_of_files, game_graphics_opt) {
     }
 
     function updateCars(deltaTime) {
+        if (isFlood) {
+            if (activeCars && activeCars.length > 0) {
+                removeCars();
+            }
+            return;
+        }
         if (!activeCars) return;
 
         for (var i = 0; i < activeCars.length; i++) {
@@ -1574,6 +1616,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
     function addFloodScene() {
         scene.add(meshDict["flood"]);
+        removeCars();
     };
 
     function createWireframes() {
@@ -3343,29 +3386,35 @@ async function main(opts, list_of_files, game_graphics_opt) {
             rotY = (seed % 4) * (Math.PI / 2); // 0, 90, 180, 270 degrees
         }
 
+        var modelType = type;
+        if (!sizeOfObjects[modelType]) {
+            modelType = (buildingModelFallback && buildingModelFallback[modelType]) ? buildingModelFallback[modelType] : "Com";
+        }
+        var scaleVal = sizeOfObjects[modelType] || 1;
+
         new MTLLoader()
             .setPath('./models/modelExternal/')
-            .load(`${type}.mtl?v=15`, function (materials) {
+            .load(`${modelType}.mtl?v=15`, function (materials) {
                 materials.preload();
                 new OBJLoader()
                     .setMaterials(materials)
                     .setPath('./models/modelExternal/')
-                    .load(`${type}.obj?v=15`, function (object) {
+                    .load(`${modelType}.obj?v=15`, function (object) {
                         object.externalID = `${row}_${column}`;
                         object.name = type;
                         object.traverse(function (child) {
                             if (child.isMesh) {
                                 child.castShadow = true;
                                 child.receiveShadow = true;
-                                if (child.material) {
-                                    var processMaterial = function (mat) {
+                                child.material && (function (mat) {
+                                    var processMaterial = function (m) {
                                         var newMat = new THREE.MeshStandardMaterial({
-                                            color: mat.color,
+                                            color: m.color,
                                             roughness: 0.65,
                                             metalness: 0.1,
-                                            name: mat.name
+                                            name: m.name
                                         });
-                                        if (mat.name && mat.name.toLowerCase().includes("glass")) {
+                                        if (m.name && m.name.toLowerCase().includes("glass")) {
                                             newMat.roughness = 0.1;
                                             newMat.metalness = 0.25;
                                             newMat.emissive = new THREE.Color("#00f0ff");
@@ -3373,15 +3422,15 @@ async function main(opts, list_of_files, game_graphics_opt) {
                                         }
                                         return newMat;
                                     };
-                                    if (Array.isArray(child.material)) {
-                                        child.material = child.material.map(processMaterial);
+                                    if (Array.isArray(mat)) {
+                                        child.material = mat.map(processMaterial);
                                     } else {
-                                        child.material = processMaterial(child.material);
+                                        child.material = processMaterial(mat);
                                     }
-                                }
+                                })(child.material);
                             }
                         });
-                        object.scale.set(sizeOfObjects[type], sizeOfObjects[type], sizeOfObjects[type]);
+                        object.scale.set(scaleVal, scaleVal, scaleVal);
                         var buildingHeight = elevation_value;
                         if (typeof getCornerElevation !== "undefined") {
                             var y0 = getCornerElevation(row, column);
@@ -3452,6 +3501,11 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
             floodAction();
         };
+
+        // Update dynamic atmospheric weather system (rain particles, storm lighting, wind)
+        if (window.WeatherSystem) {
+            window.WeatherSystem.update(delta, elapsed);
+        }
 
         // Update low-poly cars and boats
         updateCars(delta);
@@ -3823,6 +3877,15 @@ async function main(opts, list_of_files, game_graphics_opt) {
 
         if (isBuildingStructure(row, column)) {
             fillSelectedBuilding(row, column);
+            if (typeof window.filterMitigationCards === 'function') {
+                window.filterMitigationCards(null);
+            }
+            if (typeof window.triggerAbilitiesTab === 'function') {
+                window.triggerAbilitiesTab();
+            } else {
+                const abilitiesTab = document.querySelector(".hud-tab-btn[data-target='mitigation-options']");
+                if (abilitiesTab) abilitiesTab.click();
+            }
         } else {
             clearSelectedBuilding();
         }
@@ -5199,6 +5262,7 @@ async function main(opts, list_of_files, game_graphics_opt) {
                 doFlood = !doFlood;
                 updateFloodInformation();
                 isFlood = true;
+                removeCars();
                 addFloodScene();
                 clearColorOfRiskyRegions();
                 //element.innerHTML = "Time is up!";
@@ -6299,9 +6363,7 @@ var dictOfDefaultMaps = {
         "sources/FloodTiles.json"
     ],
 };
-
-
-//main();
+window.dictOfDefaultMaps = dictOfDefaultMaps;
 
 // ── API Base URL (local vs production) ───────────────────────────────────────
 var API_BASE = window.location.hostname === "localhost"
@@ -6319,7 +6381,7 @@ function generateCustomMap() {
     }
 
     if (status) status.textContent = "Generating... (~60 sec)";
-    const btn = document.querySelector("#custom_city_card button");
+    const btn = document.querySelector(".custom-city-controls button, #custom_city_section button, #custom_city_card button");
     if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...'; }
 
     fetch(API_BASE + "/generate-map", {
@@ -6371,18 +6433,36 @@ function generateCustomMap() {
                 }
             }
 
+            // Read scenario & weather preset from DOM options
+            let weatherPreset = 'clear';
+            let scenarioMode = 'live';
+            for (let r of document.querySelectorAll('input[name="scenario-unified"]')) {
+                if (r.checked) {
+                    if (r.value === 'rain_live') weatherPreset = 'rain';
+                    else if (r.value === 'hurricane_live') weatherPreset = 'hurricane';
+                    else weatherPreset = 'clear';
+                }
+            }
+            window.selectedWeatherPreset = weatherPreset;
+            window.selectedScenarioMode = scenarioMode;
+
             setTimeout(() => {
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-cog"></i> Generate'; }
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-cog"></i> Generate Map'; }
                 if (status) status.textContent = "";
                 input.value = "";
 
+                // Reset any active tool filters so abilities cards are visible
+                if (typeof window.filterMitigationCards === 'function') {
+                    window.filterMitigationCards(null);
+                }
+
                 // Kick off game load via the official pipeline
-                startGame([0, 'custom', graphics]);
+                startGame([0, 'custom', graphics, scenarioMode, weatherPreset]);
             }, 500);
         })
         .catch(err => {
             if (status) status.textContent = "Error: " + err.message;
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-cog"></i> Generate'; }
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-cog"></i> Generate Map'; }
         });
 }
 window.generateCustomMap = generateCustomMap;
@@ -6415,6 +6495,11 @@ function startGame(name) {
         loadingOverlay.classList.remove("is-hidden");
     }
 
+    // Reset any active tool filters so abilities cards are visible
+    if (typeof window.filterMitigationCards === 'function') {
+        window.filterMitigationCards(null);
+    }
+
     var mapNames = {
         'des_moines': 'Des Moines, IA',
         'davenport': 'Davenport, IA',
@@ -6434,6 +6519,20 @@ function startGame(name) {
     // Update real-world aerial minimap location
     if (window.Minimap) {
         window.Minimap.setLocation(mapKey, displayName);
+    }
+
+    // Update real-time USGS river gauge telemetry & disaster scenario
+    var scenarioMode = (name && name[3]) || window.selectedScenarioMode || 'live';
+    var weatherPreset = (name && name[4]) || window.selectedWeatherPreset || 'clear';
+    window.selectedScenarioMode = scenarioMode;
+    window.selectedWeatherPreset = weatherPreset;
+
+    if (window.RiverTelemetry) {
+        window.RiverTelemetry.loadForCity(mapKey, scenarioMode);
+    }
+
+    if (window.WeatherSystem) {
+        window.WeatherSystem.setWeather(weatherPreset);
     }
 
     // Show top, bottom HUD bars, and minimap radar
@@ -7229,7 +7328,12 @@ function isInstancing(name) {
     /*
         if object is added to scene with non-instancing method, returns false.
     */
-    if (name == "Res1" || name == "Res2" || name == "Res3" || name == "Hos" || name == "School" || name == "Pol" || name == "Com" || name == "Fire") {
+    var nonInstanced = [
+        "Res1", "Res2", "Res3", "Hos", "School", "Pol", "Com", "Fire",
+        "Com2", "Wat", "Bank", "Chu", "Chse", "Htl", "Gas", "Ind",
+        "Shel1", "Shel2", "Shel3"
+    ];
+    if (nonInstanced.includes(name)) {
         return false;
     };
     return true;

@@ -122,17 +122,22 @@ html, body {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    max-width: 100vw;
+    height: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    box-sizing: border-box;
     /* Slate blue menu background matching user color swatch (#668aa3) */
     background: linear-gradient(180deg, #53758e 0%, #668aa3 50%, #4f7088 100%);
     z-index: 9999;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     overflow-y: auto;
-    padding: 20px;
+    overflow-x: hidden;
+    padding: 28px 20px 48px;
     transition: opacity 0.4s ease, visibility 0.4s ease;
     opacity: 0;
     visibility: hidden;
@@ -258,17 +263,25 @@ html, body {
     text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 16px;
+    margin: auto 0; /* Auto-centers when space is available; collapses gracefully when overflowing so top is NEVER clipped */
+    padding: 0 4px;
+    box-sizing: border-box;
 }
 
 /* Modern High-End Title Section */
 .menu-title-section {
-    margin-bottom: 6px;
+    margin-bottom: 4px;
+    padding-top: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
 .menu-title-section h1 {
-    font-size: 4.2rem;
-    letter-spacing: 6px;
+    font-size: clamp(2.2rem, 5.5vw, 4.2rem);
+    letter-spacing: clamp(2px, 0.6vw, 6px);
     text-transform: uppercase;
     font-family: var(--font-primary), 'Segoe UI', Roboto, sans-serif;
     font-weight: 900;
@@ -279,22 +292,28 @@ html, body {
     background-clip: text;
     filter: drop-shadow(0 4px 14px rgba(10, 25, 45, 0.45)) drop-shadow(0 0 30px rgba(255, 255, 255, 0.2));
     margin-bottom: 6px;
-    line-height: 1.05;
+    line-height: 1.15;
+    padding: 0.05em 0.1em;
+    max-width: 100%;
+    word-break: break-word;
 }
 
 .menu-title-badge {
     display: inline-block;
-    padding: 6px 20px;
+    padding: 6px clamp(12px, 2vw, 20px);
     background: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.28);
     border-radius: 20px;
     backdrop-filter: blur(8px);
     color: #e2f1fd;
-    font-size: 0.85rem;
+    font-size: clamp(0.68rem, 1.8vw, 0.85rem);
     font-weight: 600;
-    letter-spacing: 3px;
+    letter-spacing: clamp(1px, 0.35vw, 2.5px);
     text-transform: uppercase;
     box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    max-width: min(92vw, 560px);
+    white-space: normal;
+    line-height: 1.35;
 }
 
 .menu-title-section p {

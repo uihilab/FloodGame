@@ -7,3 +7,9 @@ Thumbs.db
 node_modules
 .env
 .vscode
+
+# Paper proposals and drafts
+PAPER_PROPOSAL.md
+floodgame_scientific_paper_proposal.md
+*paper_proposal*.md
+paper_figures/
