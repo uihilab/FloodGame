@@ -20,14 +20,14 @@ class MinimapManager {
         this.isCollapsed = false;
 
         // Preset city GPS coordinates (latitude, longitude, zoom)
+        // Precisely centered on the riverfront / flood zone matching each 50x50 game grid
         this.cityCoordinates = {
-            'iowa_city': { lat: 41.6611, lon: -91.5302, zoom: 16, name: 'Iowa City, IA' },
-            'cedar_rapids': { lat: 41.9779, lon: -91.6656, zoom: 16, name: 'Cedar Rapids, IA' },
-            'des_moines': { lat: 41.5868, lon: -93.6250, zoom: 16, name: 'Des Moines, IA' },
-            'davenport': { lat: 41.5236, lon: -90.5776, zoom: 16, name: 'Davenport, IA' },
-            'greenville': { lat: 33.4065, lon: -91.0610, zoom: 16, name: 'Greenville, MS' },
-            'st_bernard': { lat: 29.8788, lon: -89.8456, zoom: 16, name: 'St. Bernard Parish, LA' },
-            'baton_rouge': { lat: 30.4515, lon: -91.1871, zoom: 16, name: 'Baton Rouge, LA' }
+            'iowa_city': { lat: 41.6575, lon: -91.5400, zoom: 15, name: 'Iowa City, IA' },
+            'cedar_rapids': { lat: 41.9779, lon: -91.6705, zoom: 16, name: 'Cedar Rapids, IA' },
+            'des_moines': { lat: 41.5868, lon: -93.6180, zoom: 16, name: 'Des Moines, IA' },
+            'davenport': { lat: 41.5180, lon: -90.5750, zoom: 15, name: 'Davenport, IA' },
+            'greenville': { lat: 33.4065, lon: -91.0700, zoom: 16, name: 'Greenville, MS' },
+            'st_bernard': { lat: 29.9420, lon: -89.9880, zoom: 14, rotation: 90, name: 'St. Bernard Parish, LA' }
         };
 
         // World coordinates bounds (-2500 to +2500)
@@ -260,7 +260,16 @@ class MinimapManager {
 
         // 1. Draw Satellite / Hybrid Background
         if (this.imageLoaded && this.bgImage.complete && this.bgImage.naturalWidth !== 0) {
-            ctx.drawImage(this.bgImage, 0, 0, w, h);
+            const rot = this.cityCoordinates[this.currentCityKey]?.rotation || 0;
+            if (rot !== 0) {
+                ctx.save();
+                ctx.translate(w / 2, h / 2);
+                ctx.rotate(rot * Math.PI / 180);
+                ctx.drawImage(this.bgImage, -w / 2, -h / 2, w, h);
+                ctx.restore();
+            } else {
+                ctx.drawImage(this.bgImage, 0, 0, w, h);
+            }
             // Subtle dark overlay to make UI frustum pop
             ctx.fillStyle = "rgba(10, 15, 29, 0.2)";
             ctx.fillRect(0, 0, w, h);
@@ -412,6 +421,7 @@ class MinimapManager {
         const padding = 14;
         const cx = this.displayWidth - padding;
         const cy = padding;
+        const rot = this.cityCoordinates[this.currentCityKey]?.rotation || 0;
 
         ctx.save();
         ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
@@ -423,11 +433,16 @@ class MinimapManager {
         ctx.lineWidth = 1;
         ctx.stroke();
 
+        ctx.translate(cx, cy);
+        if (rot !== 0) {
+            ctx.rotate(rot * Math.PI / 180);
+        }
+
         ctx.fillStyle = "#38bdf8";
         ctx.font = "bold 8px system-ui, sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("N", cx, cy);
+        ctx.fillText("N", 0, 0);
         ctx.restore();
     }
 }

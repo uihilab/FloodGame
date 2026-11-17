@@ -136,7 +136,12 @@ function isInstancing(name){
     /*
         if object is added to scene with non-instancing method, returns false.
     */
-    if (name == "Res1" || name == "Res2" || name == "Res3" || name == "Hos" || name == "School" || name == "Pol" || name == "Com" || name == "Fire"){
+    var nonInstanced = [
+        "Res1", "Res2", "Res3", "Hos", "School", "Pol", "Com", "Fire",
+        "Com2", "Wat", "Bank", "Chu", "Chse", "Htl", "Gas", "Ind",
+        "Shel1", "Shel2", "Shel3"
+    ];
+    if (nonInstanced.includes(name)){
         return false;
     };
     return true;
